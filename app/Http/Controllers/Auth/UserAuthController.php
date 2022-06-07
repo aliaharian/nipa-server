@@ -25,6 +25,42 @@ class UserAuthController extends Controller
         return response([ 'user' => $user, 'token' => $token]);
     }
 
+
+        /**
+     * @OA\Post(
+     *   path="/v1/login",
+     *   tags={"Auth"},
+     *   summary="خلاصه",
+            *       description="توضیحات",
+     *   @OA\Parameter(
+     *      name="email",
+     *      in="query",
+     *      required=true,
+     *      @OA\Schema(
+     *           type="string"
+     *      )
+     *   ),
+     *   @OA\Parameter(
+     *      name="password",
+     *      in="query",
+     *      required=true,
+     *      @OA\Schema(
+     *          type="string"
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=404,
+     *      description="not found"
+     *   ),
+     *)
+     **/
     public function login(Request $request)
     {
         $data = $request->validate([
