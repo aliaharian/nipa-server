@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -23,6 +24,31 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+
+      /**
+     * @OA\Post(
+     *   path="/v1/products",
+     *   tags={"Products"},
+     *   summary="add product",
+        * @OA\RequestBody(
+        *    required=true,
+        *    description="Pass user credentials",
+        *    @OA\JsonContent(
+        *       required={"email","password"},
+        *       @OA\Property(property="name", type="string", format="string", example=""),
+        *    ),
+        * ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   security={{ "apiAuth": {} }}
+     *)
+     **/
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -30,7 +56,7 @@ class ProductController extends Controller
         ]);
 
         $product = Product::create($data);
-
+        return response()->json($product, 200);
     }
 
     /**

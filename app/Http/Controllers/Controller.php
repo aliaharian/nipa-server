@@ -6,11 +6,32 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
-/**
- * @OA\Info(
- *     title="nipa CRM API",
-*     description="nipa CRM API",
- *     version="1",
+    /**
+     * @OA\Info(
+     *      version="1.0.0",
+     *      title="nipa crm api",
+     *      description="L5 Swagger OpenApi description",
+     *      @OA\Contact(
+     *          email="admin@admin.com"
+     *      ),
+     *      @OA\License(
+     *          name="Apache 2.0",
+     *          url="http://www.apache.org/licenses/LICENSE-2.0.html"
+     *      )
+     * )
+     *
+     * @OA\Server(
+     *      url=L5_SWAGGER_CONST_HOST,
+     *      description="NIPA server"
+     * )
+ * @OA\SecurityScheme(
+ *     type="http",
+ *     description="Login with email and password to get the authentication token",
+ *     name="Token based Based",
+ *     in="header",
+ *     scheme="bearer",
+ *     bearerFormat="JWT",
+ *     securityScheme="apiAuth",
  * )
  */
 class Controller extends BaseController

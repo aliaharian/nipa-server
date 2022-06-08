@@ -21,3 +21,7 @@ Route::get('/', function () {
 Route::get('/create/type', [FormController::class, 'createType']);
 Route::post('/create/type', [FormController::class, 'createTypePost']);
 Route::get('/show/type', [FormController::class, 'showTypes']);
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
