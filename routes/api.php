@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductStepController;
 use App\Http\Controllers\RolePermission\PermissionController;
 use App\Http\Controllers\RolePermission\RoleController;
 
@@ -32,36 +33,43 @@ Route::prefix('/v1')->group(function () {
         Route::post('/completeProfile', [UserAuthController::class, 'completeProfile']);
         //get user profile
         Route::get('/profile', [UserAuthController::class, 'profile']);
-        Route::apiResource('products', ProductController::class);
         Route::prefix('roles')->group(function () {
                 //show my roles
                 Route::get('/my', [RoleController::class, 'myRoles']);
         }); 
-        
-        //only admin apis
-        Route::middleware(['role:admin'])->group(function() {
-            Route::prefix('roles')->group(function () {
-                //assign role to user
-                Route::post('/{role_id}/assign', [RoleController::class, 'assignRoleToUser']);
-                    //show user roles
-                Route::get('/user/{user_id}', [RoleController::class, 'userRoles']);
-                //show my roles
-                Route::get('/my', [RoleController::class, 'myRoles']);
-            });   
-            Route::apiResource('roles', RoleController::class);
 
-            Route::prefix('permissions')->group(function () {
-                //assign permission to role
-                Route::post('/{permission_id}/assign', [PermissionController::class, 'assignPermissionToRole']);
-            });   
-            Route::apiResource('permissions', PermissionController::class);
-        });
-        
+
+        //product apis
+        Route::apiResource('products', ProductController::class)->middleware('permission:manage-products');
+        Route::middleware(['permission:manage-products'])->prefix('products')->group(function () {
+            //show steps
+            Route::get('/{id}/steps', [ProductController::class, 'showSteps']);
+        }); 
+        //product steps apis
+        Route::apiResource('product/steps', ProductStepController::class)->middleware('permission:manage-products');
+        Route::middleware(['permission:manage-products'])->prefix('product/steps')->group(function () {
+            //show steps
+            Route::post('/bulk', [ProductStepController::class, 'storeBulk']);
+        }); 
+
+        Route::middleware(['permission:manage-roles'])->prefix('roles')->group(function () {
+            //assign role to user
+            Route::post('/{role_id}/assign', [RoleController::class, 'assignRoleToUser']);
+            //show user roles
+            Route::get('/user/{user_id}', [RoleController::class, 'userRoles']);
+            //show my roles
+            Route::get('/my', [RoleController::class, 'myRoles']);
+        });   
+        Route::apiResource('roles', RoleController::class)->middleware('permission:manage-roles');
+
+        Route::middleware(['permission:manage-permissions'])->prefix('permissions')->group(function () {
+            //assign permission to role
+            Route::post('/{permission_id}/assign', [PermissionController::class, 'assignPermissionToRole']);
+        });   
+        Route::apiResource('permissions', PermissionController::class)->middleware('permission:manage-permissions');
+
+        //form resource
+        Route::apiResource('forms', \App\Http\Controllers\FormController::class)->middleware('permission:manage-forms');
     });
 
-});
-
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
 });

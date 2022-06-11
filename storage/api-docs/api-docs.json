@@ -270,27 +270,63 @@
             }
         },
         "/v1/products": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "show all products",
+                "operationId": "34ee6e9e8fa0c95d9bd89cfc374a81e2",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Products"
                 ],
-                "summary": "add product",
+                "summary": "create a new product",
                 "operationId": "ef2288e0d31fb52d40e1ad1fd5e1ef8b",
                 "requestBody": {
-                    "description": "Pass user credentials",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "email",
-                                    "password"
+                                    "name",
+                                    "custom",
+                                    "price",
+                                    "description"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
                                         "format": "string",
-                                        "example": ""
+                                        "example": "product name"
+                                    },
+                                    "custom": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "0"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product description"
                                     }
                                 },
                                 "type": "object"
@@ -298,6 +334,358 @@
                         }
                     }
                 },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/products/{id}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "show one product",
+                "operationId": "74635301873c4746a6d33161052cfe1e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "update a product",
+                "operationId": "8774040d41d2ccb9b1710aee2adedbbf",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "custom",
+                                    "price",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product name"
+                                    },
+                                    "custom": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "0"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "delete a product",
+                "operationId": "fd60f2612deff0b190884985936096cb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/products/{id}/steps": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "get steps of a product",
+                "operationId": "1ad94bafbd622043446ef0ec0d92149b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps/bulk": {
+            "post": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "create a new product step bulk",
+                "operationId": "bec40e5f26160a24e6d8c9f29d88ffb9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "steps",
+                                    "product_id"
+                                ],
+                                "properties": {
+                                    "steps": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "step1,step2,step3"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps": {
+            "post": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "create a new product step",
+                "operationId": "970d7ba1b5e896079c711d8b9bca225f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "step_name",
+                                    "product_id",
+                                    "parent_step_id"
+                                ],
+                                "properties": {
+                                    "step_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "step1"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "parent_step_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps/{id}": {
+            "put": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "update a product step",
+                "operationId": "3b7098d43d8dddf666a2da8d741e73ed",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "step_name"
+                                ],
+                                "properties": {
+                                    "step_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "step name"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "delete a product step",
+                "operationId": "2bc1a482ef84e23576d30ce0c8373c9d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",

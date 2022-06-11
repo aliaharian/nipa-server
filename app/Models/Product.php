@@ -9,6 +9,19 @@ class Product extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'name'
+        'name',
+        'custom',
     ];
+    public function steps()
+    {
+        return $this->hasMany(ProductStep::class);
+    }
+    public function forms()
+    {
+        return $this->hasMany(Form::class);
+    }
+    public function details()
+    {
+        return $this->hasMany(ProductDetail::class);
+    }
 }
