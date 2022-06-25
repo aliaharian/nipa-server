@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductStepController;
 use App\Http\Controllers\RolePermission\PermissionController;
 use App\Http\Controllers\RolePermission\RoleController;
+use App\Http\Controllers\Form\FormController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,7 +70,7 @@ Route::prefix('/v1')->group(function () {
         Route::apiResource('permissions', PermissionController::class)->middleware('permission:manage-permissions');
 
         //form resource
-        Route::apiResource('forms', \App\Http\Controllers\FormController::class)->middleware('permission:manage-forms');
+        Route::apiResource('forms', FormController::class)->middleware('permission:manage-forms');
     });
 
 });

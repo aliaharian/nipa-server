@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Form;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class FormController extends Controller
+class FormFieldTypeController extends Controller
 {
     /**
      * Display a listing of the resource.

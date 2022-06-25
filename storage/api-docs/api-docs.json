@@ -269,6 +269,120 @@
                 ]
             }
         },
+        "/v1/forms": {
+            "get": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "show all forms",
+                "operationId": "32fae66eac96088ad3942a03a019c4a9",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "create a new form",
+                "operationId": "0474b84f298d5b5a8eaa01886e9dbeeb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "product_id",
+                                    "roles",
+                                    "product_steps"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "form1"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "20"
+                                    },
+                                    "roles": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "3,4"
+                                    },
+                                    "product_steps": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1,2,3"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/forms/{id}": {
+            "get": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "get a form by id",
+                "operationId": "99f619817ad2334c0d1d6a995dca019b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/products": {
             "get": {
                 "tags": [
