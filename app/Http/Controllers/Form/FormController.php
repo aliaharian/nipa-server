@@ -260,8 +260,42 @@ class FormController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    // Delete a form by id
+    /**
+     * @OA\Delete(
+     *  path="/v1/forms/{id}",
+     * tags={"Forms"},
+     * summary="delete a form by id",
+     * @OA\Parameter(
+     *     name="id",
+     *     in="path",
+     *     description="id of form",
+     *     required=true,
+     *     @OA\Schema(
+     *         type="integer",
+     *         format="int64",
+     *     )
+     * ),
+     * @OA\Response(
+     *     response=200,
+     *     description="Success",
+     *    @OA\MediaType(
+     *        mediaType="application/json",
+     *   )
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
     public function destroy($id)
     {
-        //
+        //delete form
+        $form = Form::find($id);
+        if(!$form){
+            return response()->json(['message'=>'form not found'], 404);
+        }
+        $form->delete();
+        return response()->json(['message'=>'form deleted'], 200);
+
     }
 }

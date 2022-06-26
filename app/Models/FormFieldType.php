@@ -9,6 +9,8 @@ class FormFieldType extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'type'
+        'type',
+        'label',
+        'has_options',
      ];
 }

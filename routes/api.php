@@ -8,6 +8,8 @@ use App\Http\Controllers\ProductStepController;
 use App\Http\Controllers\RolePermission\PermissionController;
 use App\Http\Controllers\RolePermission\RoleController;
 use App\Http\Controllers\Form\FormController;
+use App\Http\Controllers\Form\FormFieldController;
+use App\Http\Controllers\Form\FormFieldTypeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +73,13 @@ Route::prefix('/v1')->group(function () {
 
         //form resource
         Route::apiResource('forms', FormController::class)->middleware('permission:manage-forms');
+
+        //form field resource
+        Route::apiResource('formFieldTypes', FormFieldTypeController::class)->middleware('permission:manage-forms');
+    
+        //form field resource
+        Route::get('/formFields/product/{product_id}', [FormFieldController::class, 'getFieldsFromProduct']);
+        Route::apiResource('formFields', FormFieldController::class)->middleware('permission:manage-forms');
     });
 
 });
