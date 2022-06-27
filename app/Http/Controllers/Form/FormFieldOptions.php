@@ -142,5 +142,6 @@ class FormFieldOptions extends Controller
         }
         $options = ModelsFormFieldOptions::where('form_field_id',$field_id)->get();
         return response()->json(['field'=>$field , "options"=>$options]);
+        
     }
 }
