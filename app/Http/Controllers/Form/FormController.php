@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Form;
 
 use App\Http\Controllers\Controller;
 use App\Models\Form;
+use App\Models\FormField;
+use App\Models\FormFieldForm;
 use App\Models\Product;
 use App\Models\ProductStep;
 use App\Models\Role;
@@ -297,5 +299,110 @@ class FormController extends Controller
         $form->delete();
         return response()->json(['message'=>'form deleted'], 200);
 
+    }
+
+    // assign field to form
+    /**
+     * @OA\Post(
+     *  path="/v1/forms/{id}/fields",
+     * tags={"Forms"},
+     * summary="assign field to form",
+     * @OA\Parameter(
+     *     name="id",
+     *     in="path",
+     *     description="id of form",
+     *     required=true,
+     *     @OA\Schema(
+     *         type="integer",
+     *         format="int64",
+     *     )
+     * ),
+     * @OA\RequestBody(
+     *  required=true,
+     * @OA\JsonContent(
+     *  required={"field_id"},
+     * @OA\Property(property="field_id", type="integer", format="integer", example="20"),
+     * ),
+     * ),
+     * @OA\Response(
+     *     response=200,
+     *     description="Success",
+     *    @OA\MediaType(
+     *        mediaType="application/json",
+     *   )
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function assignFieldToForm($id , Request $request){
+        $data = request()->validate([
+            'field_id' => 'required|exists:form_fields,id',
+        ]);
+        $form = Form::find($id);
+        if(!$form){
+            return response()->json(['message'=>'form not found'], 404);
+        }
+        $field = FormField::find($data['field_id']);
+        if(!$field){
+            return response()->json(['message'=>'field not found'], 404);
+        }
+
+        if($form->product_id != $field->product_id){
+            return response()->json(['message'=>'field not related to form'], 406);
+        }
+
+        $formFieldForms = FormFieldForm::updateOrcreate([
+            'form_id' => $form->id,
+            'form_field_id' => $field->id,
+        ],[]);
+        
+        $formFieldForms->form;
+        $formFieldForms->field->type;
+
+        return response()->json(['message'=>'field assigned to form' , 'data'=>$formFieldForms], 200);
+    }
+
+    // show form fields
+    /**
+     * @OA\Get(
+     *  path="/v1/forms/{id}/fields",
+     * tags={"Forms"},
+     * summary="show form fields",
+     * @OA\Parameter(
+     *     name="id",
+     *     in="path",
+     *     description="id of form",
+     *     required=true,
+     *     @OA\Schema(
+     *         type="integer",
+     *         format="int64",
+     *     )
+     * ),
+     * @OA\Response(
+     *     response=200,
+     *     description="Success",
+     *    @OA\MediaType(
+     *        mediaType="application/json",
+     *   )
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+
+    public function showFormFields($id){
+        $form = Form::find($id);
+        if(!$form){
+            return response()->json(['message'=>'form not found'], 404);
+        }
+        $form->fields;
+        foreach ($form->fields as $field) {
+            $field->type;
+            if($field->type->type == 'radio' || $field->type->type == 'checkbox' || $field->type->type == 'dropdown' ){
+                $field->options;
+            }
+        }
+        return response()->json($form, 200);
     }
 }

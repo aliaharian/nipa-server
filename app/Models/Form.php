@@ -22,4 +22,8 @@ class Form extends Model
     {
         return $this->belongsToMany(ProductStep::class , 'product_step_forms' , 'form_id' , 'product_step_id');
     }
+    public function fields()
+    {
+        return $this->belongsToMany(FormField::class , 'form_field_forms' , 'form_id' , 'form_field_id');
+    }
 }

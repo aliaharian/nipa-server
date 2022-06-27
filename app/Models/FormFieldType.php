@@ -13,4 +13,9 @@ class FormFieldType extends Model
         'label',
         'has_options',
      ];
-}
+protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+} 

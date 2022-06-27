@@ -8,4 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class FormFieldForm extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'form_field_id',
+        'form_id',
+    ];
+
+    function form(){
+        return $this->belongsTo(Form::class, 'form_id' , 'id');
+    }
+
+    function field(){
+        return $this->belongsTo(FormField::class, 'form_field_id' , 'id' );
+    }
 }

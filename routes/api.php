@@ -9,6 +9,7 @@ use App\Http\Controllers\RolePermission\PermissionController;
 use App\Http\Controllers\RolePermission\RoleController;
 use App\Http\Controllers\Form\FormController;
 use App\Http\Controllers\Form\FormFieldController;
+use App\Http\Controllers\Form\FormFieldOptions;
 use App\Http\Controllers\Form\FormFieldTypeController;
 
 /*
@@ -72,14 +73,23 @@ Route::prefix('/v1')->group(function () {
         Route::apiResource('permissions', PermissionController::class)->middleware('permission:manage-permissions');
 
         //form resource
+        Route::post('forms/{id}/fields', [FormController::class, 'assignFieldToForm']);
+        Route::get('forms/{id}/fields', [FormController::class, 'showFormFields']);
         Route::apiResource('forms', FormController::class)->middleware('permission:manage-forms');
 
-        //form field resource
+        //form field type resource
         Route::apiResource('formFieldTypes', FormFieldTypeController::class)->middleware('permission:manage-forms');
     
         //form field resource
         Route::get('/formFields/product/{product_id}', [FormFieldController::class, 'getFieldsFromProduct']);
         Route::apiResource('formFields', FormFieldController::class)->middleware('permission:manage-forms');
+
+        //form field options resource
+        Route::post('formFieldOptions', [FormFieldOptions::class, 'create']);
+        Route::delete('formFieldOptions/{id}', [FormFieldOptions::class, 'destroy']);
+        //options of form
+        Route::get('formFieldOptions/field/{field_id}', [FormFieldOptions::class, 'optionsOfField']);
+
     });
 
 });

@@ -485,6 +485,92 @@
                 ]
             }
         },
+        "/v1/forms/{id}/fields": {
+            "get": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "show form fields",
+                "operationId": "af51a9b54d1935d62961b28e83ad4373",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "assign field to form",
+                "operationId": "55fdb160d9e4d3aa6095bd96e3f53f98",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "field_id"
+                                ],
+                                "properties": {
+                                    "field_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "20"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/formFields": {
             "get": {
                 "tags": [
@@ -555,7 +641,7 @@
                                         "format": "string",
                                         "example": "enter your phone number"
                                     },
-                                    "help_text": {
+                                    "helper_text": {
                                         "type": "string",
                                         "format": "string",
                                         "example": "helper text"
@@ -607,6 +693,294 @@
                     {
                         "name": "product_id",
                         "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFields/{id}": {
+            "get": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "show a form field",
+                "operationId": "d547ff8b86a61d576153992444056557",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "update form field",
+                "operationId": "99d2eb7f97b0e99eda80f842eb592480",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "name",
+                                    "form_field_type_id",
+                                    "label",
+                                    "placeholder",
+                                    "help_text",
+                                    "validation",
+                                    "required",
+                                    "min",
+                                    "max"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "19"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "mobile"
+                                    },
+                                    "form_field_type_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "7"
+                                    },
+                                    "label": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "phone number"
+                                    },
+                                    "placeholder": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "enter your phone number"
+                                    },
+                                    "helper_text": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "helper text"
+                                    },
+                                    "required": {
+                                        "type": "boolean",
+                                        "format": "integer",
+                                        "example": "true"
+                                    },
+                                    "min": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "max": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "100"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "delete form field",
+                "operationId": "37f62034d7f31a29af63b11458b6d144",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldOptions": {
+            "post": {
+                "tags": [
+                    "FormFieldOptions"
+                ],
+                "summary": "create form field option",
+                "operationId": "052700647a7093b71ec7685947742c50",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "form_field_id",
+                                    "option",
+                                    "label"
+                                ],
+                                "properties": {
+                                    "form_field_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "option": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "male"
+                                    },
+                                    "label": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "مرد"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldOptions/{id}": {
+            "delete": {
+                "tags": [
+                    "FormFieldOptions"
+                ],
+                "summary": "delete a form by id",
+                "operationId": "f96e4b2c58682234eb3927bd442f862a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of option",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldOptions/field/{field_id}": {
+            "get": {
+                "tags": [
+                    "FormFieldOptions"
+                ],
+                "summary": "get options of field",
+                "operationId": "e40bedcd413a04c2fdfd2eb7ab7eac17",
+                "parameters": [
+                    {
+                        "name": "field_id",
+                        "in": "path",
+                        "description": "id of field",
                         "required": true,
                         "schema": {
                             "type": "integer",

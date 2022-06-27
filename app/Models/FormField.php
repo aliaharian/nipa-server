@@ -21,4 +21,16 @@ class FormField extends Model
         'min',
         'max',
     ];
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+    function type(){
+        return $this->belongsTo(FormFieldType::class, 'form_field_type_id');
+    }
+
+    function options(){
+        return $this->hasMany(FormFieldOptions::class);
+    }
 }
