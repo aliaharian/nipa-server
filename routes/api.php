@@ -11,6 +11,7 @@ use App\Http\Controllers\Form\FormController;
 use App\Http\Controllers\Form\FormFieldController;
 use App\Http\Controllers\Form\FormFieldOptions;
 use App\Http\Controllers\Form\FormFieldTypeController;
+use App\Http\Controllers\User\UserAnswerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,7 @@ Route::prefix('/v1')->group(function () {
         Route::middleware(['permission:manage-products'])->prefix('product/steps')->group(function () {
             //show steps
             Route::post('/bulk', [ProductStepController::class, 'storeBulk']);
+            Route::put('/{id}/setCreateStep', [ProductStepController::class, 'setCreateStep']);
         }); 
 
         Route::middleware(['permission:manage-roles'])->prefix('roles')->group(function () {
@@ -90,6 +92,16 @@ Route::prefix('/v1')->group(function () {
         //options of form
         Route::get('formFieldOptions/field/{field_id}', [FormFieldOptions::class, 'optionsOfField']);
 
+
+
+
+
+        //user answeer form
+
+        Route::prefix('userAnswer')->group(function () {
+            //assign role to user
+            Route::post('/{form_id}/answer', [UserAnswerController::class, 'userAnswerForm']);
+        });  
     });
 
 });

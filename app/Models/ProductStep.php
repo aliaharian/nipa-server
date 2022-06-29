@@ -12,6 +12,7 @@ class ProductStep extends Model
         'step_name',
         'product_id',
         'parent_step_id',
+        'meta'
     ];
     //make timestamps hidden
     protected $hidden = [

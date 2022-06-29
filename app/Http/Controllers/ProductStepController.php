@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductStep;
 use Illuminate\Http\Request;
+use stdClass;
 
 class ProductStepController extends Controller
 {
@@ -222,5 +223,55 @@ class ProductStepController extends Controller
         }
         $product_step->delete();
         return response()->json(['message'=>'product step deleted'], 200);
+    }
+
+        /**
+     * @OA\Put(
+     *  path="/v1/product/steps/{id}/setCreateStep",
+     * tags={"ProductSteps"},
+     * summary="set step for create step",
+     * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * ),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function setCreateStep($id){
+        $step=ProductStep::find($id);
+        if(!$step){
+            return response()->json(['message'=>'product step not found'], 404);
+        }
+        //clear all metas of steps with same product id
+        $tmp = ProductStep::where('product_id', $step->product_id)->get();
+        foreach($tmp as $t){
+            $tTmp = ProductStep::find($t->id);
+            $tTmp->update([
+                'meta'=>null,
+            ]);
+        }
+
+        $meta = new \stdClass();
+        $meta->first_step = "true";
+
+        $step->update([
+            'meta'=>json_encode($meta),
+        ]);
+        //return response()->json($step, 200);
+
+        return response()->json($step, 200);
     }
 }

@@ -12,6 +12,8 @@ class Form extends Model
         'name',
         'product_id',
     ];
+    protected $appends = array('translate');
+
 
     public function roles()
     {
@@ -25,5 +27,9 @@ class Form extends Model
     public function fields()
     {
         return $this->belongsToMany(FormField::class , 'form_field_forms' , 'form_id' , 'form_field_id');
+    }
+    public function getTranslateAttribute()
+    {
+        return 'ok haha';
     }
 }

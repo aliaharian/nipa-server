@@ -98,6 +98,9 @@ class FormController extends Controller
             if(!$product_step){
                 return response()->json(['message'=>'product step not found' , "step" => $step], 404);
             }
+            if($product_step->product_id !== $data['product_id']){
+                return response()->json(['message'=>'product step not related to form' , "step" => $step], 404);
+            }
         }
 
         $roles = explode(',', $data['roles']);

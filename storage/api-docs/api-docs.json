@@ -1639,6 +1639,39 @@
                 ]
             }
         },
+        "/v1/product/steps/{id}/setCreateStep": {
+            "put": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "set step for create step",
+                "operationId": "281c40e0c695fd6440a2ed90642c75ef",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/permissions": {
             "get": {
                 "tags": [
@@ -2168,6 +2201,59 @@
                 ],
                 "summary": "show my roles",
                 "operationId": "844aeeb491f4424e30e4d9bd7023efa4",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/userAnswer/{form_id}/answer": {
+            "post": {
+                "tags": [
+                    "UserAnswer"
+                ],
+                "summary": "answer user to form",
+                "operationId": "0abe31942c7133b0eca1e0ad5846f1f6",
+                "parameters": [
+                    {
+                        "name": "form_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "field_name"
+                                ],
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "field value"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Success",
