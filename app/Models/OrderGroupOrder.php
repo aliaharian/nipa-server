@@ -8,4 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class OrderGroupOrder extends Model
 {
     use HasFactory;
+    protected $fillable = ['order_group_id', 'order_id'];
+
+    public function order(){
+        return $this->belongsTo(Order::class);
+    }
+    
 }

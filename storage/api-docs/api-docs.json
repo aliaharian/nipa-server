@@ -1207,6 +1207,221 @@
                 ]
             }
         },
+        "/v1/order": {
+            "post": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "create order",
+                "operationId": "b708b3e0cc39b78e556fc447ad9809b5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "order_group_id"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "20"
+                                    },
+                                    "order_group_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "4"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/orderGroup": {
+            "get": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "list of order groups",
+                "operationId": "a077c5006307f9f4e7029aee14a067e0",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "create order group",
+                "operationId": "e77eebb2cb571a94c0c4b9884c9840a9",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/orderGroup/{id}": {
+            "get": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "show order group",
+                "operationId": "de364d3e742dfb4b394619120aed41d3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "update order group",
+                "operationId": "01d12607fddb05faf9cec93ae9a475ce",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "total_price",
+                                    "total_off"
+                                ],
+                                "properties": {
+                                    "total_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "12000"
+                                    },
+                                    "total_off": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "5000"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "delete order group",
+                "operationId": "4ea7bda54eefa49e86251e747232ed0c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/products": {
             "get": {
                 "tags": [
@@ -2240,13 +2455,13 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "field_name"
+                                    "form_id"
                                 ],
                                 "properties": {
-                                    "field_name": {
+                                    "form_id": {
                                         "type": "string",
                                         "format": "string",
-                                        "example": "field value"
+                                        "example": "4"
                                     }
                                 },
                                 "type": "object"

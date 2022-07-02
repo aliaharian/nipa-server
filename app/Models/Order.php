@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
+    protected $fillable = ['product_id', 'user_id'];
+
+    public function orderGroup(){
+        return $this->belongsTo(OrderGroup::class);
+    }
 }

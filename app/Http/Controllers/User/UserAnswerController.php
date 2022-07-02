@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Form;
+use App\Models\Order;
 use App\Models\UserAnswer;
 use Illuminate\Http\Request;
 
@@ -27,8 +28,8 @@ class UserAnswerController extends Controller
     * @OA\RequestBody(
      * required=true,
      * @OA\JsonContent(
-     * required={"field_name"},
-     * @OA\Property(property="field_name", type="string", format="string", example="field value"),
+     * required={"form_id"},
+     * @OA\Property(property="form_id", type="string", format="string", example="4"),
      * ),
      * ),
      * @OA\Response(
@@ -58,7 +59,7 @@ class UserAnswerController extends Controller
         $fields = $form->fields;
         //validate fields if required  
         $requirements = array();
-
+        $requirements['order_id'] = 'required|exists:orders,id';
         foreach($fields as $field){
             $tmp="";
             if($field->required){
@@ -67,25 +68,32 @@ class UserAnswerController extends Controller
             if($field->type->validations){
                 $tmp.= '|'.$field->type->validations;
             }
-            //todo: add validation for enum for items that has multiple options like checkbox or radio
-
+            if($field->type->has_options==1){
+                $options=array();
+                foreach($field->options as $option){
+                    $options[]=$option->option;
+                }
+                $tmp.= '|in:'.implode(',' , $options);
+            }
 
             $requirements[$field->name] = $tmp;
         }
-        // return response()->json(["userrole"=>$requirements]);
 
         $data = $request->validate($requirements);
-       
-
        
         $formStep = $form->productSteps()->first();
         if(!$formStep){
             return response()->json(['message'=>'form has no steps'], 404);
         }
-        $formStepMeta = json_decode($formStep->meta);
-        if($formStepMeta->first_step == 'true'){
-            ///////create order
-        }
+        // $formStepMeta = json_decode($formStep->meta);
+        // if($formStepMeta->first_step == 'true'){
+        //     ///////create order
+        //     $order = Order::create([
+
+        //     ]);
+        // }
+
+
         return response()->json(["userrole"=>$fields , "formRole"=>$form_roles]);
     }
 }

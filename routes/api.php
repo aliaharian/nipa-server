@@ -11,6 +11,8 @@ use App\Http\Controllers\Form\FormController;
 use App\Http\Controllers\Form\FormFieldController;
 use App\Http\Controllers\Form\FormFieldOptions;
 use App\Http\Controllers\Form\FormFieldTypeController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Order\OrderGroupController;
 use App\Http\Controllers\User\UserAnswerController;
 
 /*
@@ -93,15 +95,14 @@ Route::prefix('/v1')->group(function () {
         Route::get('formFieldOptions/field/{field_id}', [FormFieldOptions::class, 'optionsOfField']);
 
 
-
-
-
-        //user answeer form
-
+        //user answer form
         Route::prefix('userAnswer')->group(function () {
             //assign role to user
             Route::post('/{form_id}/answer', [UserAnswerController::class, 'userAnswerForm']);
         });  
+        Route::apiResource('order', OrderController::class);
+        Route::apiResource('orderGroup', OrderGroupController::class);
+
     });
 
 });
