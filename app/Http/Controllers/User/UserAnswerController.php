@@ -28,8 +28,8 @@ class UserAnswerController extends Controller
     * @OA\RequestBody(
      * required=true,
      * @OA\JsonContent(
-     * required={"form_id"},
-     * @OA\Property(property="form_id", type="string", format="string", example="4"),
+     * required={"order_id"},
+     * @OA\Property(property="order_id", type="string", format="string", example="4"),
      * ),
      * ),
      * @OA\Response(
@@ -56,6 +56,8 @@ class UserAnswerController extends Controller
         if(count($intersect) == 0){
             return response()->json(['message'=>'user not allowed to answer this form'], 403);
         }
+        //check if user created this order if not admin
+
         $fields = $form->fields;
         //validate fields if required  
         $requirements = array();
@@ -92,8 +94,19 @@ class UserAnswerController extends Controller
 
         //     ]);
         // }
+        //create user answer
+       foreach($fields as $field){
+            $userAnswer = UserAnswer::updateOrCreate([
+                'user_id'=>$user->id,
+                'form_field_id'=>$field->id,
+                'order_id'=>$data['order_id'],
+            ],[
+                'answer'=>$request[$field->name],
+            ]);
+        }
 
+        $userAnswer = UserAnswer::where('user_id',$user->id)->where('order_id',$data['order_id'])->get();
 
-        return response()->json(["userrole"=>$fields , "formRole"=>$form_roles]);
+        return response()->json(["userAnswer"=>$userAnswer], 200);
     }
 }

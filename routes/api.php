@@ -13,6 +13,9 @@ use App\Http\Controllers\Form\FormFieldOptions;
 use App\Http\Controllers\Form\FormFieldTypeController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderGroupController;
+use App\Http\Controllers\Translation\KeywordController;
+use App\Http\Controllers\Translation\LanguageController;
+use App\Http\Controllers\Translation\TranslationController;
 use App\Http\Controllers\User\UserAnswerController;
 
 /*
@@ -102,6 +105,11 @@ Route::prefix('/v1')->group(function () {
         });  
         Route::apiResource('order', OrderController::class);
         Route::apiResource('orderGroup', OrderGroupController::class);
+
+
+        Route::apiResource('languages', LanguageController::class)->middleware('permission:manage-translation');
+        Route::apiResource('keywords', KeywordController::class)->middleware('permission:manage-translation');
+        Route::post('translations',[ TranslationController::class , 'addTranslation'])->middleware('permission:manage-translation');
 
     });
 

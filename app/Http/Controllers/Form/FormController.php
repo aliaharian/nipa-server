@@ -137,6 +137,16 @@ class FormController extends Controller
      * tags={"Forms"},
      * summary="get a form by id",
      * @OA\Parameter(
+     *     name="language",
+     *     in="header",
+     *     description="language",
+     *     required=true,
+     *     @OA\Schema(
+     *         type="string",
+     *         format="int64",
+     *     )
+     * ),    
+     * @OA\Parameter(
      *     name="id",
      *     in="path",
      *     description="id of form",
@@ -157,7 +167,7 @@ class FormController extends Controller
      * )
      * )
      */
-    public function show($id)
+    public function show($id , Request $request)
     {
         //show form
         $form = Form::find($id);
@@ -351,9 +361,9 @@ class FormController extends Controller
             return response()->json(['message'=>'field not found'], 404);
         }
 
-        if($form->product_id != $field->product_id){
-            return response()->json(['message'=>'field not related to form'], 406);
-        }
+        // if($form->product_id != $field->product_id){
+        //     return response()->json(['message'=>'field not related to form'], 406);
+        // }
 
         $formFieldForms = FormFieldForm::updateOrcreate([
             'form_id' => $form->id,
@@ -372,6 +382,16 @@ class FormController extends Controller
      *  path="/v1/forms/{id}/fields",
      * tags={"Forms"},
      * summary="show form fields",
+      * @OA\Parameter(
+     *     name="language",
+     *     in="header",
+     *     description="language",
+     *     required=true,
+     *     @OA\Schema(
+     *         type="string",
+     *         format="int64",
+     *     )
+     * ),  
      * @OA\Parameter(
      *     name="id",
      *     in="path",
@@ -402,6 +422,7 @@ class FormController extends Controller
         $form->fields;
         foreach ($form->fields as $field) {
             $field->type;
+            $field['default_value'] = $field->defaultValue($form->id);
             if($field->type->type == 'radio' || $field->type->type == 'checkbox' || $field->type->type == 'dropdown' ){
                 $field->options;
             }

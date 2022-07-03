@@ -358,6 +358,16 @@
                 "operationId": "99f619817ad2334c0d1d6a995dca019b",
                 "parameters": [
                     {
+                        "name": "language",
+                        "in": "header",
+                        "description": "language",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "int64"
+                        }
+                    },
+                    {
                         "name": "id",
                         "in": "path",
                         "description": "id of form",
@@ -494,6 +504,16 @@
                 "operationId": "af51a9b54d1935d62961b28e83ad4373",
                 "parameters": [
                     {
+                        "name": "language",
+                        "in": "header",
+                        "description": "language",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "int64"
+                        }
+                    },
+                    {
                         "name": "id",
                         "in": "path",
                         "description": "id of form",
@@ -616,11 +636,6 @@
                                     "max"
                                 ],
                                 "properties": {
-                                    "product_id": {
-                                        "type": "integer",
-                                        "format": "integer",
-                                        "example": "19"
-                                    },
                                     "name": {
                                         "type": "string",
                                         "format": "string",
@@ -2431,6 +2446,420 @@
                 ]
             }
         },
+        "/v1/keywords": {
+            "get": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "show all keywords",
+                "operationId": "674f923992c0bf9df9edf6324900da50",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "create a new Keyword",
+                "operationId": "0b6c3a5160c535c3ac231615da77ef43",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "Keyword"
+                                ],
+                                "properties": {
+                                    "keyword": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "hello"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/keywords/{id}": {
+            "get": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "get a Keyword by id",
+                "operationId": "7c2cb70ecc0581521e8d0225942e59c8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of Keyword",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "update a Keyword by id",
+                "operationId": "9ca769f7ded02c71e1124cc003441d58",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of Keyword",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "Keyword"
+                                ],
+                                "properties": {
+                                    "keyword": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "english"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "delete a Keyword by id",
+                "operationId": "67b0a8cf21717f68083137bd97d96e69",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of Keyword",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/languages": {
+            "get": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "show all languages",
+                "operationId": "a0da78e79869f0aef133b5028701d8ce",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "create a new language",
+                "operationId": "5bf01926f1c1ecbdfd2bbff5abf0b3a8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "language"
+                                ],
+                                "properties": {
+                                    "language": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "persian"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/languages/{id}": {
+            "get": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "get a language by id",
+                "operationId": "4c03d80f6330320cd96bcf29ffa4c318",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of language",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "update a language by id",
+                "operationId": "c9e4f5b81f3ba7f9d6f29d08e2d5b24c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of language",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "language"
+                                ],
+                                "properties": {
+                                    "language": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "english"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "delete a language by id",
+                "operationId": "385b43b82610819fdcb06e999f26093e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of language",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/translations": {
+            "post": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "create a new translation",
+                "operationId": "43e9acec45b2fa7ecdf6f47e056e01d5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "Keyword_id",
+                                    "language_id",
+                                    "translation"
+                                ],
+                                "properties": {
+                                    "keyword_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "language_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "translation": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "hello"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/userAnswer/{form_id}/answer": {
             "post": {
                 "tags": [
@@ -2455,10 +2884,10 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "form_id"
+                                    "order_id"
                                 ],
                                 "properties": {
-                                    "form_id": {
+                                    "order_id": {
                                         "type": "string",
                                         "format": "string",
                                         "example": "4"

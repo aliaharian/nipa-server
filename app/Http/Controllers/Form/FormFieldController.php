@@ -102,7 +102,6 @@ class FormFieldController extends Controller
      *  required=true,
      * @OA\JsonContent(
      *  required={"product_id" , "name" , "form_field_type_id" , "label" , "placeholder","help_text","validation","required","min" , "max"},
-     * @OA\Property(property="product_id", type="integer", format="integer", example="19"),
      * @OA\Property(property="name", type="string", format="string", example="mobile"),
      * @OA\Property(property="form_field_type_id", type="integer", format="integer", example="7"),
      * @OA\Property(property="label", type="string", format="string", example="phone number"),
@@ -128,7 +127,7 @@ class FormFieldController extends Controller
     {
         //validate
         $this->validate($request, [
-            'product_id' => 'required|integer|exists:products,id',
+            // 'product_id' => 'required|integer|exists:products,id',
             'name' => 'required|string',
             'form_field_type_id' => 'required|integer|exists:form_field_types,id',
             'label' => 'required|string',
