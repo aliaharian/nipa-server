@@ -42,14 +42,20 @@ class FormField extends Model
     {
         $user = Auth::user();
         $product_id = Form::find($form_id)->product_id;
-        $order_id = Order::where('user_id',$user->id)->where('product_id',$product_id)->first()->id;
-        $userAnswer = UserAnswer::where('form_field_id', $this->id)->where('user_id',$user->id)->where('order_id',$order_id)->first();
-        if($userAnswer){
-            if($this->type->has_options == 1){
-                $option = FormFieldOptions::where('option',$userAnswer->answer)->first();
-                return $option;
+        $order = Order::where('user_id',$user->id)->where('product_id',$product_id)->first();
+        if($order){
+            $order_id = $order->id;
+        
+            $userAnswer = UserAnswer::where('form_field_id', $this->id)->where('user_id',$user->id)->where('order_id',$order_id)->first();
+            if($userAnswer){
+                if($this->type->has_options == 1){
+                    $option = FormFieldOptions::where('option',$userAnswer->answer)->first();
+                    return $option;
+                }else{
+                return $userAnswer->answer;
+                }
             }else{
-            return $userAnswer->answer;
+                return null;
             }
         }else{
             return null;
