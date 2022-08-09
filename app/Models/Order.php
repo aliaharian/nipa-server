@@ -13,4 +13,9 @@ class Order extends Model
     public function orderGroup(){
         return $this->belongsTo(OrderGroup::class);
     }
+
+    public function product(){
+        return $this->belongsTo(Product::class);
+    }
+    
 }

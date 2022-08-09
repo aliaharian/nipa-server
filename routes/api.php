@@ -11,6 +11,7 @@ use App\Http\Controllers\Form\FormController;
 use App\Http\Controllers\Form\FormFieldController;
 use App\Http\Controllers\Form\FormFieldOptions;
 use App\Http\Controllers\Form\FormFieldTypeController;
+use App\Http\Controllers\Invoice\InvoiceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderGroupController;
 use App\Http\Controllers\Translation\KeywordController;
@@ -110,6 +111,13 @@ Route::prefix('/v1')->group(function () {
         Route::apiResource('languages', LanguageController::class)->middleware('permission:manage-translation');
         Route::apiResource('keywords', KeywordController::class)->middleware('permission:manage-translation');
         Route::post('translations',[ TranslationController::class , 'addTranslation'])->middleware('permission:manage-translation');
+
+        Route::middleware(['permission:manage-invoices'])->prefix('invoices')->group(function () {
+            //show invoice by order group id
+            Route::get('/{order_group_id}', [InvoiceController::class, 'show']);
+            Route::post('/{invoice_id}', [InvoiceController::class, 'create']);
+        });  
+
 
     });
 

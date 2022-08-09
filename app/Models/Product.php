@@ -24,4 +24,16 @@ class Product extends Model
     {
         return $this->hasMany(ProductDetail::class);
     }
+    public function fieldValue($fieldName)
+    {
+        $forms = $this->forms;
+        foreach($forms as $form){
+            $fields = $form->fields;
+            foreach($fields as $field){
+                if($field->name == $fieldName){
+                    return $field->defaultValue($form->id);
+                }
+            }
+        }
+    }
 }

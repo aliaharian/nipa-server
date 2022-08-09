@@ -1222,6 +1222,124 @@
                 ]
             }
         },
+        "/v1/invoices/{order_group_id}": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "get a invoice by order group id",
+                "operationId": "de8f15628ae8bfd15541a7dc5cc81afd",
+                "parameters": [
+                    {
+                        "name": "order_group_id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/invoices/{invoice_id}": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "create a invoice item",
+                "operationId": "0d4f37a478dbd9be3c21f84eacedd8a1",
+                "parameters": [
+                    {
+                        "name": "invoice_id",
+                        "in": "path",
+                        "description": "id of invoice",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "حمل و نقل"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "حمل و نقل"
+                                    },
+                                    "off_percent": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "10"
+                                    },
+                                    "area": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "length": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "width": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/order": {
             "post": {
                 "tags": [

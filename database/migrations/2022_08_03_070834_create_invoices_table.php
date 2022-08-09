@@ -19,6 +19,8 @@ class CreateInvoicesTable extends Migration
             $table->string('off_percent');
             
             $table->timestamps();
+
+            $table->foreign('order_group_id')->references('id')->on('order_groups')->onDelete('cascade');
         });
     }
 
