@@ -145,7 +145,7 @@ class UserAuthController extends Controller
 
         $user->otp = $otp;
         $user->save();
-        sendOtpSms($otp, $user->mobile);
+        // sendOtpSms($otp, $user->mobile);
 
         return response()->json([
             'message' => 'otp sent',
