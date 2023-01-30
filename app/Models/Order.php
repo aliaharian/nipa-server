@@ -8,13 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    protected $fillable = ['product_id', 'user_id'];
+    protected $fillable = ['product_id', 'user_id', 'customer_name'];
 
-    public function orderGroup(){
-        return $this->belongsTo(OrderGroup::class);
+    public function orderGroup()
+    {
+        //from order_group_orders table
+        return $this->belongsToMany(OrderGroup::class, 'order_group_orders');
     }
 
-    public function product(){
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function product()
+    {
         return $this->belongsTo(Product::class);
     }
 }

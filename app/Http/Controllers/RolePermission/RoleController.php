@@ -333,6 +333,7 @@ class RoleController extends Controller
     public function myRoles()
     {
         //show current user roles
+        
         $user = Auth::user();
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);

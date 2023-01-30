@@ -1341,6 +1341,26 @@
             }
         },
         "/v1/order": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "list of orders",
+                "operationId": "7f7d2d306809f6beed5cac8feeb35683",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Order"
@@ -1366,6 +1386,11 @@
                                         "type": "integer",
                                         "format": "integer",
                                         "example": "4"
+                                    },
+                                    "customer_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "علی اهاریان"
                                     }
                                 },
                                 "type": "object"

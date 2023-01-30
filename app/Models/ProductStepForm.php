@@ -18,4 +18,10 @@ class ProductStepForm extends Model
     {
         return $this->belongsTo(ProductStep::class , 'product_step_forms');
     }
+
+    //form from form table
+    public function form()
+    {
+        return $this->belongsTo(Form::class);
+    }
 }

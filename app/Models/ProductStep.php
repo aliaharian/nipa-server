@@ -23,5 +23,11 @@ class ProductStep extends Model
     {
         return $this->belongsTo(Product::class);
     }
-    
+
+    //forms from product_step_forms table
+    public function forms()
+    {
+        return $this->hasMany(ProductStepForm::class);
+    }
+
 }
