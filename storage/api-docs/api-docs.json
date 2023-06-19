@@ -1,0 +1,3832 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "nipa crm api",
+        "description": "L5 Swagger OpenApi description",
+        "contact": {
+            "email": "admin@admin.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api",
+            "description": "NIPA server"
+        }
+    ],
+    "paths": {
+        "/v1/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "register with email and password",
+                "operationId": "f068aa8dd332bb97ec58a23c37b2c9c1",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "ali"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "admin@admin.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "login with email and password",
+                "operationId": "b86d690c60b05da058af07a81b4a0786",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "admin@admin.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/sendOtp": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "send otp",
+                "operationId": "40c46e433b71b54c247bfbbe9ac0c64e",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "mobile"
+                                ],
+                                "properties": {
+                                    "mobile": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "09307473703"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/confirmOtp": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "confirm otp",
+                "operationId": "fa0f33a4a2e4ff0542fc38c0b777e2b1",
+                "requestBody": {
+                    "description": "Pass user credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "mobile",
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "mobile": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "09307473703"
+                                    },
+                                    "otp": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1234"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/completeProfile": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "complete profile",
+                "operationId": "c262144429a19739dace00799b68c84d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "last_name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "ali"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "aharian"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/profile": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "get user profile",
+                "operationId": "80ecdb70a9555a9765019ea1d61de1b3",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/basicData": {
+            "get": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "list of basic datas",
+                "operationId": "638bcbc329977aa61661478887f08225",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "create basic data",
+                "operationId": "797111614fe969925a38e33b94cb0158",
+                "requestBody": {
+                    "description": "Pass basic data properties",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "name of basic data",
+                                        "type": "string",
+                                        "example": "basic data name"
+                                    },
+                                    "type": {
+                                        "description": "type of basic data",
+                                        "type": "string",
+                                        "example": "basic data type"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/basicData/{id}": {
+            "get": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "show basic data",
+                "operationId": "7d219709f12f59f70e4376bafdd13b34",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "basic data id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "update basic data",
+                "operationId": "0e36f6de2ca1dc28238227435647429e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "basic data id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Pass basic data properties",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "name of basic data",
+                                        "type": "string",
+                                        "example": "basic data name"
+                                    },
+                                    "type": {
+                                        "description": "type of basic data",
+                                        "type": "string",
+                                        "example": "basic data type"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "delete basic data",
+                "operationId": "d2a286e9b6f0424215059234c3ff755c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "basic data id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/basicData/item/{id}/updateStatus": {
+            "post": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "update status basic data item",
+                "operationId": "1f32dd3ee8c2f976d1d2ac9af242f4de",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "basic data id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/basicData/item/{id}": {
+            "put": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "update basic data item",
+                "operationId": "a5f3260d5b8766cc72d15652248f34db",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "basic data item id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Pass basic data properties",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "name of basic data item",
+                                        "type": "string",
+                                        "example": "basic data item name"
+                                    },
+                                    "code": {
+                                        "description": "name of basic data item",
+                                        "type": "string",
+                                        "example": "basic data item code"
+                                    },
+                                    "status": {
+                                        "description": "status of basic data item",
+                                        "type": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "delete basic data item ",
+                "operationId": "325144cb901d6bcd00de3253d590eee9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "basic data item id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/basicData/{id}/addItem": {
+            "post": {
+                "tags": [
+                    "BasicData"
+                ],
+                "summary": "add item to basic data",
+                "operationId": "e71dbddd8f2d2d4f28cc2202f5aa9e22",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "basic data id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Pass item properties",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "description": "code of item",
+                                        "type": "string",
+                                        "example": "item code"
+                                    },
+                                    "name": {
+                                        "description": "name of item",
+                                        "type": "string",
+                                        "example": "item name"
+                                    },
+                                    "status": {
+                                        "description": "status of item",
+                                        "type": "string",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/files": {
+            "post": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "Upload a file",
+                "description": "Upload a file to the server",
+                "operationId": "645270c3ac7a74e12ba9c0234f037999",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "description": "The file to upload",
+                                        "type": "file"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/files/{hashCode}": {
+            "get": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "Get a file",
+                "description": "Get a file from the server",
+                "operationId": "8e17b221cf90973ed338c5d393826f86",
+                "parameters": [
+                    {
+                        "name": "hashCode",
+                        "in": "path",
+                        "description": "The hashCode of the file to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "e9c721b17d447656204334118ef23c80"
+                    },
+                    {
+                        "name": "thumbnail",
+                        "in": "query",
+                        "description": "Get a thumbnail of the file",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "Delete a file",
+                "description": "Deletes a file by its ID",
+                "operationId": "deleteFile",
+                "parameters": [
+                    {
+                        "name": "hashCode",
+                        "in": "path",
+                        "description": "hashCode of the file to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "File deleted successfully",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/forms": {
+            "get": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "show all forms",
+                "operationId": "32fae66eac96088ad3942a03a019c4a9",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "create a new form",
+                "operationId": "0474b84f298d5b5a8eaa01886e9dbeeb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "product_id",
+                                    "roles",
+                                    "product_steps"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "form1"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "20"
+                                    },
+                                    "product_steps": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1,2,3"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/forms/{id}": {
+            "get": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "get a form by id",
+                "operationId": "99f619817ad2334c0d1d6a995dca019b",
+                "parameters": [
+                    {
+                        "name": "language",
+                        "in": "header",
+                        "description": "language",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "update a form by id",
+                "operationId": "56816a52b3e4ba7e43eccab677059608",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "product_id",
+                                    "roles",
+                                    "product_steps"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "form1"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "20"
+                                    },
+                                    "roles": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "3,4"
+                                    },
+                                    "product_steps": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1,2,3"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "delete a form by id",
+                "operationId": "e41d99dac4bab2f8675cf9adbeeaabd1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/forms/{id}/fields": {
+            "get": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "show form fields",
+                "operationId": "af51a9b54d1935d62961b28e83ad4373",
+                "parameters": [
+                    {
+                        "name": "language",
+                        "in": "header",
+                        "description": "language",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Forms"
+                ],
+                "summary": "assign field to form",
+                "operationId": "55fdb160d9e4d3aa6095bd96e3f53f98",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "field_id"
+                                ],
+                                "properties": {
+                                    "field_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "20"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFields": {
+            "get": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "show all form fields",
+                "operationId": "a420a0e592f766eeb18d3353822316de",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "create a new form field",
+                "operationId": "ff2fd31916f0cb3a53ee93a54a428d41",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "name",
+                                    "form_field_type_id",
+                                    "label",
+                                    "placeholder",
+                                    "help_text",
+                                    "validation",
+                                    "required",
+                                    "min",
+                                    "max"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "mobile"
+                                    },
+                                    "form_field_type_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "7"
+                                    },
+                                    "label": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "phone number"
+                                    },
+                                    "placeholder": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "enter your phone number"
+                                    },
+                                    "helper_text": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "helper text"
+                                    },
+                                    "required": {
+                                        "type": "boolean",
+                                        "format": "integer",
+                                        "example": "true"
+                                    },
+                                    "min": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "max": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "100"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFields/product/{product_id}": {
+            "get": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "show form fields of specific product",
+                "operationId": "b53d360ef65e085434c7815e74b402cd",
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFields/{id}": {
+            "get": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "show a form field",
+                "operationId": "d547ff8b86a61d576153992444056557",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "update form field",
+                "operationId": "99d2eb7f97b0e99eda80f842eb592480",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "name",
+                                    "form_field_type_id",
+                                    "label",
+                                    "placeholder",
+                                    "help_text",
+                                    "validation",
+                                    "required",
+                                    "min",
+                                    "max"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "19"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "mobile"
+                                    },
+                                    "form_field_type_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "7"
+                                    },
+                                    "label": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "phone number"
+                                    },
+                                    "placeholder": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "enter your phone number"
+                                    },
+                                    "helper_text": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "helper text"
+                                    },
+                                    "required": {
+                                        "type": "boolean",
+                                        "format": "integer",
+                                        "example": "true"
+                                    },
+                                    "min": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "max": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "100"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "FormFields"
+                ],
+                "summary": "delete form field",
+                "operationId": "37f62034d7f31a29af63b11458b6d144",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldOptions": {
+            "post": {
+                "tags": [
+                    "FormFieldOptions"
+                ],
+                "summary": "create form field option",
+                "operationId": "052700647a7093b71ec7685947742c50",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "form_field_id",
+                                    "option",
+                                    "label"
+                                ],
+                                "properties": {
+                                    "form_field_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "option": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "male"
+                                    },
+                                    "label": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "مرد"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldOptions/{id}": {
+            "delete": {
+                "tags": [
+                    "FormFieldOptions"
+                ],
+                "summary": "delete a form by id",
+                "operationId": "f96e4b2c58682234eb3927bd442f862a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of option",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldOptions/field/{field_id}": {
+            "get": {
+                "tags": [
+                    "FormFieldOptions"
+                ],
+                "summary": "get options of field",
+                "operationId": "e40bedcd413a04c2fdfd2eb7ab7eac17",
+                "parameters": [
+                    {
+                        "name": "field_id",
+                        "in": "path",
+                        "description": "id of field",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldTypes": {
+            "get": {
+                "tags": [
+                    "FormFieldTypes"
+                ],
+                "summary": "show all form field types",
+                "operationId": "d29d6872eb72764a6d9e42acec577d2e",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "FormFieldTypes"
+                ],
+                "summary": "create a new form field type",
+                "operationId": "e4b30cf9e32a5860e69c2de95dc45f81",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "label",
+                                    "has_options"
+                                ],
+                                "properties": {
+                                    "label": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "متن تک خطی"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "text"
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "<Add/>"
+                                    },
+                                    "has_options": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "0"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/formFieldTypes/{id}": {
+            "get": {
+                "tags": [
+                    "FormFieldTypes"
+                ],
+                "summary": "show a form field type by id",
+                "operationId": "2bae4dd4564600e4564a4881ed68af65",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form field type",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "FormFieldTypes"
+                ],
+                "summary": "update a form field type by id",
+                "operationId": "f465fa92cab534ef5066ab9f0b28f495",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form field type",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "label",
+                                    "has_options"
+                                ],
+                                "properties": {
+                                    "label": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "متن تک خطی"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "text"
+                                    },
+                                    "has_options": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "0"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "FormFieldTypes"
+                ],
+                "summary": "delete a form field type by id",
+                "operationId": "f816c83f94567688a172e4e9d8b43618",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of form field type",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/globalSteps": {
+            "post": {
+                "tags": [
+                    "GlobalSteps"
+                ],
+                "summary": "create a new global step",
+                "operationId": "95d9d57ff415a6abdd00004e67327c01",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "description",
+                                    "parent_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "step1"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "integer",
+                                        "example": "optional"
+                                    },
+                                    "parent_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": ""
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/invoices/{order_group_id}": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "get a invoice by order group id",
+                "operationId": "de8f15628ae8bfd15541a7dc5cc81afd",
+                "parameters": [
+                    {
+                        "name": "order_group_id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/invoices/{invoice_id}": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "create a invoice item",
+                "operationId": "0d4f37a478dbd9be3c21f84eacedd8a1",
+                "parameters": [
+                    {
+                        "name": "invoice_id",
+                        "in": "path",
+                        "description": "id of invoice",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "حمل و نقل"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "حمل و نقل"
+                                    },
+                                    "off_percent": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "10"
+                                    },
+                                    "area": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "length": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "width": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/order": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "list of orders",
+                "operationId": "7f7d2d306809f6beed5cac8feeb35683",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "create order",
+                "operationId": "b708b3e0cc39b78e556fc447ad9809b5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "order_group_id"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "20"
+                                    },
+                                    "order_group_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "4"
+                                    },
+                                    "customer_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "علی اهاریان"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/orderGroup": {
+            "get": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "list of order groups",
+                "operationId": "a077c5006307f9f4e7029aee14a067e0",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "create order group",
+                "operationId": "e77eebb2cb571a94c0c4b9884c9840a9",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/orderGroup/{id}": {
+            "get": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "show order group",
+                "operationId": "de364d3e742dfb4b394619120aed41d3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "update order group",
+                "operationId": "01d12607fddb05faf9cec93ae9a475ce",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "total_price",
+                                    "total_off"
+                                ],
+                                "properties": {
+                                    "total_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "12000"
+                                    },
+                                    "total_off": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "5000"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "OrderGroup"
+                ],
+                "summary": "delete order group",
+                "operationId": "4ea7bda54eefa49e86251e747232ed0c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/products": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "show all products",
+                "operationId": "34ee6e9e8fa0c95d9bd89cfc374a81e2",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "create a new product",
+                "operationId": "ef2288e0d31fb52d40e1ad1fd5e1ef8b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "custom",
+                                    "price",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product name"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product code"
+                                    },
+                                    "custom": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "0"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "status": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "1"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product description"
+                                    },
+                                    "images": {
+                                        "type": "array",
+                                        "format": "array",
+                                        "items": {
+                                            "properties": {
+                                                "images": {
+                                                    "type": "string",
+                                                    "format": "string",
+                                                    "example": "hashcode"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": "['hashcode1','hashcode2']"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/products/{id}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "show one product",
+                "operationId": "74635301873c4746a6d33161052cfe1e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "update a product",
+                "operationId": "8774040d41d2ccb9b1710aee2adedbbf",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "custom",
+                                    "price",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product name"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product code"
+                                    },
+                                    "custom": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "0"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "100"
+                                    },
+                                    "status": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "1"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "product description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "delete a product",
+                "operationId": "fd60f2612deff0b190884985936096cb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/products/{id}/steps": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "get steps of a product",
+                "operationId": "1ad94bafbd622043446ef0ec0d92149b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/{code}/steps": {
+            "get": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "get product steps",
+                "operationId": "206ac4e4c6cabd308ee111127b0baab3",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "code of product to return",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "1"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/productSteps/{id}": {
+            "get": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "get product step info",
+                "operationId": "a444b2ace341c12f8680731a2d5384fd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "code of product to return",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": "1"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps/bulk": {
+            "post": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "create a new product step bulk",
+                "operationId": "bec40e5f26160a24e6d8c9f29d88ffb9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "steps",
+                                    "product_id"
+                                ],
+                                "properties": {
+                                    "steps": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "step1,step2,step3"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps": {
+            "post": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "create a new product step",
+                "operationId": "970d7ba1b5e896079c711d8b9bca225f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "step_name",
+                                    "product_id",
+                                    "parent_step_id"
+                                ],
+                                "properties": {
+                                    "step_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "step1"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "parent_step_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps/{id}": {
+            "put": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "update a product step",
+                "operationId": "3b7098d43d8dddf666a2da8d741e73ed",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "step_name"
+                                ],
+                                "properties": {
+                                    "step_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "step name"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "delete a product step",
+                "operationId": "2bc1a482ef84e23576d30ce0c8373c9d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps/{id}/setCreateStep": {
+            "put": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "set step for create step",
+                "operationId": "281c40e0c695fd6440a2ed90642c75ef",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps/{id}/setRoles": {
+            "post": {
+                "tags": [
+                    "ProductSteps"
+                ],
+                "summary": "set roles to step",
+                "operationId": "e1e3f65a4d972d23477505515aece429",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "roles"
+                                ],
+                                "properties": {
+                                    "roles": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1,2,3"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/product/steps/conditions": {
+            "post": {
+                "tags": [
+                    "ProductStepsConditions"
+                ],
+                "summary": "Add a new condition to a product step",
+                "operationId": "7a2f97d4183aca2290341ee9816e53b7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "step_id",
+                                    "field_id",
+                                    "option_id",
+                                    "next_step_id"
+                                ],
+                                "properties": {
+                                    "step_id": {
+                                        "type": "integer",
+                                        "example": "1"
+                                    },
+                                    "field_id": {
+                                        "type": "integer",
+                                        "example": "1"
+                                    },
+                                    "option_id": {
+                                        "type": "integer",
+                                        "example": "1"
+                                    },
+                                    "next_step_id": {
+                                        "type": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/permissions": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "show all permissions",
+                "operationId": "1bc6c7ee232ecb7b08b6def73eb911f6",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "add permission",
+                "operationId": "3562b6695bf96f3d7751c9369e74ac24",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "slug"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "add product"
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "add-product"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/permissions/{id}": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "show one permission",
+                "operationId": "83ff5f3950c2999a12f4b445531d03d2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "update permission",
+                "operationId": "28de4f7f87fa561596bfca8b3ea07639",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "slug"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "add product"
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "add-product"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "delete permission",
+                "operationId": "baa2d8a2413d799a2459c36067a77e34",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/permissions/{permission_id}/assign": {
+            "post": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "assign permission to role",
+                "operationId": "1f80f7ff9fe9913fc6ddd4fe12dc6ef1",
+                "parameters": [
+                    {
+                        "name": "permission_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "role_id"
+                                ],
+                                "properties": {
+                                    "role_id": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/roles": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "show all roles",
+                "operationId": "37a69ed3f610477a65124c51e516ef12",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "add role",
+                "operationId": "cc60b9176da8fabb3d5261d7158aeb47",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "slug"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "admin"
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "admin"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/roles/{id}": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "show specific role",
+                "operationId": "5c5572a1cd3591c57fd6e6d61a962e65",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of role",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "update role",
+                "operationId": "f1c3714506d37a7c75ffceef67ff679e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of role",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "slug"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "admin"
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "admin"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "delete role",
+                "operationId": "2af6ae3897cfaacf9884afd95db2fe21",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of role",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/roles/{role_id}/assign": {
+            "post": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "assign role to user",
+                "operationId": "3b0c5eeb16e6c07adf1fe9a61bda8823",
+                "parameters": [
+                    {
+                        "name": "role_id",
+                        "in": "path",
+                        "description": "id of role",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/roles/user/{user_id}": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "show user roles",
+                "operationId": "fd27f28bbccc80bca43e45310cc15597",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "id of user",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/roles/my": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "show my roles",
+                "operationId": "844aeeb491f4424e30e4d9bd7023efa4",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/keywords": {
+            "get": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "show all keywords",
+                "operationId": "674f923992c0bf9df9edf6324900da50",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "create a new Keyword",
+                "operationId": "0b6c3a5160c535c3ac231615da77ef43",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "Keyword"
+                                ],
+                                "properties": {
+                                    "keyword": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "hello"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/keywords/{id}": {
+            "get": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "get a Keyword by id",
+                "operationId": "7c2cb70ecc0581521e8d0225942e59c8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of Keyword",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "update a Keyword by id",
+                "operationId": "9ca769f7ded02c71e1124cc003441d58",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of Keyword",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "Keyword"
+                                ],
+                                "properties": {
+                                    "keyword": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "english"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Keywords"
+                ],
+                "summary": "delete a Keyword by id",
+                "operationId": "67b0a8cf21717f68083137bd97d96e69",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of Keyword",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/languages": {
+            "get": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "show all languages",
+                "operationId": "a0da78e79869f0aef133b5028701d8ce",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "create a new language",
+                "operationId": "5bf01926f1c1ecbdfd2bbff5abf0b3a8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "language"
+                                ],
+                                "properties": {
+                                    "language": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "persian"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/languages/{id}": {
+            "get": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "get a language by id",
+                "operationId": "4c03d80f6330320cd96bcf29ffa4c318",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of language",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "update a language by id",
+                "operationId": "c9e4f5b81f3ba7f9d6f29d08e2d5b24c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of language",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "language"
+                                ],
+                                "properties": {
+                                    "language": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "english"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Languages"
+                ],
+                "summary": "delete a language by id",
+                "operationId": "385b43b82610819fdcb06e999f26093e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of language",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/translations": {
+            "post": {
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "create a new translation",
+                "operationId": "43e9acec45b2fa7ecdf6f47e056e01d5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "Keyword_id",
+                                    "language_id",
+                                    "translation"
+                                ],
+                                "properties": {
+                                    "keyword_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "language_id": {
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "example": "1"
+                                    },
+                                    "translation": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "hello"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/userAnswer/{form_id}/answer": {
+            "post": {
+                "tags": [
+                    "UserAnswer"
+                ],
+                "summary": "answer user to form",
+                "operationId": "0abe31942c7133b0eca1e0ad5846f1f6",
+                "parameters": [
+                    {
+                        "name": "form_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_id"
+                                ],
+                                "properties": {
+                                    "order_id": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "4"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "apiAuth": {
+                "type": "http",
+                "description": "Login with email and password to get the authentication token",
+                "name": "Token based Based",
+                "in": "header",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    }
+}
