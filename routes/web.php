@@ -26,3 +26,8 @@ Route::get("/migrate", function () {
     Artisan::call('migrate');
     return 'ok';
 });
+
+Route::get("/generateKey", function () {
+    Artisan::call('key:generate');
+    return 'ok';
+});
