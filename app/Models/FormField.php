@@ -21,7 +21,8 @@ class FormField extends Model
         'required',
         'min',
         'max',
-        'order'
+        'order',
+        "basic_data_id"
     ];
     protected $hidden = [
         'created_at',
@@ -39,8 +40,18 @@ class FormField extends Model
 
     function options()
     {
-        return $this->hasMany(FormFieldOptions::class);
+        // if ($this->basic_data_id) {
+        //     return $this->belongsTo(BasicData::class, 'basic_data_id');
+        // } else {
+            return $this->hasMany(FormFieldOptions::class);
+        // }
     }
+    function basicData()
+    {
+        return $this->belongsTo(BasicData::class, 'basic_data_id');
+
+    }
+
     public function defaultValue($form_id)
     {
         $user = Auth::user();

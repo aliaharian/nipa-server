@@ -274,11 +274,13 @@ class FormFieldController extends Controller
             'order' => 'integer|required',
         ]);
         if ($request->hasOptions) {
-            $this->validate($request, [
-                'options' => 'required|array',
-                'options.*.option' => 'required|string',
-                'options.*.label' => 'required|string',
-            ]);
+            if (!$request->basicDataId) {
+                $this->validate($request, [
+                    'options' => 'required|array',
+                    'options.*.option' => 'required|string',
+                    'options.*.label' => 'required|string',
+                ]);
+            }
         }
         //update form field
         $formField->update($request->all());

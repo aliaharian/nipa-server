@@ -182,6 +182,21 @@ class FormController extends Controller
         foreach ($form->fields as $field) {
             $field->type;
             $field->options;
+            $field->basicData;
+            if ($field->basicData) {
+                $basicDataItems = array();
+                foreach ($field->basicData->items as $item) {
+                    $tmp = new \stdClass;
+                    $tmp->id = $item->id;
+                    $tmp->form_field_id = $field->id;
+                    $tmp->label = $item->name;
+                    $tmp->option = $item->code;
+                    array_push($basicDataItems, $tmp);
+                }
+                $field->basicDataItems = $basicDataItems;
+
+            }
+
 
         }
         return response()->json($form, 200);
@@ -239,12 +254,11 @@ class FormController extends Controller
         $data = $request->validate([
             'name' => 'required|unique:forms,name,' . $id,
             'fields' => 'required',
-            'conditions' =>"nullable"
+            'conditions' => "nullable"
             // 'product_id' => 'required|exists:products,id',
             // 'roles' => 'required',
             // 'product_steps' => 'required',
         ]);
-
         $form = Form::updateOrCreate(['id' => $id], $data);
         $formFieldController = new FormFieldController();
         foreach ($data['fields'] as $fieldArray) {
@@ -297,6 +311,22 @@ class FormController extends Controller
         foreach ($form->fields as $field) {
             $field->type;
             $field->options;
+
+            $field->basicData;
+            if ($field->basicData) {
+                $basicDataItems = array();
+                foreach ($field->basicData->items as $item) {
+                    $tmp = new \stdClass;
+                    $tmp->id = $item->id;
+                    $tmp->form_field_id = $field->id;
+                    $tmp->label = $item->name;
+                    $tmp->option = $item->code;
+                    array_push($basicDataItems, $tmp);
+                }
+                $field->basicDataItems = $basicDataItems;
+
+            }
+            
         }
 
 
