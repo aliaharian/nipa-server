@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\RolePermission\RoleController;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -141,6 +142,17 @@ class UserAuthController extends Controller
         if (!$user) {
             //create user
             $user = User::create($data);
+
+            //set customer role to user
+
+            $customerRole = Role::where('slug', 'customer')->first();
+            if (!$customerRole) {
+                $customerRole = Role::create([
+                    'name' => "مشتری",
+                    "slug" => "customer"
+                ]);
+            }
+            $user->roles()->attach($customerRole);
         }
 
         $otp = rand(10000, 99999);
@@ -202,36 +214,36 @@ class UserAuthController extends Controller
         $user->otp = null;
         $user->save();
         $token = $user->createToken('otp Token')->accessToken;
-
+        $user->roles;
         return response(['user' => $user, 'token' => $token]);
     }
 
     //compelete profile
     /**
-    * @OA\Post(
-    *  path="/v1/completeProfile",
-    * tags={"Auth"},
-    * summary="complete profile",
-    * @OA\RequestBody(
-    *   required=true,
-    * @OA\JsonContent(
-    *   required={"name" , "last_name"},
-    *  @OA\Property(property="name", type="string", format="string", example="ali"),
-    *  @OA\Property(property="last_name", type="string", format="string", example="aharian"),
-    * ),
-    * ),
-    * @OA\Response(
-    *     response=200,
-    *    description="Success",
-    * @OA\MediaType(
-    *     mediaType="application/json",
-    * )
-    * ),
-    * 
-    *   security={{ "apiAuth": {} }}
-    * )
-    * 
-    */
+     * @OA\Post(
+     *  path="/v1/completeProfile",
+     * tags={"Auth"},
+     * summary="complete profile",
+     * @OA\RequestBody(
+     *   required=true,
+     * @OA\JsonContent(
+     *   required={"name" , "last_name"},
+     *  @OA\Property(property="name", type="string", format="string", example="ali"),
+     *  @OA\Property(property="last_name", type="string", format="string", example="aharian"),
+     * ),
+     * ),
+     * @OA\Response(
+     *     response=200,
+     *    description="Success",
+     * @OA\MediaType(
+     *     mediaType="application/json",
+     * )
+     * ),
+     * 
+     *   security={{ "apiAuth": {} }}
+     * )
+     * 
+     */
     public function completeProfile(Request $request)
     {
         $data = $request->validate([
@@ -254,21 +266,21 @@ class UserAuthController extends Controller
 
     //get user profile
     /**
-    * @OA\Get(
-    *  path="/v1/profile",
-    * tags={"Auth"},
-    * summary="get user profile",
-    * @OA\Response(
-    *     response=200,
-    *    description="Success",
-    * @OA\MediaType(
-    *     mediaType="application/json",
-    * )
-    * ),
-    *   security={{ "apiAuth": {} }}
-    * )
-    * 
-    */
+     * @OA\Get(
+     *  path="/v1/profile",
+     * tags={"Auth"},
+     * summary="get user profile",
+     * @OA\Response(
+     *     response=200,
+     *    description="Success",
+     * @OA\MediaType(
+     *     mediaType="application/json",
+     * )
+     * ),
+     *   security={{ "apiAuth": {} }}
+     * )
+     * 
+     */
     public function profile()
     {
         $user = Auth::user();
