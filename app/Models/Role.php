@@ -15,10 +15,10 @@ class Role extends Model
         'slug',
     ];
     //hidden
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
+    // protected $hidden = [
+    //     'created_at',
+    //     'updated_at',
+    // ];
     public function permissions() {
 
         return $this->belongsToMany(Permission::class,'roles_permissions');
@@ -36,4 +36,6 @@ class Role extends Model
         return $this->belongsToMany(Form::class,'form_roles' , 'role_id' , 'form_id');
 
     }   
+
+    
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\RolePermission;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UsersRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,6 +37,8 @@ class RoleController extends Controller
         $roles = Role::all();
         foreach ($roles as $role) {
             $role->permissions;
+            $usersCount = UsersRole::where("role_id",$role->id)->count();
+            $role->users_count = $usersCount;
         }
         return response()->json($roles, 200);
     }

@@ -32,7 +32,11 @@ class PermissionController extends Controller
      **/
     public function index()
     {
-        $permissions = Permission::all();
+        $permissions = Permission::where('parent_id', null)->get();
+        foreach ($permissions as $perm) {
+            $perm->childs;
+
+        }
         return response()->json($permissions, 200);
     }
 
@@ -43,19 +47,20 @@ class PermissionController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-          /**
+    /**
      * @OA\Post(
      *   path="/v1/permissions",
      *   tags={"Permissions"},
      *   summary="add permission",
-        * @OA\RequestBody(
-        *    required=true,
-        *    @OA\JsonContent(
-        *       required={"name","slug"},
-        *       @OA\Property(property="name", type="string", format="string", example="add product"),
-        *       @OA\Property(property="slug", type="string", format="string", example="add-product"),
-        *    ),
-        * ),
+     * @OA\RequestBody(
+     *    required=true,
+     *    @OA\JsonContent(
+     *       required={"name","slug"},
+     *       @OA\Property(property="name", type="string", format="string", example="add product"),
+     *       @OA\Property(property="slug", type="string", format="string", example="add-product"),
+     *       @OA\Property(property="parent_id", type="number", format="string", example="1"),
+     *    ),
+     * ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -71,6 +76,7 @@ class PermissionController extends Controller
         $data = $request->validate([
             'name' => 'required|unique:permissions',
             'slug' => 'required|unique:permissions',
+            'parent_id' => 'exists:permissions,id'
         ]);
 
         $permission = Permission::create($data);
@@ -113,9 +119,12 @@ class PermissionController extends Controller
     {
         $permission = Permission::find($id);
         //show exception if not found
-        if(!$permission){
-            return response()->json(['message'=>'permission not found'], 404);
+        if (!$permission) {
+            return response()->json(['message' => 'permission not found'], 404);
         }
+        $permission->parent;
+        $permission->childs;
+
         return response()->json($permission, 200);
     }
 
@@ -163,12 +172,14 @@ class PermissionController extends Controller
     {
         $permission = Permission::find($id);
         //show exception if not found
-        if(!$permission){
-            return response()->json(['message'=>'permission not found'], 404);
+        if (!$permission) {
+            return response()->json(['message' => 'permission not found'], 404);
         }
         $data = $request->validate([
-            'name' => 'required|unique:permissions,name,'.$id,
-            'slug' => 'required|unique:permissions,slug,'.$id,
+            'name' => 'required|unique:permissions,name,' . $id,
+            'slug' => 'required|unique:permissions,slug,' . $id,
+            'parent_id' => 'exists:permissions,id'
+
         ]);
         $permission->update($data);
         return response()->json($permission, 200);
@@ -209,11 +220,11 @@ class PermissionController extends Controller
     {
         $permission = Permission::find($id);
         //show exception if not found
-        if(!$permission){
-            return response()->json(['message'=>'permission not found'], 404);
+        if (!$permission) {
+            return response()->json(['message' => 'permission not found'], 404);
         }
         $permission->delete();
-        return response()->json(['message'=>'permission deleted'], 200);
+        return response()->json(['message' => 'permission deleted'], 200);
     }
 
     //assign permission to role
@@ -252,20 +263,20 @@ class PermissionController extends Controller
     {
         $permission = Permission::find($id);
         //show exception if not found
-        if(!$permission){
-            return response()->json(['message'=>'permission not found'], 404);
+        if (!$permission) {
+            return response()->json(['message' => 'permission not found'], 404);
         }
         $data = $request->validate([
             'role_id' => 'required|exists:roles,id',
         ]);
         $role = Role::find($data['role_id']);
         $permissions = $role->permissions;
-        if(!$permissions->contains($permission)){
+        if (!$permissions->contains($permission)) {
             $permission->roles()->attach($data['role_id']);
             return response()->json($permission, 200);
 
-        }else{
-            return response()->json(['message'=>'permission already assigned to role'], 400);
+        } else {
+            return response()->json(['message' => 'permission already assigned to role'], 400);
         }
     }
 }

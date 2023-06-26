@@ -215,6 +215,13 @@ class UserAuthController extends Controller
         $user->save();
         $token = $user->createToken('otp Token')->accessToken;
         $user->roles;
+        //user permissions
+        $permissions = array();
+        foreach($user->roles as $role){
+            $permissions = array_merge($permissions, $role->permissions->toArray());
+        }
+        $user->permissions = $permissions;
+
         return response(['user' => $user, 'token' => $token]);
     }
 
@@ -284,6 +291,14 @@ class UserAuthController extends Controller
     public function profile()
     {
         $user = Auth::user();
+        $user->roles;
+        //user permissions
+        $permissions = array();
+        foreach($user->roles as $role){
+            $permissions = array_merge($permissions, $role->permissions->toArray());
+        }
+        $user->permissions = $permissions;
+        
         return response(['user' => $user]);
     }
 

@@ -36,12 +36,27 @@ class OrderController extends Controller
      */
     public function index()
     {
+        $additional_cols = [];
+        $listPermissions = new stdClass();
+        $listPermissions->canEdit = true;
+        $listPermissions->canDelete = true;
+
         //check if user role is admin
         $user = Auth::user();
-        if ($user->role == 'admin') {
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+
+        //if manage orders exist in permissions
+        if (
+            in_array('view-orders', $permissions)
+        ) {
             $orders = Order::orderBy('id', 'desc')->get();
             $ordersPure = Order::orderBy('id', 'desc')->get();
-
+            $listPermissions->canEdit = in_array('edit-orders', $permissions);
+            $listPermissions->canDelete = in_array('delete-orders', $permissions);
         } else {
             $orders = Order::orderBy('id', 'desc')->get();
             $ordersPure = Order::where('user_id', $user->id)->orderBy('id', 'desc')->get();
@@ -88,17 +103,16 @@ class OrderController extends Controller
             foreach ($ordersPure as $orderPure) {
                 if ($orderPure->id == $order->id) {
                     $orderPure->additional_data = $additional_data;
-                    $jalaliDate=\Morilog\Jalali\Jalalian::fromCarbon($orderPure->created_at)->format('Y/m/d'); // output is a jalali date string like 1399/08/06
+                    $jalaliDate = \Morilog\Jalali\Jalalian::fromCarbon($orderPure->created_at)->format('Y/m/d'); // output is a jalali date string like 1399/08/06
 
                     $orderPure->jalali_date = $jalaliDate;
                     $orderPure->user;
                 }
             }
-
             //find form of first step
 
         }
-        return response()->json(["orders" => $ordersPure, 'cols' => $additional_cols], 200);
+        return response()->json(["orders" => $ordersPure, 'cols' => $additional_cols, 'permissions' => $listPermissions], 200);
 
     }
 

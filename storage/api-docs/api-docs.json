@@ -2851,6 +2851,11 @@
                                         "type": "string",
                                         "format": "string",
                                         "example": "add-product"
+                                    },
+                                    "parent_id": {
+                                        "type": "number",
+                                        "format": "string",
+                                        "example": "1"
                                     }
                                 },
                                 "type": "object"
