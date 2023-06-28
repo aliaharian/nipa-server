@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Form;
 
 use App\Http\Controllers\Controller;
 use App\Models\FormField;
+use App\Models\FormFieldForm;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -339,17 +340,30 @@ class FormFieldController extends Controller
      * )
      * )
      */
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
-        //delete    form field
+        //find form field
         $formField = FormField::find($id);
+
+
         //check if form field exists
         if (!$formField) {
             return response()->json(['error' => 'Form field not found'], 404);
         }
+
+        $formField->forms;
         //delete form field
-        $formField->delete();
+        if (count($formField->forms) == 1) {
+            $formField->delete();
+
+            // return response()->json(['error' => 'این فیلد در فرم دیگری در حال استفاده است'], 404);
+
+        } else {
+            $relation = FormFieldForm::where('form_field_id', $id)->where('form_id', $request->form_id);
+            $relation->delete();
+        }
+
         //return json
-        return response()->json(['success' => 'Form field deleted'], 200);
+        return response()->json(['success' => "deleted successfully"], 200);
     }
 }

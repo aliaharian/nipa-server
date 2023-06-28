@@ -37,13 +37,22 @@ class FormField extends Model
     {
         return $this->belongsTo(FormFieldType::class, 'form_field_type_id');
     }
+    public function originForm()
+    {
+        return $this->belongsToMany(Form::class, 'form_field_forms', 'form_field_id', 'origin_form_id');
 
+    }
+    public function forms()
+    {
+        return $this->belongsToMany(Form::class, 'form_field_forms', 'form_field_id', 'form_id');
+
+    }
     function options()
     {
         // if ($this->basic_data_id) {
         //     return $this->belongsTo(BasicData::class, 'basic_data_id');
         // } else {
-            return $this->hasMany(FormFieldOptions::class);
+        return $this->hasMany(FormFieldOptions::class);
         // }
     }
     function basicData()

@@ -15,6 +15,7 @@ class FormCondition extends Model
         'form_field_option_id',
         'operation',
         'relational_form_field_id',
+        'basic_data_item_id'
     ];
 
     public function form()
@@ -32,6 +33,10 @@ class FormCondition extends Model
         return $this->belongsTo(FormFieldOption::class);
     }
 
+    public function formFieldBasicDataItem()
+    {
+        return $this->belongsTo(BasicDataItem::class);
+    }
     public function relationalFormField()
     {
         return $this->belongsTo(FormField::class, 'relational_form_field_id');

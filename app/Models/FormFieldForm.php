@@ -12,13 +12,22 @@ class FormFieldForm extends Model
     protected $fillable = [
         'form_field_id',
         'form_id',
+        'origin_form_id',
     ];
 
-    function form(){
-        return $this->belongsTo(Form::class, 'form_id' , 'id');
+    function form()
+    {
+        return $this->belongsTo(Form::class, 'form_id', 'id');
     }
 
-    function field(){
-        return $this->belongsTo(FormField::class, 'form_field_id' , 'id' );
+    function originForm()
+    {
+        return $this->belongsTo(Form::class, 'origin_form_id', 'id');
+    }
+
+
+    function field()
+    {
+        return $this->belongsTo(FormField::class, 'form_field_id', 'id');
     }
 }

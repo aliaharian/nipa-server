@@ -182,6 +182,14 @@ class FormController extends Controller
         foreach ($form->fields as $field) {
             $field->type;
             $field->options;
+            $field->originForm;
+            if (count($field->originForm) > 0) {
+                $relatedFieldTmpForm = new \stdClass();
+                $relatedFieldTmpForm->id = $field->originForm[0]->id;
+                $relatedFieldTmpForm->name = $field->originForm[0]->name;
+                $relatedFieldTmpForm->step = $field->originForm[0]->productSteps[0];
+                $field->form = $relatedFieldTmpForm;
+            }
             $field->basicData;
             if ($field->basicData) {
                 $basicDataItems = array();
@@ -194,11 +202,45 @@ class FormController extends Controller
                     array_push($basicDataItems, $tmp);
                 }
                 $field->basicDataItems = $basicDataItems;
-
             }
-
-
         }
+
+
+        //retrive all fields of forms of this product
+        $relatedFields = $this->getRelatedFields($form->product_id, $form->id);
+
+        // $relatedForms = Form::where('product_id', $form->product_id)->where('id', '<>', $form->id)->get();
+        // $relatedFields = array();
+        // foreach ($relatedForms as $related) {
+        //     $relatedFieldsTmp = $related->fields;
+        //     foreach ($relatedFieldsTmp as $relatedFieldTmp) {
+        //         $relatedFieldTmp->type;
+        //         $relatedFieldTmp->options;
+        //         $relatedFieldTmp->basicData;
+        //         $relatedFieldTmpForm = new \stdClass();
+        //         $relatedFieldTmpForm->id = $related->id;
+        //         $relatedFieldTmpForm->name = $related->name;
+        //         $relatedFieldTmpForm->step = $related->productSteps[0];
+        //         $relatedFieldTmp->form = $relatedFieldTmpForm;
+
+        //         if ($relatedFieldTmp->basicData) {
+        //             $basicDataItems = array();
+        //             foreach ($relatedFieldTmp->basicData->items as $item) {
+        //                 $tmp = new \stdClass;
+        //                 $tmp->id = $item->id;
+        //                 $tmp->form_field_id = $relatedFieldTmp->id;
+        //                 $tmp->label = $item->name;
+        //                 $tmp->option = $item->code;
+        //                 array_push($basicDataItems, $tmp);
+        //             }
+        //             $relatedFieldTmp->basicDataItems = $basicDataItems;
+        //         }
+        //         array_push($relatedFields, $relatedFieldTmp);
+        //     }
+        // }
+
+        $form->relatedFields = $relatedFields;
+
         return response()->json($form, 200);
 
     }
@@ -253,31 +295,36 @@ class FormController extends Controller
         //edit form
         $data = $request->validate([
             'name' => 'required|unique:forms,name,' . $id,
-            'fields' => 'required',
+            'fields' => 'nullable',
             'conditions' => "nullable"
             // 'product_id' => 'required|exists:products,id',
             // 'roles' => 'required',
             // 'product_steps' => 'required',
         ]);
+
         $form = Form::updateOrCreate(['id' => $id], $data);
         $formFieldController = new FormFieldController();
-        foreach ($data['fields'] as $fieldArray) {
-            $field = new \stdClass();
-            $field = (object) $fieldArray;
-            if (@$field->server_id) {
-                //convert fieldArray to Request instance
-                $fieldArray = new Request($fieldArray);
-                $result = $formFieldController->update($fieldArray, $field->server_id);
-                $field->server_id = $result->original['id'];
 
-            } else {
-                $fieldArray = new Request($fieldArray);
-                $result = $formFieldController->store($fieldArray);
-                $field->server_id = $result->original['id'];
+        if (isset($data['fields'])) {
+            foreach ($data['fields'] as $fieldArray) {
+                $field = new \stdClass();
+                $field = (object) $fieldArray;
+                if (@$field->server_id) {
+                    //convert fieldArray to Request instance
+                    $fieldArray = new Request($fieldArray);
+                    $result = $formFieldController->update($fieldArray, $field->server_id);
+                    $field->server_id = $result->original['id'];
+
+                } else {
+                    $fieldArray = new Request($fieldArray);
+                    $result = $formFieldController->store($fieldArray);
+                    $field->server_id = $result->original['id'];
+                }
+                // return $field;
+                //sync form fields
+                // $form->fields()->sync([$field->server_id => ['form_id' => $id]]);
+                $form->fields()->syncWithoutDetaching([$field->server_id => ['form_id' => $id, 'origin_form_id' => $field->origin_form_id]]);
             }
-            // return $field;
-            //sync form fields
-            $form->fields()->syncWithoutDetaching([$field->server_id => ['form_id' => $id]]);
         }
 
         if (isset($data['conditions'])) {
@@ -289,11 +336,16 @@ class FormController extends Controller
                 // FormCondition::where('form_id', $id)->delete();
                 //convert condArray to Request instance
                 $condArray = new Request($condArray);
+
+                $formField = FormField::find($cond->form_field_id);
+
                 foreach ($cond->form_field_options_id as $option) {
+
                     $formCond = FormCondition::updateOrCreate([
                         'form_id' => $id,
                         'form_field_id' => $cond->form_field_id,
-                        'form_field_option_id' => $option,
+                        'form_field_option_id' => $formField->basic_data_id ? null : $option,
+                        'basic_data_item_id' => $formField->basic_data_id ? $option : null,
                         'operation' => $cond->operation,
                         'relational_form_field_id' => $cond->relational_form_field_id,
                     ]);
@@ -311,7 +363,14 @@ class FormController extends Controller
         foreach ($form->fields as $field) {
             $field->type;
             $field->options;
-
+            $field->originForm;
+            if (count($field->originForm) > 0) {
+                $relatedFieldTmpForm = new \stdClass();
+                $relatedFieldTmpForm->id = $field->originForm[0]->id;
+                $relatedFieldTmpForm->name = $field->originForm[0]->name;
+                $relatedFieldTmpForm->step = $field->originForm[0]->productSteps[0];
+                $field->form = $relatedFieldTmpForm;
+            }
             $field->basicData;
             if ($field->basicData) {
                 $basicDataItems = array();
@@ -326,10 +385,11 @@ class FormController extends Controller
                 $field->basicDataItems = $basicDataItems;
 
             }
-            
+
         }
 
-
+        $relatedFields = $this->getRelatedFields($form->product_id, $form->id);
+        $form->relatedFields = $relatedFields;
 
         return response()->json($form, 200);
 
@@ -496,5 +556,56 @@ class FormController extends Controller
             }
         }
         return response()->json($form, 200);
+    }
+
+
+    function getRelatedFields($product_id, $form_id)
+    {
+        //retrive all fields of forms of this product
+        $relatedForms = Form::where('product_id', $product_id)->where('id', '<>', $form_id)->get();
+        $relatedFields = array();
+        foreach ($relatedForms as $related) {
+            $relatedFieldsTmp = $related->fields;
+            foreach ($relatedFieldsTmp as $relatedFieldTmp) {
+                if ($this->findObjectById($relatedFieldTmp->id, $relatedFields) == false) {
+                    $relatedFieldTmp->type;
+                    $relatedFieldTmp->options;
+                    $relatedFieldTmp->basicData;
+                    $relatedFieldTmpForm = new \stdClass();
+                    $relatedFieldTmpForm->id = $related->id;
+                    $relatedFieldTmpForm->name = $related->name;
+                    $relatedFieldTmpForm->step = $related->productSteps[0];
+                    $relatedFieldTmp->form = $relatedFieldTmpForm;
+
+                    if ($relatedFieldTmp->basicData) {
+                        $basicDataItems = array();
+                        foreach ($relatedFieldTmp->basicData->items as $item) {
+                            $tmp = new \stdClass;
+                            $tmp->id = $item->id;
+                            $tmp->form_field_id = $relatedFieldTmp->id;
+                            $tmp->label = $item->name;
+                            $tmp->option = $item->code;
+                            array_push($basicDataItems, $tmp);
+                        }
+                        $relatedFieldTmp->basicDataItems = $basicDataItems;
+                    }
+                    array_push($relatedFields, $relatedFieldTmp);
+                }
+            }
+        }
+
+        return $relatedFields;
+    }
+
+    function findObjectById($id, $array)
+    {
+
+        foreach ($array as $element) {
+            if ($id == $element->id) {
+                return $element;
+            }
+        }
+
+        return false;
     }
 }
