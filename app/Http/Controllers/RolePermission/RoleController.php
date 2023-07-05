@@ -17,7 +17,7 @@ class RoleController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-       /**
+    /**
      * @OA\Get(
      *   path="/v1/roles",
      *   tags={"Roles"},
@@ -37,7 +37,7 @@ class RoleController extends Controller
         $roles = Role::all();
         foreach ($roles as $role) {
             $role->permissions;
-            $usersCount = UsersRole::where("role_id",$role->id)->count();
+            $usersCount = UsersRole::where("role_id", $role->id)->count();
             $role->users_count = $usersCount;
         }
         return response()->json($roles, 200);
@@ -55,14 +55,15 @@ class RoleController extends Controller
      *   path="/v1/roles",
      *   tags={"Roles"},
      *   summary="add role",
-        * @OA\RequestBody(
-        *    required=true,
-        *    @OA\JsonContent(
-        *       required={"name","slug"},
-        *       @OA\Property(property="name", type="string", format="string", example="admin"),
-        *       @OA\Property(property="slug", type="string", format="string", example="admin"),
-        *    ),
-        * ),
+     * @OA\RequestBody(
+     *    required=true,
+     *    @OA\JsonContent(
+     *       required={"name","slug"},
+     *       @OA\Property(property="name", type="string", format="string", example="admin"),
+     *       @OA\Property(property="slug", type="string", format="string", example="admin"),
+     *       @OA\Property(property="permissions", type="string", format="string", example="[1,2,3,4]"),
+     *    ),
+     * ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -80,7 +81,17 @@ class RoleController extends Controller
             'slug' => 'required|unique:roles',
         ]);
 
+
+
         $role = Role::create($data);
+        $request->request->add(['role_id' => $role->id]);
+        foreach ((array) $request->permissions as $perm) {
+            $permissionController = new PermissionController();
+            $resp = $permissionController->assignPermissionToRole($request, $perm);
+            // return response()->json($resp, 200);
+
+        }
+        $role->permissions;
         return response()->json($role, 200);
 
     }
@@ -92,7 +103,7 @@ class RoleController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-       /**
+    /**
      * @OA\Get(
      *   path="/v1/roles/{id}",
      *   tags={"Roles"},
@@ -176,10 +187,10 @@ class RoleController extends Controller
         if (!$role) {
             return response()->json(['message' => 'Role not found'], 404);
         }
-        
+
         $data = $request->validate([
-            'name' => 'required|unique:roles,name,'.$id,
-            'slug' => 'required|unique:roles,slug,'.$id,
+            'name' => 'required|unique:roles,name,' . $id,
+            'slug' => 'required|unique:roles,slug,' . $id,
         ]);
 
         $role->update($data);
@@ -336,7 +347,7 @@ class RoleController extends Controller
     public function myRoles()
     {
         //show current user roles
-        
+
         $user = Auth::user();
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
@@ -345,4 +356,3 @@ class RoleController extends Controller
         return response()->json($roles, 200);
     }
 }
-
