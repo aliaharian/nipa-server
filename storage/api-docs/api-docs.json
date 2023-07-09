@@ -3195,6 +3195,11 @@
                                         "type": "string",
                                         "format": "string",
                                         "example": "admin"
+                                    },
+                                    "permissions": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "[1,2,3,4]"
                                     }
                                 },
                                 "type": "object"

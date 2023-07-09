@@ -4,6 +4,7 @@ namespace App\Http\Controllers\RolePermission;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Models\RolePermission;
 use App\Models\User;
 use App\Models\UsersRole;
 use Illuminate\Http\Request;
@@ -168,6 +169,7 @@ class RoleController extends Controller
      *       required={"name","slug"},
      *       @OA\Property(property="name", type="string", format="string", example="admin"),
      *       @OA\Property(property="slug", type="string", format="string", example="admin"),
+     *       @OA\Property(property="permissions", type="string", format="string", example="[1,2,3,4]"),
      *    ),
      * ),
      *   @OA\Response(
@@ -192,6 +194,17 @@ class RoleController extends Controller
             'name' => 'required|unique:roles,name,' . $id,
             'slug' => 'required|unique:roles,slug,' . $id,
         ]);
+
+        //delete all role permissions
+        RolePermission::where('role_id', $role->id)->delete();
+
+
+        $request->request->add(['role_id' => $role->id]);
+        foreach ((array) $request->permissions as $perm) {
+            $permissionController = new PermissionController();
+            $resp = $permissionController->assignPermissionToRole($request, $perm);
+            // return response()->json($resp, 200);
+        }
 
         $role->update($data);
         return response()->json($role, 200);
