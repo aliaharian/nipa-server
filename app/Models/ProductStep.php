@@ -24,6 +24,10 @@ class ProductStep extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    public function globalStep()
+    {
+        return $this->belongsTo(GlobalStep::class,'global_step_id');
+    }
 
     //forms from product_step_forms table
     public function forms()

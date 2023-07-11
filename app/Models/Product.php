@@ -22,6 +22,24 @@ class Product extends Model
     {
         return $this->hasMany(Form::class);
     }
+    public function initialOrderForm()
+    {
+        $initial = null;
+        $forms = $this->forms;
+        foreach ($forms as $form) {
+            $step = null;
+            if ($form->productSteps) {
+                $step = $form->productSteps[0];
+                if ($step->globalStep) {
+                    if ($step->globalStep->description == "initialOrder") {
+                        $initial = $form;
+                    }
+                }
+            }
+        }
+        return $initial;
+
+    }
     public function details()
     {
         return $this->hasMany(ProductDetail::class);

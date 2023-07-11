@@ -39,6 +39,8 @@ class ProductController extends Controller
         $products = Product::all();
         foreach ($products as $product) {
             $product->details;
+            $product->initialFormId = $product->initialOrderForm()?$product->initialOrderForm()->id:null;
+
         }
         return response()->json($products, 200);
 
