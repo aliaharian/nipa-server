@@ -317,6 +317,7 @@ class FormController extends Controller
 
                 } else {
                     $fieldArray = new Request($fieldArray);
+                    // return($fieldArray);
                     $result = $formFieldController->store($fieldArray);
                     $field->server_id = $result->original['id'];
                 }

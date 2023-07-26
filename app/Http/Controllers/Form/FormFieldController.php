@@ -148,7 +148,7 @@ class FormFieldController extends Controller
                 'options.*.label' => 'required|string',
             ]);
         }
-
+        
         //store new form field
         $formField = FormField::create($request->all());
         if ($request->hasOptions) {

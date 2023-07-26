@@ -25,4 +25,10 @@ class Order extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    //user answers
+    public function userAnswers()
+    {
+        return $this->hasMany(UserAnswer::class);
+    }
 }

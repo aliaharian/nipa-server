@@ -1961,6 +1961,40 @@
                 ]
             }
         },
+        "/v1/order/{id}": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "show order info",
+                "operationId": "a2d7140d89e6242c318aeb4546289aa6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/orderGroup": {
             "get": {
                 "tags": [

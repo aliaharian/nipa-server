@@ -86,13 +86,24 @@ class UserAnswerController extends Controller
                         $options[] = $option->option;
                     }
                 }
+                if ($field->type->type == 'checkbox') {
+                    $tmp .= 'array';
+                    $requirements[$field->name.'.*'] = 'in:' . implode(',', $options);
 
-                $tmp .= '|in:' . implode(',', $options);
+                    // 'items.*' => 'in:' . implode(',', $allowed_items),
+
+
+                } else {
+                    $tmp .= '|in:' . implode(',', $options);
+
+                }
             }
 
 
             $requirements[$field->name] = $tmp;
         }
+
+        // return $requirements;
         $data = $request->validate($requirements);
 
         $formStep = $form->productSteps()->first();

@@ -34,7 +34,7 @@ class OrderGroupController extends Controller
     public function index()
     {
         //liost all order groups
-        $order_groups = OrderGroup::all();
+        $order_groups = OrderGroup::orderBy('id','DESC')->get();
         return response()->json($order_groups, 200);
     }
 
