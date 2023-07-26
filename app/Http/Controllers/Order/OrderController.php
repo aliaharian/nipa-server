@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\File;
 use App\Models\OrderGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,6 +56,9 @@ class OrderController extends Controller
         ) {
             $orders = Order::orderBy('id', 'desc')->get();
             $ordersPure = Order::orderBy('id', 'desc')->get();
+            foreach ($ordersPure as $or) {
+                $or->orderGroup;
+            }
             $listPermissions->canEdit = in_array('edit-orders', $permissions);
             $listPermissions->canDelete = in_array('delete-orders', $permissions);
         } else {
@@ -181,9 +185,98 @@ class OrderController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    /**
+     * @OA\Get(
+     *  path="/v1/order/{id}",
+     * tags={"Order"},
+     * summary="show order info",
+     * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * description="id of order",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64",
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * ),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
     public function show($id)
     {
         //
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['message' => 'order not found'], 404);
+        }
+        // $order->orderGroup;
+        // $order->product;
+        // $order->user;
+        // $order->product->details;
+        // $order->product->images;
+        //find initial form
+        $initialForm = $order->product->initialOrderForm();
+
+        //return
+        $order->initialForm = $initialForm;
+        //get user answers of initial form
+        $userAnswers = (array)$this->groupObjectsByItem($order->userAnswers, "form_field_id");
+
+        foreach ($order->userAnswers as $userAnswer) {
+            if ($userAnswer->formField->type->has_options) {
+                if ($userAnswer->formField->basic_data_id) {
+                    $basicDataItems = $userAnswer->formField->basicData->items;
+                    //find item
+                    foreach ($basicDataItems as $item) {
+                        if ($item->code == $userAnswer->answer) {
+                            $userAnswer->answerObject = $item;
+                            break;
+                        }
+                    }
+                } else {
+                    $options = $userAnswer->formField->options;
+                    //find option
+                    foreach ($options as $option) {
+                        if ($option->option == $userAnswer->answer) {
+                            $userAnswer->answerObject = $option;
+                            break;
+                        }
+                    }
+                }
+
+
+            }
+            // $userAnswer->formField->form;
+            // $userAnswer->formField->form->fields;
+        }
+
+        $orderResult = new stdClass();
+        $orderResult-> id = $order->id;
+        $orderResult-> customer_name = $order->customer_name;
+
+        $orderResult->created_at = $order->created_at;
+        $orderResult-> product_name = $order->product->name;
+        $orderResult-> product_code = $order->product->code;
+        $orderResult-> product_details = $order->product->details;
+        $orderResult-> product_images = $order->product->images;
+        $orderResult->user = $order->user;
+
+        $ansArray = array();
+        foreach($userAnswers as $key => $value) {
+            array_push($ansArray, $value);
+        }
+
+        return response()->json(['order'=>$orderResult , 'userAnswers'=>$ansArray], 200);
+
     }
 
     /**
@@ -207,5 +300,17 @@ class OrderController extends Controller
     public function destroy($id)
     {
         //
+    }
+    function groupObjectsByItem($objects, $itemKey)
+    {
+        $groupedObjects = [];
+        foreach ($objects as $object) {
+            $key = $object->{$itemKey};
+            if (!array_key_exists($key, $groupedObjects)) {
+                $groupedObjects[$key] = [];
+            }
+            $groupedObjects[$key][] = $object;
+        }
+        return $groupedObjects;
     }
 }
