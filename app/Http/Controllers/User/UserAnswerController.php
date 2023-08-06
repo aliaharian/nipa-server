@@ -62,45 +62,60 @@ class UserAnswerController extends Controller
         //check if user created this order if not admin
 
         $fields = $form->fields;
+        $conditions = $form->conditions;
         //validate fields if required  
         $requirements = array();
         $requirements['order_id'] = 'required|exists:orders,id';
         foreach ($fields as $field) {
             $tmp = "";
-            if ($field->required) {
-                $tmp .= "required";
+            $checkValidate = true;
+            $cond = $this->findObjectByKey($conditions, "relational_form_field_id", $field->id);
+            if ($cond) {
+                $checkValidate = false;
+                $mainField = $this->findObjectByKey($fields, "id", $cond->form_field_id);
+                if ($mainField) {
+                    //TODO:check like REACT
+                }
+
             }
-            if ($field->type->validations) {
-                $tmp .= '|' . $field->type->validations;
-            }
-            if ($field->type->has_options == 1) {
-                $options = array();
-                //check if from basic datas or from options?
-                if ($field->basic_data_id) {
-                    $basicData = BasicData::find($field->basic_data_id);
-                    foreach ($basicData->items as $option) {
-                        $options[] = $option->code;
+
+            if ($checkValidate) {
+                if ($field->required) {
+                    $tmp .= "required";
+                }
+                if ($field->type->validations) {
+                    $tmp .= '|' . $field->type->validations;
+                }
+                if ($field->type->has_options == 1) {
+                    $options = array();
+                    //check if from basic datas or from options?
+                    if ($field->basic_data_id) {
+                        $basicData = BasicData::find($field->basic_data_id);
+                        foreach ($basicData->items as $option) {
+                            $options[] = $option->code;
+                        }
+                    } else {
+                        foreach ($field->options as $option) {
+                            $options[] = $option->option;
+                        }
                     }
-                } else {
-                    foreach ($field->options as $option) {
-                        $options[] = $option->option;
+                    if ($field->type->type == 'checkbox') {
+                        $tmp .= '|array';
+                        $requirements[$field->name . '.*'] = 'in:' . implode(',', $options);
+
+                        // 'items.*' => 'in:' . implode(',', $allowed_items),
+
+
+                    } else {
+                        $tmp .= '|in:' . implode(',', $options);
+
                     }
                 }
-                if ($field->type->type == 'checkbox') {
-                    $tmp .= 'array';
-                    $requirements[$field->name.'.*'] = 'in:' . implode(',', $options);
-
-                    // 'items.*' => 'in:' . implode(',', $allowed_items),
 
 
-                } else {
-                    $tmp .= '|in:' . implode(',', $options);
-
-                }
+                $requirements[$field->name] = $tmp;
             }
 
-
-            $requirements[$field->name] = $tmp;
         }
 
         // return $requirements;
@@ -147,4 +162,17 @@ class UserAnswerController extends Controller
 
         return response()->json(["userAnswer" => $userAnswer], 200);
     }
+
+    function findObjectByKey($array, $key, $id)
+    {
+
+        foreach ($array as $element) {
+            if ($id == $element[$key]) {
+                return $element;
+            }
+        }
+
+        return false;
+    }
+
 }
