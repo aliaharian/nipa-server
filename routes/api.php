@@ -55,7 +55,8 @@ Route::prefix('/v1')->group(function () {
 
 
         //product apis
-        Route::apiResource('products', ProductController::class)->middleware('permission:manage-products');
+        Route::apiResource('products', ProductController::class);
+        // ->middleware('permission:manage-products');
         Route::middleware(['permission:manage-products'])->prefix('products')->group(function () {
             //show steps
             Route::get('/{id}/steps', [ProductController::class, 'showSteps']);
@@ -107,7 +108,8 @@ Route::prefix('/v1')->group(function () {
         //form resource
         Route::post('forms/{id}/fields', [FormController::class, 'assignFieldToForm']);
         Route::get('forms/{id}/fields', [FormController::class, 'showFormFields']);
-        Route::apiResource('forms', FormController::class)->middleware('permission:manage-forms');
+        Route::apiResource('forms', FormController::class);
+        // ->middleware('permission:manage-forms');
 
         //form field type resource
         Route::apiResource('formFieldTypes', FormFieldTypeController::class)->middleware('permission:manage-forms');
@@ -141,8 +143,9 @@ Route::prefix('/v1')->group(function () {
             Route::get('/{order_group_id}', [InvoiceController::class, 'show']);
             Route::post('/{invoice_id}', [InvoiceController::class, 'create']);
         });
-        Route::middleware(['permission:manage-files'])->prefix('files')->group(function () {
-
+        Route::
+        // middleware(['permission:manage-files'])->
+        prefix('files')->group(function () {
             Route::post('', [FileController::class, 'store'])->name('files.store');
             Route::delete('/{hashCode}', [FileController::class, 'destroy'])->name('files.delete');
         });

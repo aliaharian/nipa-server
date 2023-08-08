@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\File;
 use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Auth;
 
 class FileController extends Controller
 {
@@ -186,7 +187,24 @@ class FileController extends Controller
      */
     public function destroy($hashCode)
     {
-        $file = File::where('hash_code', $hashCode)->first();
+        $user = Auth::user();
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        //if manage orders exist in permissions
+        if (
+            in_array('manage-files', $permissions)
+        ) {
+            $file = File::where('hash_code', $hashCode)->first();
+
+        } else {
+
+            //TODO:add user id to files table and define condition
+            $file = File::where('hash_code', $hashCode)->first();
+
+        }
 
         if (!$file) {
             return response()->json(['message' => 'File not found'], 404);
@@ -204,6 +222,7 @@ class FileController extends Controller
             'message' => 'File deleted successfully',
             'file' => $file
         ], 200);
+
     }
 
 }

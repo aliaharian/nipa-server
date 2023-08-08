@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\OrderGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,7 +35,22 @@ class OrderGroupController extends Controller
     public function index()
     {
         //liost all order groups
-        $order_groups = OrderGroup::orderBy('id','DESC')->get();
+        $user = Auth::user();
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        //if manage orders exist in permissions
+        if (
+            in_array('view-orders', $permissions)
+        ) {
+            $order_groups = OrderGroup::orderBy('id', 'DESC')->get();
+
+        } else {
+            $order_groups = OrderGroup::where("user_id", $user->id)->orderBy('id', 'DESC')->get();
+        }
+
         return response()->json($order_groups, 200);
     }
 
@@ -110,8 +126,8 @@ class OrderGroupController extends Controller
     {
         //show order group
         $order_group = OrderGroup::find($id);
-        if(!$order_group){
-            return response()->json(['message'=>'order group not found'], 404);
+        if (!$order_group) {
+            return response()->json(['message' => 'order group not found'], 404);
         }
         return response()->json($order_group, 200);
 
@@ -164,8 +180,8 @@ class OrderGroupController extends Controller
     {
         //update order group
         $order_group = OrderGroup::find($id);
-        if(!$order_group){
-            return response()->json(['message'=>'order group not found'], 404);
+        if (!$order_group) {
+            return response()->json(['message' => 'order group not found'], 404);
         }
         $data = $request->validate([
             'total_price' => 'required|numeric',
@@ -212,12 +228,12 @@ class OrderGroupController extends Controller
     {
         //delete order group
         $order_group = OrderGroup::find($id);
-        if(!$order_group){
-            return response()->json(['message'=>'order group not found'], 404);
+        if (!$order_group) {
+            return response()->json(['message' => 'order group not found'], 404);
         }
         $order_group->delete();
 
         //response json
-        return response()->json(['message'=>'order group deleted'], 200);
+        return response()->json(['message' => 'order group deleted'], 200);
     }
 }

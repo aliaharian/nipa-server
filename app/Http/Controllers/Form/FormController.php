@@ -12,6 +12,8 @@ use App\Models\ProductStep;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Form\FormFieldController;
+use Illuminate\Support\Facades\Auth;
+
 
 class FormController extends Controller
 {
@@ -38,10 +40,23 @@ class FormController extends Controller
      **/
     public function index()
     {
-        //get all forms
-        $forms = Form::all();
-        //return json
-        return response()->json($forms);
+        $user = Auth::user();
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        //if manage orders exist in permissions
+        if (
+            in_array('manage-forms', $permissions)
+        ) {
+            //get all forms
+            $forms = Form::all();
+            //return json
+            return response()->json($forms);
+        } else {
+            return response()->json(['error' => "Access Denied!"]);
+        }
     }
 
     /**
@@ -79,48 +94,63 @@ class FormController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|unique:forms,name',
-            'product_id' => 'required|exists:products,id',
-            // 'roles'=>'required',
-            'product_steps' => 'required',
-        ]);
 
-        //check if product not custom
-        $product = Product::find($data['product_id']);
-        if ($product->custom == 0) {
-            return response()->json(['message' => 'product is not custom'], 404);
-        }
+        $user = Auth::user();
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
 
-        $steps = explode(',', $data['product_steps']);
-        foreach ($steps as $step) {
-            //check if step exists and related to product
-            $product_step = ProductStep::where('id', $step)->where('product_id', $data['product_id'])->first();
-            if (!$product_step) {
-                return response()->json(['message' => 'product step not found', "step" => $step], 404);
+        //if manage orders exist in permissions
+        if (
+            in_array('add-form', $permissions)
+        ) {
+
+            $data = $request->validate([
+                'name' => 'required|unique:forms,name',
+                'product_id' => 'required|exists:products,id',
+                // 'roles'=>'required',
+                'product_steps' => 'required',
+            ]);
+
+            //check if product not custom
+            $product = Product::find($data['product_id']);
+            if ($product->custom == 0) {
+                return response()->json(['message' => 'product is not custom'], 404);
             }
-            if ($product_step->product_id !== $data['product_id']) {
-                return response()->json(['message' => 'product step not related to form', "step" => $step], 404);
+
+            $steps = explode(',', $data['product_steps']);
+            foreach ($steps as $step) {
+                //check if step exists and related to product
+                $product_step = ProductStep::where('id', $step)->where('product_id', $data['product_id'])->first();
+                if (!$product_step) {
+                    return response()->json(['message' => 'product step not found', "step" => $step], 404);
+                }
+                if ($product_step->product_id !== $data['product_id']) {
+                    return response()->json(['message' => 'product step not related to form', "step" => $step], 404);
+                }
             }
+
+            // $roles = explode(',', $data['roles']);
+            // foreach ($roles as $role) {
+            //     //check if role exists
+            //     $role = Role::find($role)->first();
+            //     if(!$role){
+            //         return response()->json(['message'=>'role not found'], 404);
+            //     }
+            // }
+
+            $form = Form::create($data);
+            // $form->roles()->sync($roles);
+            $form->productSteps()->sync($steps);
+
+            // $form->roles;
+            $form->productSteps;
+            return response()->json($form, 200);
+        } else {
+            return response()->json(['error' => "Access Denied!"]);
+
         }
-
-        // $roles = explode(',', $data['roles']);
-        // foreach ($roles as $role) {
-        //     //check if role exists
-        //     $role = Role::find($role)->first();
-        //     if(!$role){
-        //         return response()->json(['message'=>'role not found'], 404);
-        //     }
-        // }
-
-        $form = Form::create($data);
-        // $form->roles()->sync($roles);
-        $form->productSteps()->sync($steps);
-
-        // $form->roles;
-        $form->productSteps;
-        return response()->json($form, 200);
-
 
     }
 
@@ -292,108 +322,121 @@ class FormController extends Controller
 
     public function update(Request $request, $id)
     {
-        //edit form
-        $data = $request->validate([
-            'name' => 'required|unique:forms,name,' . $id,
-            'fields' => 'nullable',
-            'conditions' => "nullable"
-            // 'product_id' => 'required|exists:products,id',
-            // 'roles' => 'required',
-            // 'product_steps' => 'required',
-        ]);
 
-        $form = Form::updateOrCreate(['id' => $id], $data);
-        $formFieldController = new FormFieldController();
+        $user = Auth::user();
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
 
-        if (isset($data['fields'])) {
-            foreach ($data['fields'] as $fieldArray) {
-                $field = new \stdClass();
-                $field = (object) $fieldArray;
-                if (@$field->server_id) {
-                    //convert fieldArray to Request instance
-                    $fieldArray = new Request($fieldArray);
-                    $result = $formFieldController->update($fieldArray, $field->server_id);
-                    $field->server_id = $result->original['id'];
+        //if manage orders exist in permissions
+        if (
+            in_array('edit-form', $permissions)
+        ) {
+            //edit form
+            $data = $request->validate([
+                'name' => 'required|unique:forms,name,' . $id,
+                'fields' => 'nullable',
+                'conditions' => "nullable"
+                // 'product_id' => 'required|exists:products,id',
+                // 'roles' => 'required',
+                // 'product_steps' => 'required',
+            ]);
 
-                } else {
-                    $fieldArray = new Request($fieldArray);
-                    // return($fieldArray);
-                    $result = $formFieldController->store($fieldArray);
-                    $field->server_id = $result->original['id'];
-                }
-                // return $field;
-                //sync form fields
-                // $form->fields()->sync([$field->server_id => ['form_id' => $id]]);
-                $form->fields()->syncWithoutDetaching([$field->server_id => ['form_id' => $id, 'origin_form_id' => $field->origin_form_id]]);
-            }
-        }
+            $form = Form::updateOrCreate(['id' => $id], $data);
+            $formFieldController = new FormFieldController();
 
-        if (isset($data['conditions'])) {
-            $formCondArray = [];
-            foreach ($data['conditions'] as $condArray) {
-                $cond = new \stdClass();
-                $cond = (object) $condArray;
-                //delete all form conditions
-                // FormCondition::where('form_id', $id)->delete();
-                //convert condArray to Request instance
-                $condArray = new Request($condArray);
+            if (isset($data['fields'])) {
+                foreach ($data['fields'] as $fieldArray) {
+                    $field = new \stdClass();
+                    $field = (object) $fieldArray;
+                    if (@$field->server_id) {
+                        //convert fieldArray to Request instance
+                        $fieldArray = new Request($fieldArray);
+                        $result = $formFieldController->update($fieldArray, $field->server_id);
+                        $field->server_id = $result->original['id'];
 
-                $formField = FormField::find($cond->form_field_id);
-
-                foreach ($cond->form_field_options_id as $option) {
-
-                    $formCond = FormCondition::updateOrCreate([
-                        'form_id' => $id,
-                        'form_field_id' => $cond->form_field_id,
-                        'form_field_option_id' => $formField->basic_data_id ? null : $option,
-                        'basic_data_item_id' => $formField->basic_data_id ? $option : null,
-                        'operation' => $cond->operation,
-                        'relational_form_field_id' => $cond->relational_form_field_id,
-                    ]);
-                    $formCondArray[] = $formCond->id;
+                    } else {
+                        $fieldArray = new Request($fieldArray);
+                        // return($fieldArray);
+                        $result = $formFieldController->store($fieldArray);
+                        $field->server_id = $result->original['id'];
+                    }
+                    // return $field;
+                    //sync form fields
+                    // $form->fields()->sync([$field->server_id => ['form_id' => $id]]);
+                    $form->fields()->syncWithoutDetaching([$field->server_id => ['form_id' => $id, 'origin_form_id' => $field->origin_form_id]]);
                 }
             }
-        }
 
-        //delete all form conditions that not in formCondArray
-        FormCondition::where('form_id', $id)->whereNotIn('id', $formCondArray)->delete();
+            if (isset($data['conditions'])) {
+                $formCondArray = [];
+                foreach ($data['conditions'] as $condArray) {
+                    $cond = new \stdClass();
+                    $cond = (object) $condArray;
+                    //delete all form conditions
+                    // FormCondition::where('form_id', $id)->delete();
+                    //convert condArray to Request instance
+                    $condArray = new Request($condArray);
 
-        $form->fields;
-        $form->conditions;
+                    $formField = FormField::find($cond->form_field_id);
 
-        foreach ($form->fields as $field) {
-            $field->type;
-            $field->options;
-            $field->originForm;
-            if (count($field->originForm) > 0) {
-                $relatedFieldTmpForm = new \stdClass();
-                $relatedFieldTmpForm->id = $field->originForm[0]->id;
-                $relatedFieldTmpForm->name = $field->originForm[0]->name;
-                $relatedFieldTmpForm->step = $field->originForm[0]->productSteps[0];
-                $field->form = $relatedFieldTmpForm;
-            }
-            $field->basicData;
-            if ($field->basicData) {
-                $basicDataItems = array();
-                foreach ($field->basicData->items as $item) {
-                    $tmp = new \stdClass;
-                    $tmp->id = $item->id;
-                    $tmp->form_field_id = $field->id;
-                    $tmp->label = $item->name;
-                    $tmp->option = $item->code;
-                    array_push($basicDataItems, $tmp);
+                    foreach ($cond->form_field_options_id as $option) {
+
+                        $formCond = FormCondition::updateOrCreate([
+                            'form_id' => $id,
+                            'form_field_id' => $cond->form_field_id,
+                            'form_field_option_id' => $formField->basic_data_id ? null : $option,
+                            'basic_data_item_id' => $formField->basic_data_id ? $option : null,
+                            'operation' => $cond->operation,
+                            'relational_form_field_id' => $cond->relational_form_field_id,
+                        ]);
+                        $formCondArray[] = $formCond->id;
+                    }
                 }
-                $field->basicDataItems = $basicDataItems;
+            }
+
+            //delete all form conditions that not in formCondArray
+            FormCondition::where('form_id', $id)->whereNotIn('id', $formCondArray)->delete();
+
+            $form->fields;
+            $form->conditions;
+
+            foreach ($form->fields as $field) {
+                $field->type;
+                $field->options;
+                $field->originForm;
+                if (count($field->originForm) > 0) {
+                    $relatedFieldTmpForm = new \stdClass();
+                    $relatedFieldTmpForm->id = $field->originForm[0]->id;
+                    $relatedFieldTmpForm->name = $field->originForm[0]->name;
+                    $relatedFieldTmpForm->step = $field->originForm[0]->productSteps[0];
+                    $field->form = $relatedFieldTmpForm;
+                }
+                $field->basicData;
+                if ($field->basicData) {
+                    $basicDataItems = array();
+                    foreach ($field->basicData->items as $item) {
+                        $tmp = new \stdClass;
+                        $tmp->id = $item->id;
+                        $tmp->form_field_id = $field->id;
+                        $tmp->label = $item->name;
+                        $tmp->option = $item->code;
+                        array_push($basicDataItems, $tmp);
+                    }
+                    $field->basicDataItems = $basicDataItems;
+
+                }
 
             }
 
+            $relatedFields = $this->getRelatedFields($form->product_id, $form->id);
+            $form->relatedFields = $relatedFields;
+
+            return response()->json($form, 200);
+        } else {
+            return response()->json(['error' => "Access Denied!"]);
         }
-
-        $relatedFields = $this->getRelatedFields($form->product_id, $form->id);
-        $form->relatedFields = $relatedFields;
-
-        return response()->json($form, 200);
-
     }
 
     /**
@@ -431,13 +474,26 @@ class FormController extends Controller
      */
     public function destroy($id)
     {
-        //delete form
-        $form = Form::find($id);
-        if (!$form) {
-            return response()->json(['message' => 'form not found'], 404);
+        $user = Auth::user();
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        //if manage orders exist in permissions
+        if (
+            in_array('delete-form', $permissions)
+        ) {
+            //delete form
+            $form = Form::find($id);
+            if (!$form) {
+                return response()->json(['message' => 'form not found'], 404);
+            }
+            $form->delete();
+            return response()->json(['message' => 'form deleted'], 200);
+        } else {
+            return response()->json(['error' => "Access Denied!"]);
         }
-        $form->delete();
-        return response()->json(['message' => 'form deleted'], 200);
 
     }
 
