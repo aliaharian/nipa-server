@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    protected $fillable = ['product_id', 'user_id', 'customer_name'];
+    protected $fillable = ['product_id', 'user_id', 'customer_name', "count", "product_step_id"];
 
     public function orderGroup()
     {
@@ -24,6 +24,10 @@ class Order extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+    public function step()
+    {
+        return $this->belongsTo(ProductStep::class, 'product_step_id', 'id');
     }
 
     //user answers

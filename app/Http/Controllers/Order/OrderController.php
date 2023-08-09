@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\File;
 use App\Models\OrderGroup;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use stdClass;
@@ -56,15 +57,18 @@ class OrderController extends Controller
         ) {
             $orders = Order::orderBy('id', 'desc')->get();
             $ordersPure = Order::orderBy('id', 'desc')->get();
-            foreach ($ordersPure as $or) {
-                $or->orderGroup;
-            }
+
             $listPermissions->canEdit = in_array('edit-orders', $permissions);
             $listPermissions->canDelete = in_array('delete-orders', $permissions);
         } else {
             $orders = Order::orderBy('id', 'desc')->get();
             $ordersPure = Order::where('user_id', $user->id)->orderBy('id', 'desc')->get();
 
+        }
+        foreach ($ordersPure as $or) {
+            $or->orderGroup;
+            $or->product;
+            $or->step;
         }
         $forms = [];
         foreach ($orders as $order) {
@@ -158,7 +162,8 @@ class OrderController extends Controller
         $data = $request->validate([
             'product_id' => 'required|exists:products,id',
             'order_group_id' => 'required|exists:order_groups,id',
-            'customer_name' => 'required'
+            'customer_name' => 'required',
+            'count' => 'required'
         ]);
 
         $orderGroup = OrderGroup::find($data['order_group_id']);
@@ -167,10 +172,25 @@ class OrderController extends Controller
         if ($orderGroup->user_id != $user->id) {
             return response()->json(['message' => 'user not allowed to create order for this order group'], 403);
         }
+
+        //find product first step that related to first form that must be filled
+
+        //first, get product
+        $product = Product::find($data['product_id']);
+        $firstStep = null;
+        //crawl product steps to find the step that its global step desc is initialOrder
+        foreach ($product->steps as $stp) {
+            $global = $stp->globalStep;
+            if ($global->description == "initialOrder") {
+                $firstStep = $stp;
+            }
+        }
         $order = Order::create([
             'product_id' => $data['product_id'],
             'user_id' => $user->id,
-            'customer_name' => $data['customer_name']
+            'customer_name' => $data['customer_name'],
+            'count' => $data['count'],
+            'product_step_id' => $firstStep ? $firstStep->id : null
         ]);
 
         $orderGroup->orders()->attach($order->id);
@@ -229,7 +249,7 @@ class OrderController extends Controller
         //return
         $order->initialForm = $initialForm;
         //get user answers of initial form
-        $userAnswers = (array)$this->groupObjectsByItem($order->userAnswers, "form_field_id");
+        $userAnswers = (array) $this->groupObjectsByItem($order->userAnswers, "form_field_id");
 
         foreach ($order->userAnswers as $userAnswer) {
             if ($userAnswer->formField->type->has_options) {
@@ -260,22 +280,22 @@ class OrderController extends Controller
         }
 
         $orderResult = new stdClass();
-        $orderResult-> id = $order->id;
-        $orderResult-> customer_name = $order->customer_name;
+        $orderResult->id = $order->id;
+        $orderResult->customer_name = $order->customer_name;
 
         $orderResult->created_at = $order->created_at;
-        $orderResult-> product_name = $order->product->name;
-        $orderResult-> product_code = $order->product->code;
-        $orderResult-> product_details = $order->product->details;
-        $orderResult-> product_images = $order->product->images;
+        $orderResult->product_name = $order->product->name;
+        $orderResult->product_code = $order->product->code;
+        $orderResult->product_details = $order->product->details;
+        $orderResult->product_images = $order->product->images;
         $orderResult->user = $order->user;
 
         $ansArray = array();
-        foreach($userAnswers as $key => $value) {
+        foreach ($userAnswers as $key => $value) {
             array_push($ansArray, $value);
         }
 
-        return response()->json(['order'=>$orderResult , 'userAnswers'=>$ansArray], 200);
+        return response()->json(['order' => $orderResult, 'userAnswers' => $ansArray], 200);
 
     }
 
