@@ -7,9 +7,11 @@ use App\Models\Form;
 use App\Models\FormCondition;
 use App\Models\FormField;
 use App\Models\FormFieldForm;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductStep;
 use App\Models\Role;
+use App\Models\UserAnswer;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Form\FormFieldController;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +57,7 @@ class FormController extends Controller
             //return json
             return response()->json($forms);
         } else {
-            return response()->json(['error' => "Access Denied!"]);
+            return response()->json(['error' => "Access Denied!"], 403);
         }
     }
 
@@ -148,7 +150,7 @@ class FormController extends Controller
             $form->productSteps;
             return response()->json($form, 200);
         } else {
-            return response()->json(['error' => "Access Denied!"]);
+            return response()->json(['error' => "Access Denied!"], 403);
 
         }
 
@@ -214,11 +216,20 @@ class FormController extends Controller
             $field->options;
             $field->originForm;
             if (count($field->originForm) > 0) {
+                //fetch answers
+                if ($request->orderId) {
+                    $order = Order::find($request->orderId);
+                    if ($order) {
+                        $answer = UserAnswer::where('order_id',$order->id)->where('form_field_id',$field->id)->first();
+                        $field->userAnswer = $answer->answer;
+                    }
+                }
                 $relatedFieldTmpForm = new \stdClass();
                 $relatedFieldTmpForm->id = $field->originForm[0]->id;
                 $relatedFieldTmpForm->name = $field->originForm[0]->name;
                 $relatedFieldTmpForm->step = $field->originForm[0]->productSteps[0];
                 $field->form = $relatedFieldTmpForm;
+
             }
             $field->basicData;
             if ($field->basicData) {
@@ -435,7 +446,7 @@ class FormController extends Controller
 
             return response()->json($form, 200);
         } else {
-            return response()->json(['error' => "Access Denied!"]);
+            return response()->json(['error' => "Access Denied!"], 403);
         }
     }
 
@@ -492,7 +503,7 @@ class FormController extends Controller
             $form->delete();
             return response()->json(['message' => 'form deleted'], 200);
         } else {
-            return response()->json(['error' => "Access Denied!"]);
+            return response()->json(['error' => "Access Denied!"], 403);
         }
 
     }

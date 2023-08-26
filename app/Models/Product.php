@@ -40,6 +40,24 @@ class Product extends Model
         return $initial;
 
     }
+    public function completeOrderForm()
+    {
+        $initial = null;
+        $forms = $this->forms;
+        foreach ($forms as $form) {
+            $step = null;
+            if ($form->productSteps) {
+                $step = $form->productSteps[0];
+                if ($step->globalStep) {
+                    if ($step->globalStep->description == "completeOrder") {
+                        $initial = $form;
+                    }
+                }
+            }
+        }
+        return $initial;
+
+    }
     public function details()
     {
         return $this->hasMany(ProductDetail::class);

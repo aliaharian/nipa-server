@@ -130,6 +130,8 @@ Route::prefix('/v1')->group(function () {
             //assign role to user
             Route::post('/{form_id}/answer', [UserAnswerController::class, 'userAnswerForm']);
         });
+
+        Route::get('order/{id}/complete', [OrderController::class, 'showComplete']);
         Route::apiResource('order', OrderController::class);
         Route::apiResource('orderGroup', OrderGroupController::class);
 
@@ -144,11 +146,11 @@ Route::prefix('/v1')->group(function () {
             Route::post('/{invoice_id}', [InvoiceController::class, 'create']);
         });
         Route::
-        // middleware(['permission:manage-files'])->
-        prefix('files')->group(function () {
-            Route::post('', [FileController::class, 'store'])->name('files.store');
-            Route::delete('/{hashCode}', [FileController::class, 'destroy'])->name('files.delete');
-        });
+            // middleware(['permission:manage-files'])->
+            prefix('files')->group(function () {
+                Route::post('', [FileController::class, 'store'])->name('files.store');
+                Route::delete('/{hashCode}', [FileController::class, 'destroy'])->name('files.delete');
+            });
 
 
     });
