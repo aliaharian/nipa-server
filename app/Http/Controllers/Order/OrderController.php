@@ -79,6 +79,7 @@ class OrderController extends Controller
             //find default next step
             $nextStep = ProductStep::where('product_id', $or->product->id)->where("id", ">", $or->step->id)->orderBy("id", "asc")->first();
             $nextStep->globalStep;
+            $nextStep->roles;
             //check if next step has condition
             $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
             if ($stepCond) {
@@ -96,6 +97,8 @@ class OrderController extends Controller
                         // next step is :
                         $nextStep = ProductStep::find($stepCond->next_product_step_id);
                         $nextStep->globalStep;
+                        $nextStep->roles;
+
                     }
                 }
             }
@@ -373,17 +376,14 @@ class OrderController extends Controller
         if (!$order) {
             return response()->json(['message' => 'order not found'], 404);
         }
-        // $order->orderGroup;
-        // $order->product;
-        // $order->user;
-        // $order->product->details;
-        // $order->product->images;
-        //find initial form
+        
         $initialForm = $order->product->initialOrderForm();
         $completeForm = $order->product->completeOrderForm();
 
         //return
         $order->initialForm = $initialForm;
+
+
         //get user answers of initial form
         $userAnswers = (array) $this->groupObjectsByItem($order->userAnswers, "form_field_id");
 

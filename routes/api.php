@@ -132,6 +132,7 @@ Route::prefix('/v1')->group(function () {
         });
 
         Route::get('order/{id}/complete', [OrderController::class, 'showComplete']);
+        Route::get('step/{id}/{orderId}/complete', [ProductStepController::class, 'showComplete']);
         Route::apiResource('order', OrderController::class);
         Route::apiResource('orderGroup', OrderGroupController::class);
 

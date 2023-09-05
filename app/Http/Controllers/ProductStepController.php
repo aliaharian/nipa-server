@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\GlobalStep;
 use App\Models\Product;
+use App\Models\Order;
 use App\Models\ProductStep;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 use stdClass;
 
 class ProductStepController extends Controller
@@ -442,5 +445,102 @@ class ProductStepController extends Controller
         $step->roles()->sync($roles);
         $step->roles;
         return response()->json($step, 200);
+    }
+
+    public function showComplete(Request $request, $id, $orderId)
+    {
+        $step = ProductStep::findOrFail($id);
+        $user = Auth::user();
+        $myRoles = $user->roles;
+        $stepRoles = $step->roles;
+
+        $atLeastOneMatch = false;
+
+        foreach ($stepRoles as $role) {
+            foreach ($myRoles as $myRole) {
+                if ($role['slug'] === $myRole['slug']) {
+                    $atLeastOneMatch = true;
+                    break 2; // Exit both loops when a match is found
+                }
+            }
+        }
+
+        if (!$atLeastOneMatch) {
+            return response()->json("unauthorized", 403);
+        }
+
+        $step->forms;
+
+        $order = Order::find($orderId);
+        if (!$order) {
+            return response()->json(['message' => 'order not found'], 404);
+        }
+
+
+
+        //get user answers of initial form
+        $userAnswers = (array) $this->groupObjectsByItem($order->userAnswers, "form_field_id");
+
+        foreach ($order->userAnswers as $userAnswer) {
+            if ($userAnswer->formField->type->has_options) {
+                if ($userAnswer->formField->basic_data_id) {
+                    $basicDataItems = $userAnswer->formField->basicData->items;
+                    //find item
+                    foreach ($basicDataItems as $item) {
+                        if ($item->code == $userAnswer->answer) {
+                            $userAnswer->answerObject = $item;
+                            break;
+                        }
+                    }
+                } else {
+                    $options = $userAnswer->formField->options;
+                    //find option
+                    foreach ($options as $option) {
+                        if ($option->option == $userAnswer->answer) {
+                            $userAnswer->answerObject = $option;
+                            break;
+                        }
+                    }
+                }
+
+
+            }
+            // $userAnswer->formField->form;
+            // $userAnswer->formField->form->fields;
+        }
+
+        $orderResult = new stdClass();
+        $orderResult->id = $order->id;
+        $orderResult->customer_name = $order->customer_name;
+
+        $orderResult->created_at = $order->created_at;
+        $orderResult->product_name = $order->product->name;
+        $orderResult->product_code = $order->product->code;
+        $orderResult->product_details = $order->product->details;
+        $orderResult->product_images = $order->product->images;
+        $orderResult->user = $order->user;
+
+        $ansArray = array();
+        foreach ($userAnswers as $key => $value) {
+            array_push($ansArray, $value);
+        }
+
+        return response()->json(['order' => $orderResult, 'userAnswers' => $ansArray, 'form' => $step->forms[0], "step" => $step], 200);
+
+
+        // return response()->json($step, 200);
+
+    }
+    function groupObjectsByItem($objects, $itemKey)
+    {
+        $groupedObjects = [];
+        foreach ($objects as $object) {
+            $key = $object->{$itemKey};
+            if (!array_key_exists($key, $groupedObjects)) {
+                $groupedObjects[$key] = [];
+            }
+            $groupedObjects[$key][] = $object;
+        }
+        return $groupedObjects;
     }
 }
