@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Models\FormFieldOptions;
 use App\Models\Order;
 use App\Models\File;
 use App\Models\OrderGroup;
 use App\Models\Product;
+use App\Models\ProductStep;
 use App\Models\ProductStepsCondition;
 use App\Models\UserAnswer;
 use Illuminate\Http\Request;
@@ -73,14 +75,31 @@ class OrderController extends Controller
             $or->product;
             $or->step;
             $or->step->globalStep;
-            
-            //check if next step has condition
-            $stepCond = ProductStepsCondition::where("product_step_id",$or->step->id)->first();
-            if($stepCond){
-                //check user answer to form_field_id
-                // $userAnswer = UserAnswer::where("user_id",)
-            }
 
+            //find default next step
+            $nextStep = ProductStep::where('product_id', $or->product->id)->where("id", ">", $or->step->id)->orderBy("id", "asc")->first();
+            $nextStep->globalStep;
+            //check if next step has condition
+            $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
+            if ($stepCond) {
+
+                //check user answer to form_field_id
+                $userAnswer = UserAnswer::where("user_id", $or->user->id)->where("order_id", $or->id)->where("form_field_id", $stepCond->form_field_id)->first();
+                if ($userAnswer) {
+                    $condOption = FormFieldOptions::find($stepCond->form_field_option_id);
+                    // echo $condOption;
+                    // echo $or->user->id . '//';
+                    // echo $stepCond->form_field_id . '//';
+                    // echo $userAnswer;
+                    if ($userAnswer->answer == $condOption->option) {
+                        // echo "now user passed condition!";
+                        // next step is :
+                        $nextStep = ProductStep::find($stepCond->next_product_step_id);
+                        $nextStep->globalStep;
+                    }
+                }
+            }
+            $or->nextStep = $nextStep;
             $or->canEdit = $or->step->globalStep->description == "initialOrder" ? true : false;
             $or->canDelete = $or->step->globalStep->description == "initialOrder" ? true : false;
         }
@@ -347,7 +366,7 @@ class OrderController extends Controller
      * )
      */
 
-     public function showComplete($id)
+    public function showComplete($id)
     {
         //
         $order = Order::find($id);

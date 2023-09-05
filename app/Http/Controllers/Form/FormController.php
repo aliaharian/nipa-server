@@ -220,8 +220,13 @@ class FormController extends Controller
                 if ($request->orderId) {
                     $order = Order::find($request->orderId);
                     if ($order) {
-                        $answer = UserAnswer::where('order_id',$order->id)->where('form_field_id',$field->id)->first();
-                        $field->userAnswer = $answer->answer;
+                        $answer = UserAnswer::where('order_id', $order->id)->where('form_field_id', $field->id)->first();
+                        if ($answer) {
+                            $field->userAnswer = $answer->answer;
+                        }else{
+                            $field->userAnswer = null;
+
+                        }
                     }
                 }
                 $relatedFieldTmpForm = new \stdClass();
