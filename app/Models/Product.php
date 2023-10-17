@@ -13,6 +13,7 @@ class Product extends Model
         'custom',
         'code',
         'status',
+        'count_type'
     ];
     public function steps()
     {

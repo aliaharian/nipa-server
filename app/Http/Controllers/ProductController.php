@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductStep;
 use Illuminate\Support\Facades\Auth;
 use App\Models\File;
+use App\Models\ProductImage;
 
 class ProductController extends Controller
 {
@@ -93,6 +94,7 @@ class ProductController extends Controller
             'name' => 'required|unique:products,name',
             'custom' => 'required|in:0,1',
             'code' => "required|unique:products,code",
+            'count_type'=>"required|in:quantity,m2",
             'description' => 'required|string',
         ]);
         if ($data['custom'] == 0) {
@@ -168,6 +170,10 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         $product->details;
         $product->steps;
+        $product->images;
+        foreach($product->images as $image){
+            $image->hashCode = $image->hashcode;
+        }
         return response()->json($product, 200);
 
     }
@@ -239,6 +245,19 @@ class ProductController extends Controller
             ]);
         }
         $product->update($data);
+        if ($request->has('images')) {
+            $images = $request->images;
+            foreach ($images as $image) {
+               $fileId = File::where('hash_code', $image)->first()->id;
+               $exists = ProductImage::where("file_id",$fileId)->where("product_id",$id)->count();
+               if(!$exists){
+                $product->images()->create([
+                    'file_id' => File::where('hash_code', $image)->first()->id,
+                ]);
+            }
+            }
+
+        }
         if ($data['custom'] == 0) {
             $product->details()->update([
                 'price' => $data['price'],

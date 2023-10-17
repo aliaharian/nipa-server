@@ -33,6 +33,9 @@ use App\Http\Controllers\Files\FileController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::get("/phpinfo",function(){
+    echo phpinfo();
+});
 Route::prefix('/v1')->group(function () {
 
     //global apis

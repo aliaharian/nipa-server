@@ -1995,6 +1995,40 @@
                 ]
             }
         },
+        "/v1/order/{id}/complete": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "show order complete info",
+                "operationId": "d30c6ba2e668707414ca1111244eecf4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/orderGroup": {
             "get": {
                 "tags": [
