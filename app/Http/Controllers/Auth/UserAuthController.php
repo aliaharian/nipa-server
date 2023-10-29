@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\RolePermission\RoleController;
+use App\Models\Customer;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -155,6 +156,13 @@ class UserAuthController extends Controller
             $user->roles()->attach($customerRole);
         }
 
+        //create customer if for this user id no customer exists
+        if (!$user->customer) {
+            $customer = $user->customer()->create([
+                //define a random 8 digit code for user in order to start with NIPA and first part is its user id and rest random
+                'code' => 'NIPA' . $user->id . rand(100000, 999999),
+            ]);
+        }
         $otp = rand(10000, 99999);
 
         $user->otp = $otp;
@@ -215,9 +223,10 @@ class UserAuthController extends Controller
         $user->save();
         $token = $user->createToken('otp Token')->accessToken;
         $user->roles;
+        $user->customer;
         //user permissions
         $permissions = array();
-        foreach($user->roles as $role){
+        foreach ($user->roles as $role) {
             $permissions = array_merge($permissions, $role->permissions->toArray());
         }
         $user->permissions = $permissions;
@@ -294,12 +303,40 @@ class UserAuthController extends Controller
         $user->roles;
         //user permissions
         $permissions = array();
-        foreach($user->roles as $role){
+        foreach ($user->roles as $role) {
             $permissions = array_merge($permissions, $role->permissions->toArray());
         }
         $user->permissions = $permissions;
-        
+        //customer
+        $user->customer;
+
         return response(['user' => $user]);
+    }
+
+    //customers list
+    /**
+     * @OA\Get(
+     *  path="/v1/customers",
+     * tags={"Customers"},
+     * summary="get customers list",
+     * @OA\Response(
+     *     response=200,
+     *    description="Success",
+     * @OA\MediaType(
+     *     mediaType="application/json",
+     * )
+     * ),
+     *   security={{ "apiAuth": {} }}
+     * )
+     * 
+     */
+    public function customers()
+    {
+        $customers = Customer::all();
+        //dont return created at and updated at and return the user info also and hide created_at,email_verified_at,mobile_verified_at,updated_at in user object
+        $customers->makeHidden(['created_at', 'updated_at'])->load('user:id,name,last_name,email,mobile');    
+
+        return response(['customers' => $customers]);
     }
 
 }

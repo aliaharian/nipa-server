@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\BasicData;
 use App\Models\Form;
+use App\Models\GlobalStep;
 use App\Models\Order;
 use App\Models\UserAnswer;
 use Illuminate\Http\Request;
@@ -56,7 +57,12 @@ class UserAnswerController extends Controller
         $product_step = $form->productSteps[0];
         $form_roles = $product_step->roles()->pluck('role_id')->toArray();
         $intersect = array_intersect($user_roles, $form_roles);
-        if (count($intersect) == 0) {
+
+        //check if this form is for initial step
+        //find global step
+        $form_global_step = GlobalStep::find($product_step->global_step_id);
+
+        if (count($intersect) == 0 && $form_global_step->description != "initialOrder") {
             return response()->json(['message' => 'user not allowed to answer this form'], 403);
         }
         //check if user created this order if not admin

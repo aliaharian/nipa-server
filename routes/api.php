@@ -57,6 +57,9 @@ Route::prefix('/v1')->group(function () {
         });
 
 
+        //customers
+        Route::get('customers', [UserAuthController::class,'customers'])->middleware('permission:add-order-as-another');
+
         //product apis
         Route::apiResource('products', ProductController::class);
         // ->middleware('permission:manage-products');

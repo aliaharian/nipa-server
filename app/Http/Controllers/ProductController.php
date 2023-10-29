@@ -69,6 +69,7 @@ class ProductController extends Controller
      * @OA\Property(property="custom", type="number", format="number", example="0"),
      * @OA\Property(property="price", type="number", format="number", example="100"),
      * @OA\Property(property="status", type="number", format="number", example="1"),
+     * @OA\Property(property="count_type", type="string", format="string", example="quantity"),
      * @OA\Property(property="description", type="string", format="string", example="product description"),
      * @OA\Property(property="images", type="array", format="array", example="['hashcode1','hashcode2']", @OA\Items(
      * @OA\Property(property="images", type="string", format="string", example="hashcode"),
@@ -210,6 +211,7 @@ class ProductController extends Controller
      * @OA\Property(property="custom", type="number", format="number", example="0"),
      * @OA\Property(property="price", type="number", format="number", example="100"),
      * @OA\Property(property="status", type="number", format="number", example="1"),
+     * @OA\Property(property="count_type", type="string", format="string", example="quantity"),
      * @OA\Property(property="description", type="string", format="string", example="product description"),
      * ),
      * ),
@@ -235,6 +237,7 @@ class ProductController extends Controller
             'name' => 'required|unique:products,name,' . $product->id,
             'custom' => 'required|in:0,1',
             'code' => 'required|unique:products,code,' . $product->id,
+            'count_type'=>"required|in:quantity,m2",
         ]);
         if ($data['custom'] == 0) {
             $data = $request->validate([
@@ -242,6 +245,7 @@ class ProductController extends Controller
                 'custom' => 'required|in:0,1',
                 'price' => 'required|numeric',
                 'description' => 'required|string',
+                'count_type'=>"required|in:quantity,m2"
             ]);
         }
         $product->update($data);

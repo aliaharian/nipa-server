@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderGroup;
 use Illuminate\Http\Request;
@@ -50,6 +51,12 @@ class OrderGroupController extends Controller
         } else {
             $order_groups = OrderGroup::where("user_id", $user->id)->orderBy('id', 'DESC')->get();
         }
+        //get customer info of each order group only customer_code and user id and get user info only name and last_name and id and mobile
+        $order_groups = $order_groups->map(function ($order_group) {
+            $order_group->user;
+            $order_group->user->makeHidden(['email', 'email_verified_at', 'created_at', 'updated_at', 'mobile_verified_at', 'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes']);
+            return $order_group;
+        });
 
         return response()->json($order_groups, 200);
     }
@@ -80,10 +87,18 @@ class OrderGroupController extends Controller
     public function store(Request $request)
     {
         //
+        //validation customer_id is required and from customers table (customers table code column)
+        $data = $request->validate([
+            'customer_code' => 'required|exists:customers,code',
+        ]);
+        //find customer id from code
+        $customer = Customer::where('code', $data['customer_code'])->first();
         $order_group = OrderGroup::create([
             'user_id' => Auth::user()->id,
             'total_price' => 0,
             'total_off' => 0,
+            'customer_id' => $customer->id,
+
         ]);
         return response()->json($order_group, 200);
     }

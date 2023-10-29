@@ -151,6 +151,13 @@ class OrderController extends Controller
 
                     $orderPure->jalali_date = $jalaliDate;
                     $orderPure->user;
+
+                    foreach ($orderPure->orderGroup as $group) {
+                        $group->customer->user->makeHidden(['email', 'email_verified_at', 'created_at', 'updated_at', 'mobile_verified_at', 'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes']);
+                        $group->customer->makeHidden(['created_at', 'updated_at', 'phone', 'postal_code', 'national_code', 'address', 'phone', 'city_id']);
+                    }
+
+                    $orderPure->customer = $orderPure->orderGroup[0]->customer->user->name ? $orderPure->orderGroup[0]->customer->user->name . " " . $orderPure->orderGroup[0]->customer->user->last_name : $orderPure->orderGroup[0]->customer->user->mobile;
                 }
             }
             //find form of first step
@@ -376,7 +383,7 @@ class OrderController extends Controller
         if (!$order) {
             return response()->json(['message' => 'order not found'], 404);
         }
-        
+
         $initialForm = $order->product->initialOrderForm();
         $completeForm = $order->product->completeOrderForm();
 

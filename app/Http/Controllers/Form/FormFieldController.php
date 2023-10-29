@@ -148,7 +148,7 @@ class FormFieldController extends Controller
                 'options.*.label' => 'required|string',
             ]);
         }
-        
+
         //store new form field
         $formField = FormField::create($request->all());
         if ($request->hasOptions) {
@@ -345,20 +345,30 @@ class FormFieldController extends Controller
         //find form field
         $formField = FormField::find($id);
 
-
         //check if form field exists
         if (!$formField) {
             return response()->json(['error' => 'Form field not found'], 404);
         }
 
+
+
+
         $formField->forms;
         //delete form field
         if (count($formField->forms) == 1) {
+            //check if formField validation object doesnt have readOnly true
+            if ($formField->validation) {
+                $validation = json_decode($formField->validation);
+                if (isset($validation->readOnly) && $validation->readOnly) {
+                    return response()->json(['error' => 'readOnly field cannot be deleted'], 403);
+                }
+            }
+
             $formField->delete();
 
-            // return response()->json(['error' => 'این فیلد در فرم دیگری در حال استفاده است'], 404);
 
         } else {
+            //delete only relation not field
             $relation = FormFieldForm::where('form_field_id', $id)->where('form_id', $request->form_id);
             $relation->delete();
         }

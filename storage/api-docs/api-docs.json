@@ -269,6 +269,28 @@
                 ]
             }
         },
+        "/v1/customers": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "get customers list",
+                "operationId": "556b423f6732ebb83ddc82ee1b69f434",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/basicData": {
             "get": {
                 "tags": [
@@ -2260,6 +2282,11 @@
                                         "format": "number",
                                         "example": "1"
                                     },
+                                    "count_type": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "quantity"
+                                    },
                                     "description": {
                                         "type": "string",
                                         "format": "string",
@@ -2386,6 +2413,11 @@
                                         "type": "number",
                                         "format": "number",
                                         "example": "1"
+                                    },
+                                    "count_type": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "quantity"
                                     },
                                     "description": {
                                         "type": "string",
