@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BasicData\BasicDataController;
+use App\Http\Controllers\Factor\FactorController;
 use App\Http\Controllers\GlobalSteps\GlobalStepsController;
 use App\Http\Controllers\Products\ProductConditionController;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ use App\Http\Controllers\Files\FileController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get("/phpinfo",function(){
+Route::get("/phpinfo", function () {
     echo phpinfo();
 });
 Route::prefix('/v1')->group(function () {
@@ -58,7 +59,13 @@ Route::prefix('/v1')->group(function () {
 
 
         //customers
-        Route::get('customers', [UserAuthController::class,'customers'])->middleware('permission:add-order-as-another');
+        Route::get('customers', [UserAuthController::class, 'customers'])->middleware('permission:add-order-as-another');
+
+        //factor
+        Route::post('factor', [FactorController::class, 'store']);
+        // ->middleware('permission:manage-factors');
+        ///v1/factor/{factor_id}/factorItem"
+        Route::post('factor/{factor_id}/factorItem', [FactorController::class, 'storeFactorItem']);
 
         //product apis
         Route::apiResource('products', ProductController::class);

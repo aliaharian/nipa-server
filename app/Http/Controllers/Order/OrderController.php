@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\User\UserAnswerController;
 use App\Models\FormFieldOptions;
 use App\Models\Order;
 use App\Models\File;
@@ -74,37 +75,40 @@ class OrderController extends Controller
             $or->orderGroup;
             $or->product;
             $or->step;
-            $or->step->globalStep;
+            if ($or->step) {
+                $or->step->globalStep;
 
-            //find default next step
-            $nextStep = ProductStep::where('product_id', $or->product->id)->where("id", ">", $or->step->id)->orderBy("id", "asc")->first();
-            $nextStep->globalStep;
-            $nextStep->roles;
-            //check if next step has condition
-            $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
-            if ($stepCond) {
+                //find default next step
+                $nextStep = ProductStep::where('product_id', $or->product->id)->where("id", ">", $or->step->id)->orderBy("id", "asc")->first();
+                $nextStep->globalStep;
+                $nextStep->roles;
 
-                //check user answer to form_field_id
-                $userAnswer = UserAnswer::where("user_id", $or->user->id)->where("order_id", $or->id)->where("form_field_id", $stepCond->form_field_id)->first();
-                if ($userAnswer) {
-                    $condOption = FormFieldOptions::find($stepCond->form_field_option_id);
-                    // echo $condOption;
-                    // echo $or->user->id . '//';
-                    // echo $stepCond->form_field_id . '//';
-                    // echo $userAnswer;
-                    if ($userAnswer->answer == $condOption->option) {
-                        // echo "now user passed condition!";
-                        // next step is :
-                        $nextStep = ProductStep::find($stepCond->next_product_step_id);
-                        $nextStep->globalStep;
-                        $nextStep->roles;
+                //check if next step has condition
+                $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
+                if ($stepCond) {
 
+                    //check user answer to form_field_id
+                    $userAnswer = UserAnswer::where("user_id", $or->user->id)->where("order_id", $or->id)->where("form_field_id", $stepCond->form_field_id)->first();
+                    if ($userAnswer) {
+                        $condOption = FormFieldOptions::find($stepCond->form_field_option_id);
+                        // echo $condOption;
+                        // echo $or->user->id . '//';
+                        // echo $stepCond->form_field_id . '//';
+                        // echo $userAnswer;
+                        if ($userAnswer->answer == $condOption->option) {
+                            // echo "now user passed condition!";
+                            // next step is :
+                            $nextStep = ProductStep::find($stepCond->next_product_step_id);
+                            $nextStep->globalStep;
+                            $nextStep->roles;
+
+                        }
                     }
                 }
+                $or->nextStep = $nextStep;
+                $or->canEdit = $or->step->globalStep->description == "initialOrder" ? true : false;
+                $or->canDelete = $or->step->globalStep->description == "initialOrder" ? true : false;
             }
-            $or->nextStep = $nextStep;
-            $or->canEdit = $or->step->globalStep->description == "initialOrder" ? true : false;
-            $or->canDelete = $or->step->globalStep->description == "initialOrder" ? true : false;
         }
         $forms = [];
         foreach ($orders as $order) {
@@ -182,10 +186,9 @@ class OrderController extends Controller
      * @OA\RequestBody(
      *  required=true,
      * @OA\JsonContent(
-     *  required={"product_id" , "order_group_id"},
-     * @OA\Property(property="product_id", type="integer", format="integer", example="20"),
-     * @OA\Property(property="order_group_id", type="integer", format="integer", example="4"),
-     * @OA\Property(property="customer_name", type="string", format="string", example="علی اهاریان"),
+     *  required={"customer_code","orders"},
+     * @OA\Property(property="customer_code", type="string", format="string", example="NIPA9988584"),
+     * @OA\Property(property="orders", type="string", format="string", example="[{count:1,product_id:1,form_id:1,data:{}}]"),
      * ),
      * ),
      * @OA\Response(
@@ -201,45 +204,99 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //this is what client passes to api:
+        // request: {
+        //     customer_code: string;
+        //     orders?: {
+        //       count: number;
+        //       product_id: number;
+        //       form_id?: number | null;
+        //       data?: any;
+        //     }[];
+        //   }
         $data = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'order_group_id' => 'required|exists:order_groups,id',
-            'customer_name' => 'required',
-            'count' => 'required'
+            'customer_code' => 'required|string',
+            'orders' => 'required|array',
+            'orders.*.count' => 'required|integer',
+            'orders.*.product_id' => 'required|integer',
+            'orders.*.form_id' => 'nullable|integer',
+            'orders.*.data' => 'nullable|array',
         ]);
+        //create order group with the method in OrderGroupController
+        $orderGroupController = new OrderGroupController();
+        $orderGroupResponse = $orderGroupController->store(new Request([
+            'customer_code' => $data['customer_code'],
+        ]));
 
-        $orderGroup = OrderGroup::find($data['order_group_id']);
-        //check if user if mach
+        // Check if the response is successful (HTTP status code 2xx)
+        if (!$orderGroupResponse->isSuccessful()) {
+
+            // Handle the case where the request was not successful
+            // You might want to return an error message or take appropriate action
+            return response()->json(['error' => 'Failed to create order group'], $orderGroupResponse->status());
+        }
+
+
+        // Extract the JSON data in the  \Illuminate\Http\Response type not use ->json() it gots error
+        $orderGroupData = $orderGroupResponse->getData();
+
+        //get group order from db
+        $orderGroup = OrderGroup::find($orderGroupData->id);
+
+        //check if user if match
         $user = Auth::user();
         if ($orderGroup->user_id != $user->id) {
             return response()->json(['message' => 'user not allowed to create order for this order group'], 403);
         }
 
-        //find product first step that related to first form that must be filled
+        //loop inside orders
+        foreach ($data['orders'] as $order) {
+            //find product first step that related to first form that must be filled
 
-        //first, get product
-        $product = Product::find($data['product_id']);
-        $firstStep = null;
-        //crawl product steps to find the step that its global step desc is initialOrder
-        foreach ($product->steps as $stp) {
-            $global = $stp->globalStep;
-            if ($global->description == "initialOrder") {
-                $firstStep = $stp;
+            //first, get product
+            $product = Product::find($order['product_id']);
+            $firstStep = null;
+            //crawl product steps to find the step that its global step desc is initialOrder
+            foreach ($product->steps as $stp) {
+                $global = $stp->globalStep;
+                if ($global->description == "initialOrder") {
+                    $firstStep = $stp;
+                }
+            }
+            $orderData = Order::create([
+                'product_id' => $order['product_id'],
+                'user_id' => $user->id,
+                'customer_name' => $orderGroup->customer->user->name . " " . $orderGroup->customer->user->last_name,
+                'count' => $order['count'],
+                'product_step_id' => $firstStep ? $firstStep->id : null,
+            ]);
+
+            $orderGroup->orders()->attach($orderData->id);
+
+            //create user answers for orders that has form
+            //use userAnswerForm method in UserAnswerController
+            if ($order['form_id']) {
+                $formData = $order['data'];
+                $userAnswerController = new UserAnswerController();
+                $userAnswerResponse = $userAnswerController->userAnswerForm(
+                    $order['form_id'],
+                    new Request(
+                        array_merge(['order_id' => $orderData->id], $formData)
+                    )
+                );
+                // Check if the response is successful (HTTP status code 2xx)
+                if (!$userAnswerResponse->isSuccessful()) {
+                    // Handle the case where the request was not successful
+                    // You might want to return an error message or take appropriate action
+                    //roll back all things that do
+                    $order->delete();
+                    $orderGroup->delete();
+                    return response()->json(['error' => 'Failed to create user answer'], $userAnswerResponse->status());
+                }
             }
         }
-        $order = Order::create([
-            'product_id' => $data['product_id'],
-            'user_id' => $user->id,
-            'customer_name' => $data['customer_name'],
-            'count' => $data['count'],
-            'product_step_id' => $firstStep ? $firstStep->id : null
-        ]);
 
-        $orderGroup->orders()->attach($order->id);
-
-
-        return response()->json($order, 200);
+        return response()->json(['order' => $order], 200);
     }
 
     /**

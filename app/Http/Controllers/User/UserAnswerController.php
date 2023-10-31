@@ -8,6 +8,7 @@ use App\Models\Form;
 use App\Models\GlobalStep;
 use App\Models\Order;
 use App\Models\UserAnswer;
+use Auth;
 use Illuminate\Http\Request;
 
 class UserAnswerController extends Controller
@@ -51,7 +52,8 @@ class UserAnswerController extends Controller
         if (!$form) {
             return response()->json(['message' => 'form not found'], 404);
         }
-        $user = $request->user();
+        /// write alterntive for  $user = $request->user();
+        $user = Auth::user();
         //check if user role inside form role
         $user_roles = $user->roles()->pluck('role_id')->toArray();
         $product_step = $form->productSteps[0];

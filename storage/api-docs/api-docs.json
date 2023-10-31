@@ -660,6 +660,179 @@
                 ]
             }
         },
+        "/v1/factor": {
+            "post": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "create factor",
+                "operationId": "04fa0313d1447612c202f5f87b0cf62a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_group_id",
+                                    "expire_date",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "order_group_id": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1"
+                                    },
+                                    "expire_date": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "2021-09-01"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/{factor_id}/factorItem": {
+            "post": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "create factor item",
+                "operationId": "012bbcea5433ce6d1648332c3b0650ec",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_id",
+                                    "product_id",
+                                    "code",
+                                    "name",
+                                    "count_type",
+                                    "width",
+                                    "height",
+                                    "count",
+                                    "unit_price",
+                                    "off_price",
+                                    "additional_price",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "order_id": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1"
+                                    },
+                                    "product_id": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "1"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "code"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "name"
+                                    },
+                                    "count_type": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "count_type"
+                                    },
+                                    "width": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "width"
+                                    },
+                                    "height": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "height"
+                                    },
+                                    "count": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "count"
+                                    },
+                                    "unit_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "unit_price"
+                                    },
+                                    "off_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "off_price"
+                                    },
+                                    "additional_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "additional_price"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/files": {
             "post": {
                 "tags": [
@@ -1943,24 +2116,19 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "product_id",
-                                    "order_group_id"
+                                    "customer_code",
+                                    "orders"
                                 ],
                                 "properties": {
-                                    "product_id": {
-                                        "type": "integer",
-                                        "format": "integer",
-                                        "example": "20"
-                                    },
-                                    "order_group_id": {
-                                        "type": "integer",
-                                        "format": "integer",
-                                        "example": "4"
-                                    },
-                                    "customer_name": {
+                                    "customer_code": {
                                         "type": "string",
                                         "format": "string",
-                                        "example": "علی اهاریان"
+                                        "example": "NIPA9988584"
+                                    },
+                                    "orders": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "[{count:1,product_id:1,form_id:1,data:{}}]"
                                     }
                                 },
                                 "type": "object"
