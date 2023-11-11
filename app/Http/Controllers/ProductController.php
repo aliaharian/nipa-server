@@ -366,4 +366,47 @@ class ProductController extends Controller
         $product->steps;
         return response()->json($product, 200);
     }
+
+    //all products list but with search at least 3 characters
+    /**
+     * @OA\Get(
+     *  path="/v1/products/search/{name}",
+     * tags={"Products"},
+     * summary="search products",
+     * @OA\Parameter(
+     *   name="name",
+     *  in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="string",
+     * format="string"
+     * )
+     * ),
+     *  @OA\Response(
+     *    response=200,
+     *   description="Success",
+     * @OA\MediaType(
+     *  mediaType="application/json",
+     * )
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function search($name)
+    {
+        //check if at least 3 characters
+        if (mb_strlen($name,'utf-8') < 3) {
+            return response()->json(['message' => 'at least 3 characters'], 400);
+        }
+        $products = Product::where('name', 'like', '%' . $name . '%')->get();
+      
+        // create an object and only return name and id
+        $products = $products->map(function ($product) {
+            return collect($product->toArray())
+                ->only(['id', 'name', 'code', 'custom', 'price', 'description'])
+                ->all();
+        });
+        return response()->json($products, 200);
+    }
 }

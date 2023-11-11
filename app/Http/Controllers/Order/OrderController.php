@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Factor\FactorController;
 use App\Http\Controllers\User\UserAnswerController;
+use App\Models\Factor;
 use App\Models\FormFieldOptions;
 use App\Models\Order;
 use App\Models\File;
@@ -296,7 +298,48 @@ class OrderController extends Controller
             }
         }
 
-        return response()->json(['order' => $order], 200);
+        //create factor from factorController store method
+        $factorController = new FactorController();
+        $factorResponse = $factorController->store(new Request([
+            'order_group_id' => $orderGroup->id,
+            //expire date is 7 days later
+            'expire_date' => date('Y-m-d', strtotime('+7 days')),
+        ]));
+        if (!$factorResponse->isSuccessful()) {
+            // Handle the case where the request was not successful
+            // You might want to return an error message or take appropriate action
+            //roll back all things that do
+            $orderGroup->delete();
+            return response()->json(['error' => 'Failed to create factor'], $factorResponse->status());
+        }
+        //set factor status from factorController setFactorStatus method
+        $factorData = $factorResponse->getData();
+        $factorController->setFactorStatus(
+            $factorData->id,
+            new Request([
+                'factor_status_enum' => "salesPending",
+                'name' => "status"
+            ])
+        );
+        if (!$factorResponse->isSuccessful()) {
+            // Handle the case where the request was not successful
+            // You might want to return an error message or take appropriate action
+            //roll back all things that do
+            $orderGroup->delete();
+            return response()->json(['error' => 'Failed to set factor status'], $factorResponse->status());
+        }
+
+        //find all orders of this order group
+        $orders = $orderGroup->orders;
+        foreach ($orders as $order) {
+            //save factor items from factorController and storeFactorItem method
+            $factorController->storeFactorItem($factorData->id, new Request([
+                'order_id' => $order->id,
+            ]));
+        }
+
+
+        return response()->json(['order' => 'done!'], 200);
     }
 
     /**
@@ -533,4 +576,87 @@ class OrderController extends Controller
         }
         return $groupedObjects;
     }
+
+    //search in orders of specific order group by name
+    /**
+     * @OA\Get(
+     *  path="/v1/orderGroup/{id}/search/{name}",
+     * tags={"Order"},
+     * summary="search in orders of specific order group by name",
+     * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * description="id of order group",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64",
+     * ),
+     * ),
+     * @OA\Parameter(
+     * name="name",
+     * in="path",
+     * description="name of order",
+     * required=false,
+     * @OA\Schema(
+     * type="string",
+     * format="string",
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * ),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function search($id, $name)
+    {
+        //validate id 
+        $orderGroup = OrderGroup::find($id);
+        if (!$orderGroup) {
+            return response()->json(['message' => 'order group not found'], 404);
+        }
+        //find all orders 
+        $orders = $orderGroup->orders;
+        foreach ($orders as $order) {
+            $order->product;
+
+        }
+        //search name in product nae of orders
+        if (strlen($name) > 3) {
+            $orders = $orders->filter(function ($order) use ($name) {
+                return strpos($order->product->name, $name) !== false;
+            });
+        }
+        //return only product name and id of orders
+        $ordersRes = array();
+        foreach ($orders as $order) {
+            $tmp = new stdClass();
+            $tmp->id = $order->id;
+            $tmp->product_id = $order->product->id;
+            $tmp->name = $order->product->name;
+
+            //search in $ordersRes for this name
+            $exist = false;
+            foreach ($ordersRes as $orderRes) {
+                if ($orderRes->name == $tmp->name) {
+                    $exist = true;
+                    break;
+                }
+            }
+            if (!$exist)
+                $ordersRes[] = $tmp;
+        }
+
+        //return orders
+        return response()->json(['orders' => $ordersRes], 200);
+
+    }
+
+
 }

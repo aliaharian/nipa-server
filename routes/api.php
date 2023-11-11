@@ -67,9 +67,16 @@ Route::prefix('/v1')->group(function () {
         ///v1/factor/{factor_id}/factorItem"
         Route::post('factor/{factor_id}/factorItem', [FactorController::class, 'storeFactorItem']);
 
+        ///v1/factor/{factor_id}/factorStatus
+        Route::post('factor/{factor_id}/factorStatus', [FactorController::class, 'setFactorStatus']);
+        //"/v1/factor/{factor_id}
+        Route::get('factor/{factor_id}', [FactorController::class, 'show']);
+
         //product apis
         Route::apiResource('products', ProductController::class);
         // ->middleware('permission:manage-products');
+        ///v1/products/search/{name}
+        Route::get('products/search/{name}', [ProductController::class, 'search']);
         Route::middleware(['permission:manage-products'])->prefix('products')->group(function () {
             //show steps
             Route::get('/{id}/steps', [ProductController::class, 'showSteps']);
@@ -148,7 +155,8 @@ Route::prefix('/v1')->group(function () {
         Route::get('step/{id}/{orderId}/complete', [ProductStepController::class, 'showComplete']);
         Route::apiResource('order', OrderController::class);
         Route::apiResource('orderGroup', OrderGroupController::class);
-
+        ///v1/orderGroup/{id}/search/{name}
+        Route::get('orderGroup/{id}/search/{name}', [OrderController::class, 'search']);
 
         Route::apiResource('languages', LanguageController::class)->middleware('permission:manage-translation');
         Route::apiResource('keywords', KeywordController::class)->middleware('permission:manage-translation');

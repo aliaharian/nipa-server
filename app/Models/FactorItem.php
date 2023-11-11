@@ -23,4 +23,12 @@ class FactorItem extends Model
         'additional_price',
         'description',
     ];
+
+    //hidden timestams
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
 }
+
+

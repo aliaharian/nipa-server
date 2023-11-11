@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Factor;
 use App\Http\Controllers\Controller;
 use App\Models\Factor;
 use App\Models\FactorItem;
+use App\Models\FactorStatus;
+use App\Models\FactorStatusEnum;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -212,10 +214,6 @@ class FactorController extends Controller
             $name = $product->name;
         }
 
-
-
-
-
         //create factor item
         $factor_item = FactorItem::create([
             'factor_id' => $factor_id,
@@ -248,4 +246,100 @@ class FactorController extends Controller
 
         return false;
     }
+
+    //set factor status : factor_id	factor_status_enum_id	name	description
+//write annotation
+    /**
+     * @OA\Post(
+     *  path="/v1/factor/{factor_id}/factorStatus",
+     * tags={"Factor"},
+     * summary="set factor status",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"factor_status_enum_id","name","description"},
+     * @OA\Property(property="factor_status_enum", type="string", format="string", example="salesPending"),
+     * @OA\Property(property="name", type="string", format="string", example="name"),
+     * @OA\Property(property="description", type="string", format="string", example="description"),
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function setFactorStatus($factor_id, Request $request)
+    {
+        //validate
+        $request->validate([
+            'factor_status_enum' => 'required|exists:factor_status_enums,slug',
+            'name' => 'string|nullable',
+            'description' => 'string|nullable',
+        ]);
+        //create factor status
+        $factor_status = FactorStatus::create([
+            'factor_id' => $factor_id,
+            'factor_status_enum_id' => FactorStatusEnum::where('slug', $request->factor_status_enum)->first()->id,
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+        return response()->json($factor_status, 201);
+    }
+
+    //view factor
+//write annotation
+    /**
+     * @OA\Get(
+     *  path="/v1/factor/{factor_id}",
+     * tags={"Factor"},
+     * summary="view factor",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function show($factor_id)
+    {
+        //find or fail factor
+        $factor = Factor::findOrFail($factor_id);
+        $factor->factorPaymentSteps;
+        $factor->lastStatus->factorStatusEnum;
+        $factor->factorItems;
+        //return factor
+        return response()->json($factor, 200);
+    }
 }
+
+
+
+

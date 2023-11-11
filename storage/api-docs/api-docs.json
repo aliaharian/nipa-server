@@ -833,6 +833,104 @@
                 ]
             }
         },
+        "/v1/factor/{factor_id}/factorStatus": {
+            "post": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "set factor status",
+                "operationId": "a92abea86890948d99acd4ea250424cf",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "factor_status_enum_id",
+                                    "name",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "factor_status_enum": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "salesPending"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "name"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/{factor_id}": {
+            "get": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "view factor",
+                "operationId": "e32bb309e1930310aec12014af6c9a72",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/files": {
             "post": {
                 "tags": [
@@ -2219,6 +2317,50 @@
                 ]
             }
         },
+        "/v1/orderGroup/{id}/search/{name}": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "search in orders of specific order group by name",
+                "operationId": "fc95bb7a0b5f1c1995db380230c267ae",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "description": "name of order",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/orderGroup": {
             "get": {
                 "tags": [
@@ -2659,6 +2801,39 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/products/search/{name}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "search products",
+                "operationId": "c9217229249487d34c54348ed684e84d",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "string"
                         }
                     }
                 ],

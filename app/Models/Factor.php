@@ -20,4 +20,26 @@ class Factor extends Model
     {
         return $this->belongsTo(OrderGroup::class);
     }
+    //items
+    public function factorItems()
+    {
+        return $this->hasMany(FactorItem::class);
+    }
+    //factor statuses
+    public function factorStatuses()
+    {
+        return $this->hasMany(FactorStatus::class);
+    }
+    //factor payment steps
+    public function factorPaymentSteps()
+    {
+        return $this->hasMany(FactorPaymentStep::class);
+    }
+
+    //last status
+    public function lastStatus()
+    {
+        return $this->hasOne(FactorStatus::class)->latestOfMany();
+    }
+    
 }
