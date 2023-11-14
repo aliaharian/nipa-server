@@ -2317,13 +2317,13 @@
                 ]
             }
         },
-        "/v1/orderGroup/{id}/search/{name}": {
+        "/v1/orderGroup/{id}/search": {
             "get": {
                 "tags": [
                     "Order"
                 ],
                 "summary": "search in orders of specific order group by name",
-                "operationId": "fc95bb7a0b5f1c1995db380230c267ae",
+                "operationId": "a5d12bf79ba89104d4ae93703d9c3b4a",
                 "parameters": [
                     {
                         "name": "id",
@@ -2333,16 +2333,6 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "name",
-                        "in": "path",
-                        "description": "name of order",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "format": "string"
                         }
                     }
                 ],

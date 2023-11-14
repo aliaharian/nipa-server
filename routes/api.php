@@ -156,7 +156,7 @@ Route::prefix('/v1')->group(function () {
         Route::apiResource('order', OrderController::class);
         Route::apiResource('orderGroup', OrderGroupController::class);
         ///v1/orderGroup/{id}/search/{name}
-        Route::get('orderGroup/{id}/search/{name}', [OrderController::class, 'search']);
+        Route::get('orderGroup/{id}/search', [OrderController::class, 'search']);
 
         Route::apiResource('languages', LanguageController::class)->middleware('permission:manage-translation');
         Route::apiResource('keywords', KeywordController::class)->middleware('permission:manage-translation');

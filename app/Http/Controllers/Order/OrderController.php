@@ -580,7 +580,7 @@ class OrderController extends Controller
     //search in orders of specific order group by name
     /**
      * @OA\Get(
-     *  path="/v1/orderGroup/{id}/search/{name}",
+     *  path="/v1/orderGroup/{id}/search",
      * tags={"Order"},
      * summary="search in orders of specific order group by name",
      * @OA\Parameter(
@@ -591,16 +591,6 @@ class OrderController extends Controller
      * @OA\Schema(
      * type="integer",
      * format="int64",
-     * ),
-     * ),
-     * @OA\Parameter(
-     * name="name",
-     * in="path",
-     * description="name of order",
-     * required=false,
-     * @OA\Schema(
-     * type="string",
-     * format="string",
      * ),
      * ),
      * @OA\Response(
@@ -614,7 +604,7 @@ class OrderController extends Controller
      * )
      * )
      */
-    public function search($id, $name)
+    public function search($id)
     {
         //validate id 
         $orderGroup = OrderGroup::find($id);
@@ -627,12 +617,7 @@ class OrderController extends Controller
             $order->product;
 
         }
-        //search name in product nae of orders
-        if (strlen($name) > 3) {
-            $orders = $orders->filter(function ($order) use ($name) {
-                return strpos($order->product->name, $name) !== false;
-            });
-        }
+
         //return only product name and id of orders
         $ordersRes = array();
         foreach ($orders as $order) {
@@ -640,7 +625,15 @@ class OrderController extends Controller
             $tmp->id = $order->id;
             $tmp->product_id = $order->product->id;
             $tmp->name = $order->product->name;
-
+            $tmp->count_type = $order->product->count_type;
+            $tmp->count = $order->count;
+            if ($tmp->count_type == "quantity") {
+                $tmp->price = $order->product->details[0]->price;
+            } else {
+                //find width and height
+                $tmp->width = $order->product->fieldValue("width");
+                $tmp->height = $order->product->fieldValue("height");
+            }
             //search in $ordersRes for this name
             $exist = false;
             foreach ($ordersRes as $orderRes) {

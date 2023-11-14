@@ -403,9 +403,14 @@ class ProductController extends Controller
       
         // create an object and only return name and id
         $products = $products->map(function ($product) {
-            return collect($product->toArray())
-                ->only(['id', 'name', 'code', 'custom', 'price', 'description'])
-                ->all();
+            $product->details;
+            $result = new \stdClass();
+            $result->id = $product->id;
+            $result->name = $product->name;
+            $result->count_type = $product->count_type;
+            $result->price = $product->details[0]->price;
+            $result->description = $product->details[0]->description;
+            return $result;
         });
         return response()->json($products, 200);
     }
