@@ -66,6 +66,9 @@ Route::prefix('/v1')->group(function () {
         // ->middleware('permission:manage-factors');
         ///v1/factor/{factor_id}/factorItem"
         Route::post('factor/{factor_id}/factorItem', [FactorController::class, 'storeFactorItem']);
+        //  path="/v1/factor/{factor_id}/factorItem/{factor_item_id}",
+        Route::put('factor/{factor_id}/factorItem/{factor_item_id}', [FactorController::class, 'updateFactorItem']);
+        Route::delete('factor/{factor_id}/factorItem/{factor_item_id}', [FactorController::class, 'destroyFactorItem']);
 
         ///v1/factor/{factor_id}/factorStatus
         Route::post('factor/{factor_id}/factorStatus', [FactorController::class, 'setFactorStatus']);

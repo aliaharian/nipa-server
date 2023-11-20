@@ -79,9 +79,7 @@ class FactorController extends Controller
      * @OA\RequestBody(
      * required=true,
      * @OA\JsonContent(
-     * required={"order_id","product_id","code","name","count_type","width","height","count","unit_price","off_price","additional_price","description"},
-     * @OA\Property(property="order_id", type="string", format="string", example="1"),
-     * @OA\Property(property="product_id", type="string", format="string", example="1"),
+     * required={"code","name","count_type","width","height","count","unit_price","off_price","additional_price","description"},
      * @OA\Property(property="code", type="string", format="string", example="code"),
      * @OA\Property(property="name", type="string", format="string", example="name"),
      * @OA\Property(property="count_type", type="string", format="string", example="count_type"),
@@ -109,29 +107,29 @@ class FactorController extends Controller
     {
         //validate
         $request->validate([
-            'order_id' => 'nullable|exists:orders,id',
-            'product_id' => 'nullable|exists:products,id',
+            // 'order_id' => 'nullable|exists:orders,id',
+            // 'product_id' => 'nullable|exists:products,id',
             'code' => 'string|nullable',
             'name' => 'string|nullable',
             'count_type' => 'string|nullable',
             'width' => 'string|nullable',
             'height' => 'string|nullable',
-            'count' => 'string|nullable',
-            'unit_price' => 'string|nullable',
-            'off_price' => 'string|nullable',
-            'additional_price' => 'string|nullable',
+            'count' => 'integer|nullable',
+            'unit_price' => 'integer|nullable',
+            'off_price' => 'integer|nullable',
+            'additional_price' => 'integer|nullable',
             'description' => 'string|nullable',
         ]);
         //check that just one of the order_id or product_id or (code, name, count type ) must be sent
-        if ($request->order_id && $request->product_id) {
-            return response()->json(['message' => 'just one of the order_id or product_id must be sent'], 400);
-        }
-        if ($request->order_id && ($request->code || $request->name || $request->count_type)) {
-            return response()->json(['message' => 'just one of the order_id or (code, name, count type ) must be sent'], 400);
-        }
-        if ($request->product_id && ($request->code || $request->name || $request->count_type)) {
-            return response()->json(['message' => 'just one of the product_id or (code, name, count type ) must be sent'], 400);
-        }
+        // if ($request->order_id && $request->product_id) {
+        //     return response()->json(['message' => 'just one of the order_id or product_id must be sent'], 400);
+        // }
+        // if ($request->order_id && ($request->code || $request->name || $request->count_type)) {
+        //     return response()->json(['message' => 'just one of the order_id or (code, name, count type ) must be sent'], 400);
+        // }
+        // if ($request->product_id && ($request->code || $request->name || $request->count_type)) {
+        //     return response()->json(['message' => 'just one of the product_id or (code, name, count type ) must be sent'], 400);
+        // }
         //set default vars
         $count_type = $request->count_type;
         $product = null;
@@ -154,25 +152,27 @@ class FactorController extends Controller
         }
 
         //if product_id, find product and get count_type
-        if ($request->product_id) {
-            $product = Product::find($request->product_id);
-            if (!$product) {
-                return response()->json(['message' => 'product not found'], 404);
-            }
-            $count_type = $product->count_type;
-        }
-        //if order_id, find order and then find product and get count_type
-        if ($request->order_id) {
-            $order = Order::find($request->order_id);
-            if (!$order) {
-                return response()->json(['message' => 'order not found'], 404);
-            }
-            $product = $order->product;
-            if (!$product) {
-                return response()->json(['message' => 'product not found'], 404);
-            }
-            $count_type = $product->count_type;
-        }
+        // if ($request->product_id) {
+        //     $product = Product::find($request->product_id);
+        //     if (!$product) {
+        //         return response()->json(['message' => 'product not found'], 404);
+        //     }
+        //     $count_type = $product->count_type;
+        // }
+        // //if order_id, find order and then find product and get count_type
+        // if ($request->order_id) {
+        //     $order = Order::find($request->order_id);
+        //     if (!$order) {
+        //         return response()->json(['message' => 'order not found'], 404);
+        //     }
+        //     $product = $order->product;
+        //     if (!$product) {
+        //         return response()->json(['message' => 'product not found'], 404);
+        //     }
+        //     $count_type = $product->count_type;
+        // }
+
+
         //validate count_type
         if ($count_type != "m2" && $count_type != "quantity") {
             return response()->json(['message' => 'count type must be m2 or quantity'], 400);
@@ -180,18 +180,19 @@ class FactorController extends Controller
 
 
         if ($count_type == "m2") {
-            if ($order) {
-                //find initial step 
-                $initialForm = $product->initialOrderForm();
-                //fields
-                $fields = $initialForm->fields;
-                //find width and height fields
-                $widthField = $this->findObjectByKey($fields, "name", "width");
-                $heightField = $this->findObjectByKey($fields, "name", "height");
-                //find answers with order id and form field id
-                $width = $order->userAnswers()->where('form_field_id', $widthField->id)->first()->answer;
-                $height = $order->userAnswers()->where('form_field_id', $heightField->id)->first()->answer;
-            } else {
+            // if ($order) {
+            //     //find initial step 
+            //     $initialForm = $product->initialOrderForm();
+            //     //fields
+            //     $fields = $initialForm->fields;
+            //     //find width and height fields
+            //     $widthField = $this->findObjectByKey($fields, "name", "width");
+            //     $heightField = $this->findObjectByKey($fields, "name", "height");
+            //     //find answers with order id and form field id
+            //     $width = $order->userAnswers()->where('form_field_id', $widthField->id)->first()->answer;
+            //     $height = $order->userAnswers()->where('form_field_id', $heightField->id)->first()->answer;
+            // } else 
+            {
                 //check if request sent width and height
                 if (!$request->width || !$request->height) {
                     return response()->json(['message' => 'width and height must be sent'], 400);
@@ -201,18 +202,18 @@ class FactorController extends Controller
             }
         }
         //fill count if we have order id 
-        if ($order) {
-            $count = $order->count;
-        }
+        // if ($order) {
+        //     $count = $order->count;
+        // }
         //fill unit price if we have product id and count type is quantity
-        if ($product && $count_type == "quantity") {
-            $unit_price = $product->details[0]->price;
-        }
+        // if ($product && $count_type == "quantity") {
+        //     $unit_price = $product->details[0]->price;
+        // }
 
-        if ($product) {
-            $code = $product->code;
-            $name = $product->name;
-        }
+        // if ($product) {
+        //     $code = $product->code;
+        //     $name = $product->name;
+        // }
 
         //create factor item
         $factor_item = FactorItem::create([
@@ -233,6 +234,182 @@ class FactorController extends Controller
             'description' => $request->description,
         ]);
         return response()->json($factor_item, 201);
+    }
+
+    //update factor item
+    //write annotation
+    /**
+     * @OA\Put(
+     *  path="/v1/factor/{factor_id}/factorItem/{factor_item_id}",
+     * tags={"Factor"},
+     * summary="update factor item",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Parameter(
+     * name="factor_item_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"code","name","count_type","width","height","count","unit_price","off_price","additional_price","description"},
+     * @OA\Property(property="code", type="string", format="string", example="code"),
+     * @OA\Property(property="name", type="string", format="string", example="name"),
+     * @OA\Property(property="count_type", type="string", format="string", example="count_type"),
+     * @OA\Property(property="width", type="string", format="string", example="width"),
+     * @OA\Property(property="height", type="string", format="string", example="height"),
+     * @OA\Property(property="count", type="string", format="string", example="count"),
+     * @OA\Property(property="unit_price", type="string", format="string", example="unit_price"),
+     * @OA\Property(property="off_price", type="string", format="string", example="off_price"),
+     * @OA\Property(property="additional_price", type="string", format="string", example="additional_price"),
+     * @OA\Property(property="description", type="string", format="string", example="description"),
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+
+    public function updateFactorItem($factor_id, $factor_item_id, Request $request)
+    {
+        //find factor id
+        $factor = Factor::find($factor_id);
+        if (!$factor) {
+            return response()->json(['message' => 'factor not found'], 404);
+        }
+        //find factor item
+        $factor_item = FactorItem::find($factor_item_id);
+        if (!$factor_item) {
+            return response()->json(['message' => 'factor item not found'], 404);
+        }
+        //check if factor item is for this factor
+        if ($factor_item->factor_id != $factor_id) {
+            return response()->json(['message' => 'factor item is not for this factor'], 400);
+        }
+
+        //reject iif factor item has order id or product id, those are uneditable
+        if ($factor_item->order_id || $factor_item->product_id) {
+            return response()->json(['message' => 'ویرایش این ایتم امکان پذیر نیست'], 400);
+        }
+        //validate
+        $request->validate([
+            'code' => 'string|required',
+            'name' => 'string|required',
+            'count_type' => 'string|in:m2,quantity|required',
+            'width' => 'string|nullable',
+            'height' => 'string|nullable',
+            'count' => 'integer|required',
+            'unit_price' => 'integer|required',
+            'off_price' => 'integer|nullable',
+            'additional_price' => 'integer|nullable',
+            'description' => 'string|nullable',
+        ]);
+
+        //check if count type is m2, check if width and height are sent
+        if ($request->count_type == "m2") {
+            if (!$request->width || !$request->height) {
+                return response()->json(['message' => 'width and height must be sent'], 400);
+            }
+        } else {
+            $request->width = null;
+            $request->height = null;
+        }
+        //update
+        $factor_item->update([
+            'code' => $request->code,
+            'name' => $request->name,
+            'count_type' => $request->count_type,
+            'width' => $request->width,
+            'height' => $request->height,
+            'count' => $request->count,
+            'unit_price' => $request->unit_price,
+            'off_price' => $request->off_price,
+            'additional_price' => $request->additional_price,
+            'description' => $request->description,
+        ]);
+        return response()->json($factor_item, 200);
+
+    }
+
+    //delete factor item
+    //write annotation
+    /**
+     * @OA\Delete(
+     *  path="/v1/factor/{factor_id}/factorItem/{factor_item_id}",
+     * tags={"Factor"},
+     * summary="delete factor item",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Parameter(
+     * name="factor_item_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function destroyFactorItem($factor_id, $factor_item_id)
+    {
+        //find factor id
+        $factor = Factor::find($factor_id);
+        if (!$factor) {
+            return response()->json(['message' => 'factor not found'], 404);
+        }
+        //find factor item
+        $factor_item = FactorItem::find($factor_item_id);
+        if (!$factor_item) {
+            return response()->json(['message' => 'factor item not found'], 404);
+        }
+        //check if factor item is for this factor
+        if ($factor_item->factor_id != $factor_id) {
+            return response()->json(['message' => 'factor item is not for this factor'], 400);
+        }
+        //prevent to delete if factor item has order id or product id
+        if ($factor_item->order_id || $factor_item->product_id) {
+            return response()->json(['message' => 'این ایتم قابل حذف نیست'], 400);
+        }
+
+        //delete
+        $factor_item->delete();
+        return response()->json(['message' => 'factor item deleted'], 200);
     }
 
     function findObjectByKey($array, $key, $id)

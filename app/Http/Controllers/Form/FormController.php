@@ -223,9 +223,8 @@ class FormController extends Controller
                         $answer = UserAnswer::where('order_id', $order->id)->where('form_field_id', $field->id)->first();
                         if ($answer) {
                             $field->userAnswer = $answer->answer;
-                        }else{
+                        } else {
                             $field->userAnswer = null;
-
                         }
                     }
                 }
@@ -235,6 +234,19 @@ class FormController extends Controller
                 $relatedFieldTmpForm->step = $field->originForm[0]->productSteps[0];
                 $field->form = $relatedFieldTmpForm;
 
+            } else {
+                //also here, we need to load user answer
+                if ($request->orderId) {
+                    $order = Order::find($request->orderId);
+                    if ($order) {
+                        $answer = UserAnswer::where('order_id', $order->id)->where('form_field_id', $field->id)->first();
+                        if ($answer) {
+                            $field->userAnswer = $answer->answer;
+                        } else {
+                            $field->userAnswer = null;
+                        }
+                    }
+                }
             }
             $field->basicData;
             if ($field->basicData) {

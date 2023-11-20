@@ -738,8 +738,6 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "order_id",
-                                    "product_id",
                                     "code",
                                     "name",
                                     "count_type",
@@ -752,16 +750,6 @@
                                     "description"
                                 ],
                                 "properties": {
-                                    "order_id": {
-                                        "type": "string",
-                                        "format": "string",
-                                        "example": "1"
-                                    },
-                                    "product_id": {
-                                        "type": "string",
-                                        "format": "string",
-                                        "example": "1"
-                                    },
                                     "code": {
                                         "type": "string",
                                         "format": "string",
@@ -818,6 +806,162 @@
                         }
                     }
                 },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/{factor_id}/factorItem/{factor_item_id}": {
+            "put": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "update factor item",
+                "operationId": "4ed9b6ce2b81964832783cf025ddc3e8",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "factor_item_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code",
+                                    "name",
+                                    "count_type",
+                                    "width",
+                                    "height",
+                                    "count",
+                                    "unit_price",
+                                    "off_price",
+                                    "additional_price",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "code"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "name"
+                                    },
+                                    "count_type": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "count_type"
+                                    },
+                                    "width": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "width"
+                                    },
+                                    "height": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "height"
+                                    },
+                                    "count": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "count"
+                                    },
+                                    "unit_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "unit_price"
+                                    },
+                                    "off_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "off_price"
+                                    },
+                                    "additional_price": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "additional_price"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "delete factor item",
+                "operationId": "41e0db3f1e29b6c6bdc515c472b0d77b",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "factor_item_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",

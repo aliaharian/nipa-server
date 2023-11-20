@@ -4,6 +4,9 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\BasicData;
+use App\Models\Factor;
+use App\Models\FactorStatus;
+use App\Models\FactorStatusEnum;
 use App\Models\Form;
 use App\Models\GlobalStep;
 use App\Models\Order;
@@ -133,6 +136,13 @@ class UserAnswerController extends Controller
         if (!$formStep) {
             return response()->json(['message' => 'form has no steps'], 404);
         }
+        //find form step
+        $globalStep = GlobalStep::find($formStep->global_step_id);
+        if ($globalStep->description !== "initialOrder") {
+            $isFirstStep = false;
+        } else {
+            $isFirstStep = true;
+        }
         // $formStepMeta = json_decode($formStep->meta);
         // if($formStepMeta->first_step == 'true'){
         //     ///////create order
@@ -140,6 +150,10 @@ class UserAnswerController extends Controller
 
         //     ]);
         // }
+        $orderGroup = "";
+        $factor = "";
+        $needUpdateFactor = false;
+        $describerText = "";
         //create user answer
         foreach ($fields as $field) {
             if (gettype($request[$field->name]) == 'array') {
@@ -156,6 +170,32 @@ class UserAnswerController extends Controller
                 }
 
             } else {
+                if (!$isFirstStep) {
+                    //check if field name id width or height
+                    if ($field->name == "width" || $field->name == "height") {
+                        $existingAnswer = UserAnswer::where("user_id", $user->id)->where("form_field_id", $field->id)->where("order_id", $data['order_id'])->first();
+                        //if exist and new answer not equal to existing
+                        if ($existingAnswer && $existingAnswer->answer != $request[$field->name]) {
+                            //update factor status
+                            $needUpdateFactor = true;
+                            //TODO: find and update factor item "i mean width snd height"
+                            
+
+
+
+                            //describe the name of changed field and its current and new value in description
+                            $describerText .=
+                                "در محصول " .
+                                $existingAnswer->order->product->name .
+                                " مقدار "
+                                . $field->name . " از "
+                                . $existingAnswer->answer . " به " . $request[$field->name] . " تغییر کرد"
+                                . " | "
+                            ;
+
+                        }
+                    }
+                }
                 $userAnswer = UserAnswer::updateOrCreate([
                     'user_id' => $user->id,
                     'form_field_id' => $field->id,
@@ -166,9 +206,38 @@ class UserAnswerController extends Controller
             }
         }
 
+
+
         $userAnswer = UserAnswer::where('user_id', $user->id)->where('order_id', $data['order_id'])->get();
 
-        return response()->json(["userAnswer" => $userAnswer], 200);
+
+        ///update factor if needed
+        if ($needUpdateFactor) {
+            $currOrder = Order::find($data['order_id']);
+            $orderGroup = $currOrder->orderGroup[0];
+            $factor = Factor::where("order_group_id", $orderGroup->id)->first();
+            if ($factor) {
+                //find factor enum of "salesResubmitPending"
+                $factorEnumStatus = FactorStatusEnum::where("slug", "salesResubmitPending")->first();
+                $factorStatus = FactorStatus::create([
+                    "name" => "status",
+                    'factor_id' => $factor->id,
+                    'factor_status_enum_id' => $factorEnumStatus->id,
+                    'description' => $describerText,
+                ]);
+            }
+
+        }
+        return response()->json(
+            [
+                "userAnswer" => $userAnswer,
+                "orderGroup" => $orderGroup,
+                "isFirstStep" => $isFirstStep,
+                "factor" => $factor,
+                "description" => $describerText,
+            ],
+            200
+        );
     }
 
     function findObjectByKey($array, $key, $id)
