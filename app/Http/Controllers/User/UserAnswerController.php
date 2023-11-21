@@ -184,7 +184,6 @@ class UserAnswerController extends Controller
                         if ($existingAnswer && $existingAnswer->answer != $request[$field->name]) {
                             //update factor status
                             $needUpdateFactor = true;
-                            //TODO: find and update factor item "i mean width snd height"
                             $factorItem = FactorItem::where("factor_id", $factor->id)->where("order_id", $request->order_id)->first();
                             if ($field->name == "width") {
                                 $factorItem->width = $request[$field->name];
@@ -213,6 +212,8 @@ class UserAnswerController extends Controller
                                 "form" => $form->id,
                                 "order" => $data['order_id'],
                             ];
+                            //TODO: compelete metas and conditions based on google sheet
+
 
                         }
                     }
