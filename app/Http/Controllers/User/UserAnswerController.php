@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\BasicData;
 use App\Models\Factor;
+use App\Models\FactorItem;
 use App\Models\FactorStatus;
 use App\Models\FactorStatusEnum;
 use App\Models\Form;
@@ -154,6 +155,7 @@ class UserAnswerController extends Controller
         $factor = "";
         $needUpdateFactor = false;
         $describerText = "";
+        $changesMeta = array();
         //create user answer
         foreach ($fields as $field) {
             if (gettype($request[$field->name]) == 'array') {
@@ -171,6 +173,10 @@ class UserAnswerController extends Controller
 
             } else {
                 if (!$isFirstStep) {
+                    $currOrder = Order::find($data['order_id']);
+                    $orderGroup = $currOrder->orderGroup[0];
+                    $factor = Factor::where("order_group_id", $orderGroup->id)->first();
+
                     //check if field name id width or height
                     if ($field->name == "width" || $field->name == "height") {
                         $existingAnswer = UserAnswer::where("user_id", $user->id)->where("form_field_id", $field->id)->where("order_id", $data['order_id'])->first();
@@ -179,9 +185,13 @@ class UserAnswerController extends Controller
                             //update factor status
                             $needUpdateFactor = true;
                             //TODO: find and update factor item "i mean width snd height"
-                            
-
-
+                            $factorItem = FactorItem::where("factor_id", $factor->id)->where("order_id", $request->order_id)->first();
+                            if ($field->name == "width") {
+                                $factorItem->width = $request[$field->name];
+                            } else if ($field->name == "height") {
+                                $factorItem->height = $request[$field->name];
+                            }
+                            $factorItem->save();
 
                             //describe the name of changed field and its current and new value in description
                             $describerText .=
@@ -192,6 +202,17 @@ class UserAnswerController extends Controller
                                 . $existingAnswer->answer . " به " . $request[$field->name] . " تغییر کرد"
                                 . " | "
                             ;
+                            //fill changes meta with conventional values
+                            $changesMeta[] = [
+                                "modifiedType" => "field",
+                                "fieldName" => $field->name,
+                                "fieldId" => $field->id,
+                                "oldValue" => $existingAnswer->answer,
+                                "newValue" => $request[$field->name],
+                                "user" => $user->id,
+                                "form" => $form->id,
+                                "order" => $data['order_id'],
+                            ];
 
                         }
                     }
@@ -213,9 +234,7 @@ class UserAnswerController extends Controller
 
         ///update factor if needed
         if ($needUpdateFactor) {
-            $currOrder = Order::find($data['order_id']);
-            $orderGroup = $currOrder->orderGroup[0];
-            $factor = Factor::where("order_group_id", $orderGroup->id)->first();
+
             if ($factor) {
                 //find factor enum of "salesResubmitPending"
                 $factorEnumStatus = FactorStatusEnum::where("slug", "salesResubmitPending")->first();
@@ -224,6 +243,7 @@ class UserAnswerController extends Controller
                     'factor_id' => $factor->id,
                     'factor_status_enum_id' => $factorEnumStatus->id,
                     'description' => $describerText,
+                    'meta' => json_encode($changesMeta),
                 ]);
             }
 

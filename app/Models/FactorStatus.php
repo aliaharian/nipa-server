@@ -14,6 +14,7 @@ class FactorStatus extends Model
         'factor_status_enum_id',
         'name',
         'description',
+        'meta'
     ];
 
     //hidden timestamps
