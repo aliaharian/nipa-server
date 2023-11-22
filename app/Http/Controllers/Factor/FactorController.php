@@ -9,6 +9,7 @@ use App\Models\FactorStatus;
 use App\Models\FactorStatusEnum;
 use App\Models\Order;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class FactorController extends Controller
@@ -121,15 +122,15 @@ class FactorController extends Controller
             'description' => 'string|nullable',
         ]);
         //check that just one of the order_id or product_id or (code, name, count type ) must be sent
-        // if ($request->order_id && $request->product_id) {
-        //     return response()->json(['message' => 'just one of the order_id or product_id must be sent'], 400);
-        // }
-        // if ($request->order_id && ($request->code || $request->name || $request->count_type)) {
-        //     return response()->json(['message' => 'just one of the order_id or (code, name, count type ) must be sent'], 400);
-        // }
-        // if ($request->product_id && ($request->code || $request->name || $request->count_type)) {
-        //     return response()->json(['message' => 'just one of the product_id or (code, name, count type ) must be sent'], 400);
-        // }
+        if ($request->order_id && $request->product_id) {
+            return response()->json(['message' => 'just one of the order_id or product_id must be sent'], 400);
+        }
+        if ($request->order_id && ($request->code || $request->name || $request->count_type)) {
+            return response()->json(['message' => 'just one of the order_id or (code, name, count type ) must be sent'], 400);
+        }
+        if ($request->product_id && ($request->code || $request->name || $request->count_type)) {
+            return response()->json(['message' => 'just one of the product_id or (code, name, count type ) must be sent'], 400);
+        }
         //set default vars
         $count_type = $request->count_type;
         $product = null;
@@ -152,25 +153,25 @@ class FactorController extends Controller
         }
 
         //if product_id, find product and get count_type
-        // if ($request->product_id) {
-        //     $product = Product::find($request->product_id);
-        //     if (!$product) {
-        //         return response()->json(['message' => 'product not found'], 404);
-        //     }
-        //     $count_type = $product->count_type;
-        // }
+        if ($request->product_id) {
+            $product = Product::find($request->product_id);
+            if (!$product) {
+                return response()->json(['message' => 'product not found'], 404);
+            }
+            $count_type = $product->count_type;
+        }
         // //if order_id, find order and then find product and get count_type
-        // if ($request->order_id) {
-        //     $order = Order::find($request->order_id);
-        //     if (!$order) {
-        //         return response()->json(['message' => 'order not found'], 404);
-        //     }
-        //     $product = $order->product;
-        //     if (!$product) {
-        //         return response()->json(['message' => 'product not found'], 404);
-        //     }
-        //     $count_type = $product->count_type;
-        // }
+        if ($request->order_id) {
+            $order = Order::find($request->order_id);
+            if (!$order) {
+                return response()->json(['message' => 'order not found'], 404);
+            }
+            $product = $order->product;
+            if (!$product) {
+                return response()->json(['message' => 'product not found'], 404);
+            }
+            $count_type = $product->count_type;
+        }
 
 
         //validate count_type
@@ -180,19 +181,18 @@ class FactorController extends Controller
 
 
         if ($count_type == "m2") {
-            // if ($order) {
-            //     //find initial step 
-            //     $initialForm = $product->initialOrderForm();
-            //     //fields
-            //     $fields = $initialForm->fields;
-            //     //find width and height fields
-            //     $widthField = $this->findObjectByKey($fields, "name", "width");
-            //     $heightField = $this->findObjectByKey($fields, "name", "height");
-            //     //find answers with order id and form field id
-            //     $width = $order->userAnswers()->where('form_field_id', $widthField->id)->first()->answer;
-            //     $height = $order->userAnswers()->where('form_field_id', $heightField->id)->first()->answer;
-            // } else 
-            {
+            if ($order) {
+                //find initial step 
+                $initialForm = $product->initialOrderForm();
+                //fields
+                $fields = $initialForm->fields;
+                //find width and height fields
+                $widthField = $this->findObjectByKey($fields, "name", "width");
+                $heightField = $this->findObjectByKey($fields, "name", "height");
+                //find answers with order id and form field id
+                $width = $order->userAnswers()->where('form_field_id', $widthField->id)->first()->answer;
+                $height = $order->userAnswers()->where('form_field_id', $heightField->id)->first()->answer;
+            } else {
                 //check if request sent width and height
                 if (!$request->width || !$request->height) {
                     return response()->json(['message' => 'width and height must be sent'], 400);
@@ -201,19 +201,19 @@ class FactorController extends Controller
                 $height = $request->height;
             }
         }
-        //fill count if we have order id 
-        // if ($order) {
-        //     $count = $order->count;
-        // }
-        //fill unit price if we have product id and count type is quantity
-        // if ($product && $count_type == "quantity") {
-        //     $unit_price = $product->details[0]->price;
-        // }
+        // fill count if we have order id 
+        if ($order) {
+            $count = $order->count;
+        }
+        // fill unit price if we have product id and count type is quantity
+        if ($product && $count_type == "quantity") {
+            $unit_price = $product->details[0]->price;
+        }
 
-        // if ($product) {
-        //     $code = $product->code;
-        //     $name = $product->name;
-        // }
+        if ($product) {
+            $code = $product->code;
+            $name = $product->name;
+        }
 
         //create factor item
         $factor_item = FactorItem::create([
@@ -233,6 +233,30 @@ class FactorController extends Controller
             'additional_price' => $request->additional_price,
             'description' => $request->description,
         ]);
+
+        //set log if added item doesnt have order_id or product_id
+        $customerAcceptExists = $this->checkCustomerAccept($factor_id);
+        if ($customerAcceptExists) {
+            $changesMeta = array();
+            $user = Auth::user();
+            $changesMeta[] = [
+                "modifiedType" => "addItem",
+                "factorItemId" => $factor_item->id,
+                "user" => $user->id,
+            ];
+
+            $currectStatusEnum = FactorStatusEnum::where('slug', 'customerResubmitPending')->first();
+
+            $factor_status = FactorStatus::create([
+                'factor_id' => $factor_id,
+                'factor_status_enum_id' => $currectStatusEnum->id,
+                'name' => 'فاکتور در انتظار مشتری',
+                'description' => 'فاکتور در انتظار مشتری به علت اضافه شدن ایتم',
+                'meta' => json_encode($changesMeta),
+            ]);
+            //TODO: notify user
+
+        }
         return response()->json($factor_item, 201);
     }
 
@@ -298,6 +322,7 @@ class FactorController extends Controller
         }
         //find factor item
         $factor_item = FactorItem::find($factor_item_id);
+        $old_factor_item = FactorItem::find($factor_item_id);
         if (!$factor_item) {
             return response()->json(['message' => 'factor item not found'], 404);
         }
@@ -308,24 +333,31 @@ class FactorController extends Controller
 
         //reject iif factor item has order id or product id, those are uneditable
         if ($factor_item->order_id || $factor_item->product_id) {
-            return response()->json(['message' => 'ویرایش این ایتم امکان پذیر نیست'], 400);
+            //in this situation we can just update (unit_price , off_price, additional_price , description)
+            $request->validate([
+                'unit_price' => 'integer|required',
+                'off_price' => 'integer|nullable',
+                'additional_price' => 'integer|nullable',
+                'description' => 'string|nullable',
+            ]);
+        } else {
+            //here we can change everything but only  (unit_price ) is required
+            $request->validate([
+                'code' => 'string|nullable',
+                'name' => 'string|nullable',
+                'count_type' => 'string|in:m2,quantity|nullable',
+                'width' => 'string|nullable',
+                'height' => 'string|nullable',
+                'count' => 'integer|nullable',
+                'unit_price' => 'integer|required',
+                'off_price' => 'integer|nullable',
+                'additional_price' => 'integer|nullable',
+                'description' => 'string|nullable',
+            ]);
         }
-        //validate
-        $request->validate([
-            'code' => 'string|required',
-            'name' => 'string|required',
-            'count_type' => 'string|in:m2,quantity|required',
-            'width' => 'string|nullable',
-            'height' => 'string|nullable',
-            'count' => 'integer|required',
-            'unit_price' => 'integer|required',
-            'off_price' => 'integer|nullable',
-            'additional_price' => 'integer|nullable',
-            'description' => 'string|nullable',
-        ]);
 
         //check if count type is m2, check if width and height are sent
-        if ($request->count_type == "m2") {
+        if ($request->count_type && $request->count_type == "m2") {
             if (!$request->width || !$request->height) {
                 return response()->json(['message' => 'width and height must be sent'], 400);
             }
@@ -333,19 +365,88 @@ class FactorController extends Controller
             $request->width = null;
             $request->height = null;
         }
-        //update
-        $factor_item->update([
-            'code' => $request->code,
-            'name' => $request->name,
-            'count_type' => $request->count_type,
-            'width' => $request->width,
-            'height' => $request->height,
-            'count' => $request->count,
-            'unit_price' => $request->unit_price,
-            'off_price' => $request->off_price,
-            'additional_price' => $request->additional_price,
-            'description' => $request->description,
-        ]);
+
+        if ($factor_item->order_id || $factor_item->product_id) {
+            //update
+            $factor_item->update([
+                'unit_price' => $request->unit_price ?? $factor_item->unit_price,
+                'off_price' => $request->off_price ?? $factor_item->off_price,
+                'additional_price' => $request->additional_price ?? $factor_item->additional_price,
+                'description' => $request->description ?? $factor_item->description,
+            ]);
+        } else {
+            //update
+            $factor_item->update([
+                'code' => $request->code ?? $factor_item->code,
+                'name' => $request->name ?? $factor_item->name,
+                'count_type' => $request->count_type ?? $factor_item->count_type,
+                'width' => $request->width ?? $factor_item->width,
+                'height' => $request->height ?? $factor_item->height,
+                'count' => $request->count ?? $factor_item->count,
+                'unit_price' => $request->unit_price ?? $factor_item->unit_price,
+                'off_price' => $request->off_price ?? $factor_item->off_price,
+                'additional_price' => $request->additional_price ?? $factor_item->additional_price,
+                'description' => $request->description ?? $factor_item->description,
+            ]);
+        }
+        //also need to update status of factor if user at least one time accepted this factor
+        $lastFactorStatus = $factor->lastStatus;
+        $lastStatusEnum = $lastFactorStatus->factorStatusEnum;
+        $customerAcceptExists = $this->checkCustomerAccept($factor_id);
+        if ($customerAcceptExists) {
+            $changesMeta = array();
+            //map request
+            $req = $request->all();
+            $user = Auth::user();
+            foreach ($req as $key => $value) {
+                //check if sent value has changed from old value
+                if ($old_factor_item[$key] != $factor_item[$key]) {
+                    //if changed, add to changes meta
+                    $changesMeta[] = [
+                        "modifiedType" => "factorItem",
+                        "factorItemId" => $factor_item->id,
+                        "fieldName" => $key,
+                        "oldValue" => $old_factor_item[$key],
+                        "newValue" => $factor_item[$key],
+                        "user" => $user->id,
+                    ];
+                }
+            }
+            //find last factor status
+
+            $currectStatusEnum = null;
+            if ($lastStatusEnum->slug == "customerPending") {
+                $currectStatusEnum = FactorStatusEnum::where('slug', 'customerResubmitPending')->first();
+            } else {
+                $currectStatusEnum = FactorStatusEnum::where('slug', 'customerPending')->first();
+            }
+            //update factor status if json meta filled
+            if (count($changesMeta) > 0) {
+
+                $factor_status = FactorStatus::create([
+                    'factor_id' => $factor_id,
+                    'factor_status_enum_id' => $currectStatusEnum->id,
+                    'name' => 'فاکتور در انتظار مشتری',
+                    'description' => 'فاکتور در انتظار مشتری به علت تغییر در ایتم ها',
+                    'meta' => json_encode($changesMeta),
+                ]);
+                //TODO:notify user
+            }
+        } else {
+            // if ($lastStatusEnum !== "customerPending") {
+            //     $factor_status = FactorStatus::create([
+            //         'factor_id' => $factor_id,
+            //         'factor_status_enum_id' => FactorStatusEnum::where('slug', 'customerPending')->first()->id,
+            //         'name' => 'فاکتور در انتظار مشتری',
+            //         'description' => 'فاکتور در انتظار مشتری',
+            //     ]);
+            // }
+            //this is wrong because mabe factor is not ready to accept by user
+            //we should handle it by call-to-acton for admin in FRONT
+        }
+
+
+
         return response()->json($factor_item, 200);
 
     }
@@ -409,6 +510,34 @@ class FactorController extends Controller
 
         //delete
         $factor_item->delete();
+
+        //also need to update status of factor if user at least one time accepted this factor
+        $customerAcceptExists = $this->checkCustomerAccept($factor_id);
+        if ($customerAcceptExists) {
+            $changesMeta = array();
+            $user = Auth::user();
+            $changesMeta[] = [
+                "modifiedType" => "removeItem",
+                "factorItemId" => $factor_item->id,
+                "factorItemName" => $factor_item->name,
+                "factorItemCode" => $factor_item->code,
+                "factorItemUnitPrice" => $factor_item->unit_price,
+                "user" => $user->id,
+            ];
+
+            $currectStatusEnum = FactorStatusEnum::where('slug', 'customerResubmitPending')->first();
+
+            $factor_status = FactorStatus::create([
+                'factor_id' => $factor_id,
+                'factor_status_enum_id' => $currectStatusEnum->id,
+                'name' => 'فاکتور در انتظار مشتری',
+                'description' => 'فاکتور در انتظار مشتری به علت حذف شدن ایتم',
+                'meta' => json_encode($changesMeta),
+            ]);
+            //TODO: notify user
+
+        }
+
         return response()->json(['message' => 'factor item deleted'], 200);
     }
 
@@ -474,7 +603,9 @@ class FactorController extends Controller
             'factor_status_enum_id' => FactorStatusEnum::where('slug', $request->factor_status_enum)->first()->id,
             'name' => $request->name,
             'description' => $request->description,
+            'meta' => $request->meta ? $request->meta : null,
         ]);
+        //TODO:notify user or admin
         return response()->json($factor_status, 201);
     }
 
@@ -514,6 +645,13 @@ class FactorController extends Controller
         $factor->factorItems;
         //return factor
         return response()->json($factor, 200);
+    }
+
+    function checkCustomerAccept($factor_id)
+    {
+        $customerAcceptEnumId = FactorStatusEnum::where('slug', 'customerAccept')->first()->id;
+        $customerAcceptExists = FactorStatus::where('factor_id', $factor_id)->where('factor_status_enum_id', $customerAcceptEnumId)->first();
+        return $customerAcceptExists;
     }
 }
 

@@ -312,15 +312,25 @@ class OrderController extends Controller
             $orderGroup->delete();
             return response()->json(['error' => 'Failed to create factor'], $factorResponse->status());
         }
+        $changesMeta = array();
+        $changesMeta[] = [
+            "modifiedType" => "createFactor",
+            "user" => $user->id,
+        ];
+
         //set factor status from factorController setFactorStatus method
         $factorData = $factorResponse->getData();
         $factorController->setFactorStatus(
             $factorData->id,
             new Request([
                 'factor_status_enum' => "salesPending",
-                'name' => "status"
+                'name' => "status",
+                'meta' => json_encode($changesMeta),
             ])
         );
+
+        //TODO: notify admin about new order
+        
         if (!$factorResponse->isSuccessful()) {
             // Handle the case where the request was not successful
             // You might want to return an error message or take appropriate action
