@@ -640,11 +640,16 @@ class FactorController extends Controller
     {
         //find or fail factor
         $factor = Factor::findOrFail($factor_id);
-        $factor->factorPaymentSteps;
+        // $factor->factorPaymentSteps;
         $factor->lastStatus->factorStatusEnum;
-        $factor->factorItems;
+        // $factor->factorItems;
         //return factor
-        return response()->json($factor, 200);
+        return response()->json([
+            'data' => $factor,
+            'message' => 'factor retrieved successfully',
+            'success' => true,
+            'code' => 200
+        ], 200);
     }
 
     function checkCustomerAccept($factor_id)

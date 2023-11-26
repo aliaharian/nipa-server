@@ -1075,6 +1075,243 @@
                 ]
             }
         },
+        "/v1/factor/paymentStep": {
+            "get": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "view factor all payment steps",
+                "operationId": "53e6f92d4cc70942a3b556741105f308",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "create factor payment step",
+                "operationId": "146828a1d8e48cbab317e1239b8b7d00",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "factor_id",
+                                    "step_number",
+                                    "payable_price",
+                                    "allow_online",
+                                    "allow_offline",
+                                    "pay_time"
+                                ],
+                                "properties": {
+                                    "factor_id": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": 1
+                                    },
+                                    "step_number": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": 1
+                                    },
+                                    "payable_price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": 1000
+                                    },
+                                    "allow_online": {
+                                        "type": "boolean",
+                                        "format": "boolean",
+                                        "example": true
+                                    },
+                                    "allow_offline": {
+                                        "type": "boolean",
+                                        "format": "boolean",
+                                        "example": true
+                                    },
+                                    "pay_time": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "2021-09-01 00:00:00"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/paymentStep/{id}": {
+            "get": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "view factor payment step",
+                "operationId": "2355d8cea2dfdb09ff849d03f1862c58",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "update factor payment step",
+                "operationId": "173080ed682e4a61ee0233157c7bb196",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "step_number",
+                                    "payable_price",
+                                    "allow_online",
+                                    "allow_offline",
+                                    "pay_time"
+                                ],
+                                "properties": {
+                                    "payable_price": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": 1000
+                                    },
+                                    "allow_online": {
+                                        "type": "boolean",
+                                        "format": "boolean",
+                                        "example": true
+                                    },
+                                    "allow_offline": {
+                                        "type": "boolean",
+                                        "format": "boolean",
+                                        "example": true
+                                    },
+                                    "pay_time": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "2021-09-01 00:00:00"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "delete factor step",
+                "operationId": "482a2e14c8500f13acb361df2f7eaf2c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/files": {
             "post": {
                 "tags": [

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFactorPaymentStepStatusEnumsTable extends Migration
+class CreatePaymentStatusesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,13 @@ class CreateFactorPaymentStepStatusEnumsTable extends Migration
      */
     public function up()
     {
-        Schema::create('payment_step_status_enums', function (Blueprint $table) {
+        Schema::create('payment_statuses', function (Blueprint $table) {
             $table->id();
+            //name , slug , meta , description
             $table->string('name');
-            //slug
             $table->string('slug');
-            //description
-            $table->string('description');
+            $table->json('meta')->nullable();
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }
@@ -31,6 +31,6 @@ class CreateFactorPaymentStepStatusEnumsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payment_step_status_enums');
+        Schema::dropIfExists('payment_statuses');
     }
 }

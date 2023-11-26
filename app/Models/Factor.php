@@ -41,5 +41,55 @@ class Factor extends Model
     {
         return $this->hasOne(FactorStatus::class)->latestOfMany();
     }
-    
+
+    //calculate total price
+    public function totalPrice($strict = false)
+    {
+        //map all factor items
+        //if factor item count_typ is m2 => price = width*height*count*unit_price
+        //if factor item count_typ is quantity => price = count*unit_price
+        //final calculatable price of each item is => calculateablePrice = price - off_price + additional_price
+        //sum all calculatablePrice of all items
+        //return sum
+
+        //return error if all of items doesnt have unit_price
+        //check if all of items have unit_price
+        $factorItems = $this->factorItems;
+        $allItemsHaveUnitPrice = true;
+        foreach ($factorItems as $factorItem) {
+            if (!$factorItem->unit_price) {
+                $allItemsHaveUnitPrice = false;
+            }
+        }
+        if (!$allItemsHaveUnitPrice && $strict) {
+            return response()->json([
+                'message' => //persian
+                    'همه ی محصولات باید قیمت داشته باشند',
+                'status' => 'error',
+                'success' => false,
+                'code' => 404
+            ], 404);
+        }
+
+        //calculate total price
+        $sum = $this->factorItems->map(function ($item) {
+            $count = $item->count ?? 1;
+            $unit_price = $item->unit_price ?? 0;
+            $off_price = $item->off_price ?? 0;
+            $additional_price = $item->additional_price ?? 0;
+            if ($item->count_type == 'm2') {
+                return ($item->width * $item->height * $count * $unit_price) - $off_price + $additional_price;
+            } else {
+                return ($count * $unit_price) - $off_price + $additional_price;
+            }
+        })->sum();
+        return response()->json([
+            'data' => $sum,
+            'printable' => number_format($sum),
+            'status' => 'success',
+            'success' => true,
+            'code' => 200
+        ], 200);
+
+    }
 }

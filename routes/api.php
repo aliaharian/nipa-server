@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BasicData\BasicDataController;
 use App\Http\Controllers\Factor\FactorController;
+use App\Http\Controllers\Factor\FactorPaymentStepController;
 use App\Http\Controllers\GlobalSteps\GlobalStepsController;
 use App\Http\Controllers\Products\ProductConditionController;
 use Illuminate\Http\Request;
@@ -60,6 +61,11 @@ Route::prefix('/v1')->group(function () {
 
         //customers
         Route::get('customers', [UserAuthController::class, 'customers'])->middleware('permission:add-order-as-another');
+
+        //factor payment steps api
+        ///v1/factor/paymentStep
+        //api route
+        Route::apiResource('factor/paymentStep', FactorPaymentStepController::class);
 
         //factor
         Route::post('factor', [FactorController::class, 'store']);
