@@ -69,6 +69,16 @@ class FactorPaymentStepController extends Controller
                 $warning = "قیمت قابل پرداخت مجموع مراحل با قیمت کل فاکتور برابر نیست";
             }
         }
+
+
+        //update pending payment statuses
+        $this->updatePendingPaymentStatuses();
+
+        //check payments
+        foreach ($factor_payment_steps as $factor_payment_step) {
+            $factor_payment_step->status = $factor_payment_step->status()->makeHidden(['id', 'created_at', 'updated_at', 'meta', 'description']);
+
+        }
         //response
         return response()->json([
             'data' => $factor_payment_steps,
@@ -266,12 +276,59 @@ class FactorPaymentStepController extends Controller
             ], 404);
         }
 
+        $warning = "";
+        $factor = $factor_payment_step->factor;
+        $factorTotalPrice = $factor->totalPrice(true);
+        $resp = $factorTotalPrice->getData();
+        if ($resp->success == false) {
+            $warning = "این فاکتور به علت ناقص بودن اطلاعات قابل پرداخت نیست";
+        } else {
+            $factorTotalPrice = $resp->data;
+        }
+
+        $factor_payment_steps = FactorPaymentStep::where('factor_id', $factor_payment_step->factor_id)->orderBy('step_number', 'asc')->get();
+        //check how many steps we have
+        $count = $factor_payment_steps->count();
+        if ($count == 1) {
+            //check if step 1 is not equal to factor total price
+            if ($factor_payment_steps[0]->payable_price != $factorTotalPrice) {
+                $warning = "این فاکتور به علت صحیح نبودن قیمت ها قابل پرداخت نیست";
+            }
+        } else {
+            //check if step 1 + step 2 is not equal to factor total price
+            if ($factor_payment_steps[0]->payable_price + $factor_payment_steps[1]->payable_price != $factorTotalPrice) {
+                $warning = "این فاکتور به علت صحیح نبودن قیمت ها قابل پرداخت نیست";
+            }
+        }
+
+        //calculate user wallet balance and credit to determine that how much user must pay in addition to wallet balance
+        $user = auth()->user();
+        $wallet = $user->wallet;
+        $totalBalance = 0;
+        $remainingPayablePrice = 0;
+        if ($wallet && $wallet->active) {
+            $totalBalance = $wallet->balance + $wallet->credit - $wallet->blocked;
+            $remainingPayablePrice = $factorTotalPrice - $totalBalance;
+            if ($remainingPayablePrice < 0) {
+                $remainingPayablePrice = 0;
+            }
+        } else {
+            $remainingPayablePrice = $factor_payment_step->payable_price;
+        }
+
+        //add remainingPayablePrice and totalBalance to factor_payment_step object
+        $factor_payment_step->remaining_payable_price = $remainingPayablePrice;
+        $factor_payment_step->total_balance = $totalBalance;
+
+
         //response
         return response()->json([
-            'data' => $factor_payment_step,
+            'data' => $factor_payment_step-> //remove factor object 
+                makeHidden(['factor']),
             'message' => 'factor payment step retrieved successfully',
-            'status' => 'success',
+            'status' => $warning == "" ? 'success' : "warning",
             'success' => true,
+            'warning' => $warning,
             'code' => 200
         ], 200);
 
@@ -438,5 +495,38 @@ class FactorPaymentStepController extends Controller
             'success' => true,
             'code' => 200
         ], 200);
+    }
+
+    public function updatePendingPaymentStatuses()
+    {
+        $factor_payment_steps = FactorPaymentStep::all();
+        foreach ($factor_payment_steps as $factor_payment_step) {
+            $payments = $factor_payment_step->payments;
+            //check if any payment has "pendingForPayment" status and 10 minutes passed from its updated_at 
+            //if there is , change its status to "timedOut" unblock blocked amount from wallet from field "wallet_payment_amount"
+            //update its transaction status to "timedOut"
+            foreach ($payments as $payment) {
+                if ($payment->status->slug == "pendingForPayment") {
+                    $now = now();
+                    $updated_at = $payment->updated_at;
+                    $diff = $now->diffInMinutes($updated_at);
+                    if ($diff >= 10) {
+                        //change status to timedOut
+                        $payment->update([
+                            'payment_status_id' => $payment->status->where('slug', 'timedOut')->first()->id
+                        ]);
+                        //unblock blocked amount from wallet
+                        $wallet = $payment->transaction->wallet;
+                        $wallet->update([
+                            'blocked' => $wallet->blocked - $payment->wallet_payment_amount
+                        ]);
+                        //update transaction status to timedOut
+                        $payment->transaction->update([
+                            'status_id' => $payment->transaction->status->where('slug', 'timedOut')->first()->id
+                        ]);
+                    }
+                }
+            }
+        }
     }
 }

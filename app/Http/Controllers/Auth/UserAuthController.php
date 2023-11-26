@@ -58,6 +58,7 @@ class UserAuthController extends Controller
 
         $token = $user->createToken('API Token')->accessToken;
 
+
         return response(['user' => $user, 'token' => $token]);
     }
 
@@ -161,6 +162,17 @@ class UserAuthController extends Controller
             $customer = $user->customer()->create([
                 //define a random 8 digit code for user in order to start with NIPA and first part is its user id and rest random
                 'code' => 'NIPA' . $user->id . rand(100000, 999999),
+            ]);
+        }
+
+        //create wallet if for this user id no wallet exists
+        if (!$user->wallet) {
+            $wallet = $user->wallet()->create([
+                'balance' => 0,
+                'credit' => 0,
+                'blocked' => 0,
+                'active' => true,
+                'meta' => null,
             ]);
         }
         $otp = rand(10000, 99999);
@@ -307,9 +319,10 @@ class UserAuthController extends Controller
             $permissions = array_merge($permissions, $role->permissions->toArray());
         }
         $user->permissions = $permissions;
+
         //customer
         $user->customer;
-
+        $user->wallet;
         return response(['user' => $user]);
     }
 
@@ -334,7 +347,7 @@ class UserAuthController extends Controller
     {
         $customers = Customer::all();
         //dont return created at and updated at and return the user info also and hide created_at,email_verified_at,mobile_verified_at,updated_at in user object
-        $customers->makeHidden(['created_at', 'updated_at'])->load('user:id,name,last_name,email,mobile');    
+        $customers->makeHidden(['created_at', 'updated_at'])->load('user:id,name,last_name,email,mobile');
 
         return response(['customers' => $customers]);
     }

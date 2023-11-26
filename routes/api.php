@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BasicData\BasicDataController;
 use App\Http\Controllers\Factor\FactorController;
+use App\Http\Controllers\Factor\FactorPaymentController;
 use App\Http\Controllers\Factor\FactorPaymentStepController;
 use App\Http\Controllers\GlobalSteps\GlobalStepsController;
 use App\Http\Controllers\Products\ProductConditionController;
@@ -66,7 +67,10 @@ Route::prefix('/v1')->group(function () {
         ///v1/factor/paymentStep
         //api route
         Route::apiResource('factor/paymentStep', FactorPaymentStepController::class);
-
+        Route::prefix("factor/payment")->group(function(){
+            Route::post("pay", [FactorPaymentController::class, "pay"]);
+        });
+   
         //factor
         Route::post('factor', [FactorController::class, 'store']);
         // ->middleware('permission:manage-factors');

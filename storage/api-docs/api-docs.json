@@ -1075,6 +1075,54 @@
                 ]
             }
         },
+        "/v1/factor/payment/pay": {
+            "post": {
+                "tags": [
+                    "FactorPayment"
+                ],
+                "summary": "pay a step",
+                "operationId": "9e57cdc8e35c217f0eb387f143b0c092",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "factor_payment_step_id",
+                                    "method"
+                                ],
+                                "properties": {
+                                    "factor_payment_step_id": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": 1
+                                    },
+                                    "method": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "online"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/factor/paymentStep": {
             "get": {
                 "tags": [

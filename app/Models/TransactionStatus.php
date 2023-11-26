@@ -8,4 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class TransactionStatus extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'slug',
+        'description',
+        'meta',
+        'isValid',
+        "type"
+    ];
 }
