@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Factor;
 use App\Models\FactorPaymentStep;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FactorPaymentStepController extends Controller
 {
@@ -42,6 +43,24 @@ class FactorPaymentStepController extends Controller
     {
         //
         $factor = Factor::find($request->factor_id);
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        //check if user has permission "can-view-all-invoices"
+        if (!in_array("can-view-all-payment-steps", $permissions)) {
+            //check if user is owner of this factor
+            //check if user_id or customer_id is equal to auth user id
+            $factor_user_id = $factor->orderGroup->user_id;
+            $factor_customer_id = $factor->orderGroup->customer_id;
+            $user_id = auth()->user()->id;
+            $user_customer_id = auth()->user()->customer->id;
+            if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
+                return response()->json(['message' => 'you dont have permission to view payment steps of this factor'], 403);
+            }
+        }
+
+
         $factorTotalPrice = $factor->totalPrice();
         $resp = $factorTotalPrice->getData();
         $factorTotalPrice = $resp->data;
@@ -275,9 +294,28 @@ class FactorPaymentStepController extends Controller
                 'code' => 404
             ], 404);
         }
+        $factor = $factor_payment_step->factor;
+        //check permission!
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        //check if user has permission "can-view-all-invoices"
+        if (!in_array("can-view-all-payment-steps", $permissions)) {
+            //check if user is owner of this factor
+            //check if user_id or customer_id is equal to auth user id
+            $factor_user_id = $factor->orderGroup->user_id;
+            $factor_customer_id = $factor->orderGroup->customer_id;
+            $user_id = auth()->user()->id;
+            $user_customer_id = auth()->user()->customer->id;
+            if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
+                return response()->json(['message' => 'you dont have permission to view this payment step'], 403);
+            }
+        }
+
+
 
         $warning = "";
-        $factor = $factor_payment_step->factor;
         $factorTotalPrice = $factor->totalPrice(true);
         $resp = $factorTotalPrice->getData();
         if ($resp->success == false) {

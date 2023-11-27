@@ -63,27 +63,44 @@ Route::prefix('/v1')->group(function () {
         //customers
         Route::get('customers', [UserAuthController::class, 'customers'])->middleware('permission:add-order-as-another');
 
-        //factor payment steps api
-        ///v1/factor/paymentStep
-        //api route
-        Route::apiResource('factor/paymentStep', FactorPaymentStepController::class);
-        Route::prefix("factor/payment")->group(function(){
-            Route::post("pay", [FactorPaymentController::class, "pay"]);
-        });
-   
-        //factor
-        Route::post('factor', [FactorController::class, 'store']);
-        // ->middleware('permission:manage-factors');
-        ///v1/factor/{factor_id}/factorItem"
-        Route::post('factor/{factor_id}/factorItem', [FactorController::class, 'storeFactorItem']);
-        //  path="/v1/factor/{factor_id}/factorItem/{factor_item_id}",
-        Route::put('factor/{factor_id}/factorItem/{factor_item_id}', [FactorController::class, 'updateFactorItem']);
-        Route::delete('factor/{factor_id}/factorItem/{factor_item_id}', [FactorController::class, 'destroyFactorItem']);
 
-        ///v1/factor/{factor_id}/factorStatus
-        Route::post('factor/{factor_id}/factorStatus', [FactorController::class, 'setFactorStatus']);
-        //"/v1/factor/{factor_id}
-        Route::get('factor/{factor_id}', [FactorController::class, 'show']);
+        //factor payment steps
+        Route::prefix('factor/paymentStep')->group(function () {
+            // Route::apiResource('factor/paymentStep', FactorPaymentStepController::class);
+            Route::get('', [FactorPaymentStepController::class, 'index']); //set can-view-all-payment-steps permission inside controller
+            Route::post('', [FactorPaymentStepController::class, 'store'])->middleware('permission:can-create-payment-step');
+            Route::get('{id}', [FactorPaymentStepController::class, 'show']); //set can-view-all-payment-steps permission inside controller
+            Route::put('{id}', [FactorPaymentStepController::class, 'update'])->middleware('permission:can-update-payment-step');
+            Route::delete('{id}', [FactorPaymentStepController::class, 'destroy'])->middleware('permission:can-delete-payment-step');
+        });
+
+
+        //factor payment
+        Route::prefix("factor/payment")->group(function () {
+            Route::post("pay", [FactorPaymentController::class, "pay"]); //you only can pay your own factor payment if you dont have permission "can-pay-all-factor-payments"
+            Route::post("verify", [FactorPaymentController::class, "verifyPayment"]); //you only can verify your own factor payment if you dont have permission "can-verify-all-factor-payments"
+            Route::get("{id}", [FactorPaymentController::class, "viewPayment"]); //you only can view your own factor payment if you dont have permission "can-view-all-factor-payments"
+
+            Route::post("verifyOffline", [FactorPaymentController::class, "verifyOfflinePayment"])->middleware("permission:can-verify-offline-payment");
+
+
+        });
+
+        //factor
+        Route::prefix("factor")->group(function () {
+            Route::post('', [FactorController::class, 'store'])->middleware('permission:can-create-invoice');
+            ///v1/factor/{factor_id}/factorItem"
+            Route::post('{factor_id}/factorItem', [FactorController::class, 'storeFactorItem'])->middleware('permission:can-create-invoice-item');
+            //  path="/v1/factor/{factor_id}/factorItem/{factor_item_id}",
+            Route::put('{factor_id}/factorItem/{factor_item_id}', [FactorController::class, 'updateFactorItem'])->middleware('permission:can-update-invoice-item');
+            Route::delete('{factor_id}/factorItem/{factor_item_id}', [FactorController::class, 'destroyFactorItem'])->middleware('permission:can-delete-invoice-item');
+            ///v1/factor/{factor_id}/factorStatus
+            Route::post('{factor_id}/factorStatus', [FactorController::class, 'setFactorStatus'])->middleware('permission:can-change-invoice-status');
+            //"/v1/factor/{factor_id}
+            Route::get('{factor_id}', [FactorController::class, 'show']);
+            // ->middleware('permission:can-view-invoice'); //can-view-all-invoices handle inside!
+        });
+
 
         //product apis
         Route::apiResource('products', ProductController::class);

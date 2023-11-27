@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Factor;
 
 use App\Http\Controllers\Controller;
+use App\Models\FactorPayment;
 use App\Models\FactorPaymentStep;
 use App\Models\PaymentStatus;
+use App\Models\TransactionStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FactorPaymentController extends Controller
 {
@@ -37,13 +40,37 @@ class FactorPaymentController extends Controller
      */
     public function pay(Request $request)
     {
+        //get factor payment step
+        $factorPaymentStep = FactorPaymentStep::find($request->factor_payment_step_id);
+
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        if (!in_array('can-pay-all-factor-payments', $permissions)) {
+            //check if owner
+            $factor_user_id = $factorPaymentStep->factor->orderGroup->user_id;
+            $factor_customer_id = $factorPaymentStep->factor->orderGroup->customer_id;
+            $user_id = auth()->user()->id;
+            $user_customer_id = auth()->user()->customer->id;
+
+            if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
+                return response()->json([
+                    "message" => //persian
+                        "شما اجازه پرداخت این مرحله را ندارید",
+                    'status' => 'error',
+                    'success' => false,
+                    'code' => 403
+                ], 403);
+            }
+        }
+
         //validate
         $request->validate([
             "factor_payment_step_id" => "required|exists:factor_payment_steps,id",
             "method" => "required|in:online,offline"
         ]);
-        //get factor payment step
-        $factorPaymentStep = FactorPaymentStep::find($request->factor_payment_step_id);
+
         //check if factor payment step is already paid
         //find "paid" payment status
 
@@ -64,6 +91,15 @@ class FactorPaymentController extends Controller
             return response()->json([
                 "message" => //persian
                     "این مرحله در حال پرداخت است",
+                'status' => 'error',
+                'success' => false,
+                'code' => 400
+            ], 400);
+        }
+        if ($factorPaymentStep->status()->slug == "pendingVerify") {
+            return response()->json([
+                "message" => //persian
+                    "این مرحله در حال بررسی است",
                 'status' => 'error',
                 'success' => false,
                 'code' => 400
@@ -100,6 +136,14 @@ class FactorPaymentController extends Controller
             ], 400);
         }
 
+        //if offline , fileId and payer description is required
+        if ($request->method == "offline") {
+            $request->validate([
+                "fileId" => "required|exists:files,id",
+                "payerDescription" => "required|string"
+            ]);
+        }
+
 
         //get user wallet 
         $userWallet = auth()->user()->wallet;
@@ -117,7 +161,7 @@ class FactorPaymentController extends Controller
             $userWallet->save();
             //add transaction
             //find pending status id
-            $pendingStatusId = PaymentStatus::where('slug', 'pendingForPayment')->first()->id;
+            $pendingStatusId = PaymentStatus::where('slug', $request->method == "offline" ? 'pendingVerify' : 'pendingForPayment')->first()->id;
             $transaction = $userWallet->transactions()->create([
                 'wallet_id' => $userWallet->id,
                 'payment_method' => $request->method,
@@ -127,6 +171,8 @@ class FactorPaymentController extends Controller
                 'meta' => json_encode([
                     'factor_id' => $factorPaymentStep->factor_id,
                     'factor_payment_step_id' => $factorPaymentStep->id,
+                    'fileId' => $request->fileId ?? null,
+                    'payerDescription' => $request->payerDescription ?? null,
                     //add fileId and payer description if offline
                     //add gatewayId and tracking code ... if online
                 ]),
@@ -134,11 +180,23 @@ class FactorPaymentController extends Controller
                 'isValid' => false,
             ]);
             //add payment
-            $payment = $this->addPayment($factorPaymentStep, $transaction, $blockedAmount, "pendingForPayment");
+            $payment = $this->addPayment($factorPaymentStep, $transaction, $blockedAmount, $request->method == "offline" ? 'pendingVerify' : 'pendingForPayment');
             if ($request->method == "online") {
                 return response()->json([
                     "message" => //persian
                         "در حال انتقال به درگاه...",
+                    'status' => 'success',
+                    'data' => [
+                        'transaction' => $transaction,
+                        'payment' => $payment
+                    ],
+                    'success' => true,
+                    'code' => 200
+                ], 200);
+            } else if ($request->method == "offline") {
+                return response()->json([
+                    "message" => //persian
+                        "درخواست شما جهت بررسی ثبت شد و پس از تایید به اطلاع شما خواهد رسید",
                     'status' => 'success',
                     'data' => [
                         'transaction' => $transaction,
@@ -169,6 +227,293 @@ class FactorPaymentController extends Controller
 
     }
 
+    /**
+     * @OA\Post(
+     *  path="/v1/factor/payment/verify",
+     * tags={"FactorPayment"},
+     * summary="verify a payment",
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"factor_payment_id","gateway_verify_code"},
+     * @OA\Property(property="factor_payment_id", type="number", format="number", example=1),
+     * @OA\Property(property="gateway_verify_code", type="string", format="string", example="123456"),
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    //online payment
+    public function verifyPayment(Request $request)
+    {
+        //when payment is online
+        //validate
+        $request->validate([
+            "factor_payment_id" => "required|exists:factor_payments,id",
+            "gateway_verify_code" => "required|string"
+            // "method" => "required|in:online,offline"
+        ]);
+        //check if payment is online
+        $payment = FactorPayment::find($request->factor_payment_id);
+
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        if (!in_array('can-verify-all-factor-payments', $permissions)) {
+            //check if owner
+            $factor_user_id = $payment->payment_step->factor->orderGroup->user_id;
+            $factor_customer_id = $payment->payment_step->factor->orderGroup->customer_id;
+            $user_id = auth()->user()->id;
+            $user_customer_id = auth()->user()->customer->id;
+
+            if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
+                return response()->json([
+                    "message" => //persian
+                        "شما اجازه بررسی پرداخت این مرحله را ندارید",
+                    'status' => 'error',
+                    'success' => false,
+                    'code' => 403
+                ], 403);
+            }
+        }
+
+
+
+        if ($payment->transaction->payment_method != "online") {
+            return response()->json([
+                "message" => //persian
+                    "این پرداخت آنلاین نیست",
+                'status' => 'error',
+                'success' => false,
+                'code' => 400
+            ], 400);
+        }
+        //verify only if in "pendingForPayment" status
+        if ($payment->status->slug != "pendingForPayment") {
+            return response()->json([
+                "message" => //persian
+                    "این پرداخت قابل تایید نیست",
+                'status' => 'error',
+                'success' => false,
+                'code' => 400
+            ], 400);
+        } else {
+            //verify payment
+            //TODO:LOGIC: verify payment from gateway
+            $flag = $request->gateway_verify_code == "123456" ? true : false;
+            if ($flag) {
+                //update transaction status
+                $payment->transaction->status_id = TransactionStatus::where('slug', 'paid')->first()->id;
+                $payment->transaction->isValid = true;
+                $payment->transaction->save();
+                //increase wallet balance
+                $userWallet = $payment->transaction->wallet;
+                $userWallet->balance += $payment->transaction->price;
+                //unblock wallet
+                $userWallet->blocked -= $payment->wallet_payment_amount;
+                $userWallet->save();
+
+                //pay from wallet
+                $transaction = $this->payFactorFromWallet(auth()->user(), $payment->payment_step, $payment);
+
+                //update payment status
+                $payment->payment_status_id = PaymentStatus::where('slug', 'paid')->first()->id;
+                $payment->description = "پرداخت از طریق درگاه";
+                $payment->transaction_id = $transaction->id;
+                $payment->meta = json_encode([
+                    'increaseBalanceTransactionId' => $payment->transaction->id,
+                    'trackingCode' => '123456',
+                ]);
+                $payment->save();
+                //update factor payment step status
+                $payStep = new FactorPaymentStepController();
+                $payStep->updatePendingPaymentStatuses();
+
+                //response
+                return response()->json([
+                    "message" => //persian
+                        "پرداخت با موفقیت تایید شد",
+                    'status' => 'success',
+                    'success' => true,
+                    'code' => 200
+                ], 200);
+            } else {
+                //update transaction status
+                $payment->transaction->status_id = TransactionStatus::where('slug', 'failed')->first()->id;
+                $payment->transaction->isValid = false;
+                $payment->transaction->save();
+                //update payment status
+                $payment->payment_status_id = PaymentStatus::where('slug', 'failed')->first()->id;
+                $payment->save();
+                //unblock wallet
+                $userWallet = $payment->transaction->wallet;
+                $userWallet->blocked -= $payment->wallet_payment_amount;
+                $userWallet->save();
+                //update factor payment step status
+                $payStep = new FactorPaymentStepController();
+                $payStep->updatePendingPaymentStatuses();
+
+                //response
+                return response()->json([
+                    "message" => //persian
+                        "پرداخت با خطا مواجه شد",
+                    'status' => 'error',
+                    'success' => false,
+                    'code' => 400
+                ], 400);
+            }
+        }
+    }
+
+
+    //view payment
+    /**
+     * @OA\Get(
+     *  path="/v1/factor/payment/{id}",
+     * tags={"FactorPayment"},
+     * summary="view a payment",
+     *    * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function viewPayment(Request $request)
+    {
+        //view payment
+        $payment = FactorPayment::find($request->id);
+        if (!$payment) {
+            return response()->json([
+                "message" => //persian
+                    "پرداختی یافت نشد",
+                'status' => 'error',
+                'success' => false,
+                'code' => 404
+            ], 404);
+        }
+
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        if (!in_array('can-view-all-factor-payments', $permissions)) {
+            //check if owner
+            $factor_user_id = $payment->payment_step->factor->orderGroup->user_id;
+            $factor_customer_id = $payment->payment_step->factor->orderGroup->customer_id;
+            $user_id = auth()->user()->id;
+            $user_customer_id = auth()->user()->customer->id;
+
+            if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
+                return response()->json([
+                    "message" => //persian
+                        "شما اجازه بررسی پرداخت این مرحله را ندارید",
+                    'status' => 'error',
+                    'success' => false,
+                    'code' => 403
+                ], 403);
+            }
+        }
+
+        $payment->load('status', 'transaction', 'payment_step');
+        //transaction file
+        // if ($payment->transaction->meta) {
+        //     $payment->transaction->file = $payment->transaction->file();
+        // }
+        return response()->json([
+            "message" => //persian
+                "payment retrieved successfully",
+            'status' => 'success',
+            'success' => true,
+            'code' => 200,
+            'data' => [
+                'payment' => $payment
+            ]
+        ], 200);
+    }
+
+
+    /**
+     * @OA\Post(
+     *  path="/v1/factor/payment/verifyOffline",
+     * tags={"FactorPayment"},
+     * summary="verify an offline payment",
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"factor_payment_id","verified","adminDescription"},
+     * @OA\Property(property="factor_payment_id", type="number", format="number", example=1),
+     * @OA\Property(property="verified", type="boolean", format="boolean", example=true),
+     * @OA\Property(property="adminDescription", type="string", format="string", example="تایید شد"),
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function verifyOfflinePayment(Request $request)
+    {
+        //when payment is offline
+        //validate
+        $request->validate([
+            "factor_payment_id" => "required|exists:factor_payments,id",
+            "gateway_verify_code" => "required|string"
+            // "method" => "required|in:online,offline"
+        ]);
+        //check if payment is offline
+        $payment = FactorPayment::find($request->factor_payment_id);
+        if ($payment->transaction->payment_method != "offline") {
+            return response()->json([
+                "message" => //persian
+                    "این پرداخت آفلاین نیست",
+                'status' => 'error',
+                'success' => false,
+                'code' => 400
+            ], 400);
+        }
+        //verify only if in "pendingForPayment" status
+        if ($payment->status->slug != "pendingForPayment") {
+            return response()->json([
+                "message" => //persian
+                    "این پرداخت قابل تایید نیست",
+                'status' => 'error',
+                'success' => false,
+                'code' => 400
+            ], 400);
+        } else {
+            //verify payment
+        }
+    }
+
     public function addPayment($factorPaymentStep, $transaction, $walletPaymentAmount, $status)
     {
         $statusId = PaymentStatus::where('slug', $status)->first()->id;
@@ -181,10 +526,7 @@ class FactorPaymentController extends Controller
             'wallet_payment_amount' => $walletPaymentAmount
         ]);
         return $payment;
-
     }
-
-
     public function payFactorFromWallet($user, $factorPaymentStep, $relatedPayment = null)
     {
 

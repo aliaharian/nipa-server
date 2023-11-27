@@ -20,6 +20,7 @@ class Transaction extends Model
         'transaction_type',
         'isValid',
     ];
+    protected $appends = ['file', 'payerDescription'];
 
     //wallet
     public function wallet()
@@ -31,4 +32,34 @@ class Transaction extends Model
     {
         return $this->belongsTo(TransactionStatus::class, 'status_id', 'id');
     }
+
+    //file if fileId exists in meta json field
+    public function getFileAttribute()
+    {
+        $meta = json_decode($this->meta);
+        // return $meta;
+        if (isset($meta->fileId)) {
+            $file = File::find($meta->fileId);
+            if ($file) {
+                return $file->only(['id', 'hash_code']);
+            } else {
+                return null;
+            }
+
+        } else {
+            return null;
+        }
+    }
+
+    //payerDescription
+    public function getPayerDescriptionAttribute()
+    {
+        $meta = json_decode($this->meta);
+        if (isset($meta->payerDescription)) {
+            return $meta->payerDescription;
+        } else {
+            return null;
+        }
+    }
+
 }

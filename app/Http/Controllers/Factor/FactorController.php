@@ -638,11 +638,30 @@ class FactorController extends Controller
      */
     public function show($factor_id)
     {
-        //find or fail factor
-        $factor = Factor::findOrFail($factor_id);
+        $factor = Factor::find($factor_id);
+        if (!$factor) {
+            return response()->json(['message' => 'factor not found'], 404);
+        }
+       
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+      
+        //check if user has permission "can-view-all-invoices"
+        if (!in_array("can-view-all-invoices", $permissions)) {
+            //check if user is owner of this factor
+            //check if user_id or customer_id is equal to auth user id
+            $factor_user_id = $factor->orderGroup->user_id;
+            $factor_customer_id = $factor->orderGroup->customer_id;
+            $user_id = auth()->user()->id;
+            $user_customer_id = auth()->user()->customer->id;
+            if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
+                return response()->json(['message' => 'you dont have permission to view this factor'], 403);
+            }
+        }
         // $factor->factorPaymentSteps;
         $factor->lastStatus->factorStatusEnum;
-        // $factor->factorItems;
+        $factor->factorItems;
         //return factor
         return response()->json([
             'data' => $factor,

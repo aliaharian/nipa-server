@@ -1123,6 +1123,141 @@
                 ]
             }
         },
+        "/v1/factor/payment/verify": {
+            "post": {
+                "tags": [
+                    "FactorPayment"
+                ],
+                "summary": "verify a payment",
+                "operationId": "fc747c9e4d7312cab9cea3f25f9a21ae",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "factor_payment_id",
+                                    "gateway_verify_code"
+                                ],
+                                "properties": {
+                                    "factor_payment_id": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": 1
+                                    },
+                                    "gateway_verify_code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/payment/{id}": {
+            "get": {
+                "tags": [
+                    "FactorPayment"
+                ],
+                "summary": "view an offline payment",
+                "operationId": "ad8a921ce33299ee69b66c0be5e39cd7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/payment/verifyOffline": {
+            "post": {
+                "tags": [
+                    "FactorPayment"
+                ],
+                "summary": "verify an offline payment",
+                "operationId": "d88473554e17e5a797dec5bb350f1742",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "factor_payment_id",
+                                    "verified",
+                                    "adminDescription"
+                                ],
+                                "properties": {
+                                    "factor_payment_id": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": 1
+                                    },
+                                    "verified": {
+                                        "type": "boolean",
+                                        "format": "boolean",
+                                        "example": true
+                                    },
+                                    "adminDescription": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "تایید شد"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/factor/paymentStep": {
             "get": {
                 "tags": [

@@ -29,4 +29,10 @@ class FactorPayment extends Model
     {
         return $this->belongsTo(Transaction::class, 'transaction_id', 'id');
     }
+
+    //payment_step
+    public function payment_step()
+    {
+        return $this->belongsTo(FactorPaymentStep::class, 'payment_step_id', 'id');
+    }
 }
