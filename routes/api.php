@@ -25,7 +25,7 @@ use App\Http\Controllers\Translation\LanguageController;
 use App\Http\Controllers\Translation\TranslationController;
 use App\Http\Controllers\User\UserAnswerController;
 use App\Http\Controllers\Files\FileController;
-
+use App\Http\Controllers\wallet\WalletController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -36,6 +36,7 @@ use App\Http\Controllers\Files\FileController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
 Route::get("/phpinfo", function () {
     echo phpinfo();
 });
@@ -63,6 +64,14 @@ Route::prefix('/v1')->group(function () {
         //customers
         Route::get('customers', [UserAuthController::class, 'customers'])->middleware('permission:add-order-as-another');
 
+        //wallet
+        Route::prefix('wallet')->group(function () {
+
+            //transactions
+            Route::prefix('transactions')->group(function () {
+                Route::get('', [WalletController::class, 'transactionsList']);
+            });
+        });
 
         //factor payment steps
         Route::prefix('factor/paymentStep')->group(function () {
@@ -82,8 +91,6 @@ Route::prefix('/v1')->group(function () {
             Route::get("{id}", [FactorPaymentController::class, "viewPayment"]); //you only can view your own factor payment if you dont have permission "can-view-all-factor-payments"
 
             Route::post("verifyOffline", [FactorPaymentController::class, "verifyOfflinePayment"])->middleware("permission:can-verify-offline-payment");
-
-
         });
 
         //factor
@@ -203,9 +210,6 @@ Route::prefix('/v1')->group(function () {
                 Route::post('', [FileController::class, 'store'])->name('files.store');
                 Route::delete('/{hashCode}', [FileController::class, 'destroy'])->name('files.delete');
             });
-
-
     });
     Route::get('/files/{hashCode}', [FileController::class, 'read'])->name('files.read');
-
 });

@@ -66,4 +66,6 @@ class User extends Authenticatable
         return $this->hasOne(UserWallet::class);
     }
 
+    
+
 }

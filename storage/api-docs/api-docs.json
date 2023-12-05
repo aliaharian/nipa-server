@@ -1176,7 +1176,7 @@
                 "tags": [
                     "FactorPayment"
                 ],
-                "summary": "view an offline payment",
+                "summary": "view a payment",
                 "operationId": "ad8a921ce33299ee69b66c0be5e39cd7",
                 "parameters": [
                     {
@@ -4813,6 +4813,29 @@
                         }
                     }
                 },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/wallet/transactions": {
+            "get": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "show all transactions",
+                "description": "show all transactions with related filters if user has access or only shows user transactions",
+                "operationId": "e6ca0cc822bcf8a4e3092acbc0a000d4",
                 "responses": {
                     "200": {
                         "description": "Success",
