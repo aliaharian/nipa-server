@@ -66,7 +66,7 @@ Route::prefix('/v1')->group(function () {
 
         //wallet
         Route::prefix('wallet')->group(function () {
-
+            Route::post('increase', [WalletController::class, 'increaseWalletBalance']);
             //transactions
             Route::prefix('transactions')->group(function () {
                 Route::get('', [WalletController::class, 'transactionsList']);
