@@ -9,11 +9,161 @@ use App\Models\FactorStatus;
 use App\Models\FactorStatusEnum;
 use App\Models\Order;
 use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class FactorController extends Controller
 {
+
+
+
+
+    /**
+     * @OA\Get(
+     *   path="/v1/factor",
+     *   tags={"Factor"},
+     *   summary="show all factors",
+     *   description="show all factors with related filters if user has access or only shows user factors",
+     *   @OA\Parameter(
+     *     name="user_id",
+     *    description="user id",
+     *    in="query",
+     *   required=false,
+     *   @OA\Schema(
+     *  type="integer"
+     *  )
+     * ),
+     *  @OA\Parameter(
+     *     name="factor_status_id",
+     *    description="factor status id",
+     *    in="query",
+     *   required=false,
+     *   @OA\Schema(
+     *  type="integer"
+     *  )
+     * ),
+
+     * @OA\Parameter(
+     *   name="date_from",
+     * description="date from",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="string",
+     * format="date"
+     * )
+     * ),
+     * @OA\Parameter(
+     *  name="date_to",
+     * description="date to",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="string",
+     * format="date"
+     * )
+     * ),
+
+     * @OA\Parameter(
+     * name="page",
+     * description="page",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="integer"
+     * )
+     * ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   security={{ "apiAuth": {} }}
+     *)
+     **/
+    public function invoicesList(Request $request, $export = false)
+    {
+
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        if (in_array('can-view-all-invoices', $permissions)) {
+            $filters = request()->all();
+            $query = Factor::query();
+
+            if (isset($filters['user_id'])) {
+                //query in order groups that user is its user_id or customer id of user is its customer_id
+                // i have only order_group_id in this table
+                $query->whereHas('orderGroup', function ($query) use ($filters) {
+                    $query->where('user_id', $filters['user_id'])->orWhere('customer_id', $filters['user_id']);
+                });
+                // $query->where('wallet_id', $filters['user_id']);
+            }
+
+            if (isset($filters['date_from'])) {
+                $query->whereDate('created_at', '>=', Carbon::parse($filters['date_from'])->format('Y-m-d'));
+            }
+
+            if (isset($filters['date_to'])) {
+                $query->whereDate('created_at', '<=', Carbon::parse($filters['date_to'])->format('Y-m-d'));
+            }
+
+            if (isset($filters['factor_status_id'])) {
+                $query->where('status_id', $filters['transaction_status_id']);
+            }
+
+            // Retrieve factors
+            $factors =
+                $query->orderBy('updated_at', 'DESC')->paginate(10);
+        } else {
+            //fetch factors that eather  user is owner of them or customer of them
+            //we have only orderGroupId inside factors and we should check that order group is owned by user or customer
+            $user_id = auth()->user()->id;
+            $customer_id = auth()->user()->customer->id;
+            $factors = Factor::whereHas('orderGroup', function ($query) use ($user_id, $customer_id) {
+                $query->where('user_id', $user_id)->orWhere('customer_id', $customer_id);
+            })->orderBy('updated_at', 'DESC')->paginate(10);
+            // $factors = Factor::where('wallet_id', $wallet->id)->orderBy('updated_at', 'DESC')->paginate(10);
+        }
+        foreach ($factors as $factor) {
+            $factorTotalPrice = $factor->totalPrice();
+            $resp = $factorTotalPrice->getData();
+            $factorTotalPrice = $resp->data;
+            $factor->total_price = $factorTotalPrice;
+            $factor->lastStatus->factorStatusEnum;
+        }
+        $pagination = $export ? [] : [
+            'total' => $factors->total(),
+            'count' => $factors->count(),
+            'per_page' => $factors->perPage(),
+            'current_page' => $factors->currentPage(),
+            'total_pages' => $factors->lastPage(),
+        ];
+
+        $accessAll = in_array('can-view-all-invoices', $permissions);
+
+        //remove factor_items from each factor
+        foreach ($factors as $factor) {
+            unset($factor->factorItems);
+        }
+        $filters = request()->all(); //except page
+        unset($filters['page']);
+        $finalResult = [];
+        foreach ($factors as $factor) {
+            $finalResult[] = $factor;
+        }
+        return response()->json([
+            'factors' => $finalResult,
+            'accessAll' =>  $accessAll,
+            'pagination' => $pagination,
+            'filters' => $filters,
+        ], 200);
+    }
+
     //create factor with fields: code	order_group_id	expire_date	description	
 
     /**
@@ -52,7 +202,7 @@ class FactorController extends Controller
         //create factor but create code randomly
         $factor = Factor::create([
             'code' => //NIPA + order group id+ "_" + user id +"_"+timestamp unix
-                "NIPA_" . $request->order_group_id . "_" . auth()->user()->id . "_" . time(),
+            "NIPA_" . $request->order_group_id . "_" . auth()->user()->id . "_" . time(),
             'order_group_id' => $request->order_group_id,
             'expire_date' => $request->expire_date,
             'description' => $request->description,
@@ -448,7 +598,6 @@ class FactorController extends Controller
 
 
         return response()->json($factor_item, 200);
-
     }
 
     //delete factor item
@@ -554,7 +703,7 @@ class FactorController extends Controller
     }
 
     //set factor status : factor_id	factor_status_enum_id	name	description
-//write annotation
+    //write annotation
     /**
      * @OA\Post(
      *  path="/v1/factor/{factor_id}/factorStatus",
@@ -610,7 +759,7 @@ class FactorController extends Controller
     }
 
     //view factor
-//write annotation
+    //write annotation
     /**
      * @OA\Get(
      *  path="/v1/factor/{factor_id}",
@@ -642,11 +791,11 @@ class FactorController extends Controller
         if (!$factor) {
             return response()->json(['message' => 'factor not found'], 404);
         }
-       
+
         $permissions = Auth::user()->roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
-      
+
         //check if user has permission "can-view-all-invoices"
         if (!in_array("can-view-all-invoices", $permissions)) {
             //check if user is owner of this factor
@@ -677,8 +826,29 @@ class FactorController extends Controller
         $customerAcceptExists = FactorStatus::where('factor_id', $factor_id)->where('factor_status_enum_id', $customerAcceptEnumId)->first();
         return $customerAcceptExists;
     }
+
+    //get factor statuses
+    //write annotation
+    /**
+     * @OA\Get(
+     *  path="/v1/factor/status",
+     * tags={"Factor"},
+     * summary="get factor statuses",
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+
+    public function getFactorStatuses()
+    {
+        $factorStatuses = FactorStatusEnum::all();
+        return response()->json(['statuses' => $factorStatuses], 200);
+    }
 }
-
-
-
-

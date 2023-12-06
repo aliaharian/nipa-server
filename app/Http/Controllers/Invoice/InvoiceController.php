@@ -3,16 +3,21 @@
 namespace App\Http\Controllers\Invoice;
 
 use App\Http\Controllers\Controller;
+use App\Models\Factor;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\OrderGroup;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use stdClass;
 
 class InvoiceController extends Controller
 {
 
- // show invoice
+
+
+    // show invoice
     /**
      * @OA\Get(
      *  path="/v1/invoices/{order_group_id}",
@@ -40,32 +45,34 @@ class InvoiceController extends Controller
      * )
      */
 
-    public function show($order_group_id){
+    public function show($order_group_id)
+    {
         // $data = request()->validate([
         //     'order_group_id' => 'required|exists:order_groups,id',
         // ]);
         $invoiceItems = array();
         $orderGroup = OrderGroup::find($order_group_id);
-        if(!$orderGroup){
-            return response()->json(['message'=>'order group not found'], 404);
+        if (!$orderGroup) {
+            return response()->json(['message' => 'order group not found'], 404);
         }
-        $invoice = Invoice::updateOrCreate(['order_group_id'=>$order_group_id],['order_group_id'=>$order_group_id]);
-        foreach($orderGroup->orders as $order){
+        $invoice = Invoice::updateOrCreate(['order_group_id' => $order_group_id], ['order_group_id' => $order_group_id]);
+        foreach ($orderGroup->orders as $order) {
             $product = $order->product;
             $width = $product->fieldValue('width');
             $length = $product->fieldValue('length');
             $area = $product->fieldValue('area');
             $invoiceItem = InvoiceItem::updateOrCreate(
                 [
-                    'invoice_id'=>$invoice->id,
-                    'order_id'=>$order->id
+                    'invoice_id' => $invoice->id,
+                    'order_id' => $order->id
                 ],
                 [
-                    'title'=>$product->name,
-                    'width'=>$width,
-                    'length'=>$length,
-                    'area'=>$area
-                ]);
+                    'title' => $product->name,
+                    'width' => $width,
+                    'length' => $length,
+                    'area' => $area
+                ]
+            );
 
             // $item = new stdClass();
             // $item->name = $product->name;
@@ -79,8 +86,7 @@ class InvoiceController extends Controller
             // array_push($invoiceItems, $item);
         }
         $invoice->items;
-        return response()->json(['incoice'=>$invoice], 200);
-
+        return response()->json(['incoice' => $invoice], 200);
     }
 
     /**
@@ -98,7 +104,7 @@ class InvoiceController extends Controller
      *         format="int64",
      *     )
      * ),
-       * @OA\RequestBody(
+     * @OA\RequestBody(
      *  required=true,
      * @OA\JsonContent(
      *  required={"title"},
@@ -122,21 +128,22 @@ class InvoiceController extends Controller
      * )
      * )
      */
-    public function create($invoice_id , Request $request){
+    public function create($invoice_id, Request $request)
+    {
         //add invoice item
 
         $data = request()->validate([
             'title' => 'required',
-            'price'=>'required',
+            'price' => 'required',
 
         ]);
         $invoice = Invoice::find($invoice_id);
-        if(!$invoice){
-            return response()->json(['message'=>'invoice not found'], 404);
+        if (!$invoice) {
+            return response()->json(['message' => 'invoice not found'], 404);
         }
         $data['invoice_id'] = $invoice_id;
         $invoiceItem = InvoiceItem::create($data);
-       
-        return response()->json(['incoice'=>$invoiceItem], 200);
+
+        return response()->json(['incoice' => $invoiceItem], 200);
     }
 }

@@ -100,6 +100,9 @@ Route::prefix('/v1')->group(function () {
         //factor
         Route::prefix("factor")->group(function () {
             Route::post('', [FactorController::class, 'store'])->middleware('permission:can-create-invoice');
+            Route::get('', [FactorController::class, 'invoicesList']);
+            Route::get('status', [FactorController::class, 'getFactorStatuses']);
+            // ->middleware('permission:can-create-invoice');
             ///v1/factor/{factor_id}/factorItem"
             Route::post('{factor_id}/factorItem', [FactorController::class, 'storeFactorItem'])->middleware('permission:can-create-invoice-item');
             //  path="/v1/factor/{factor_id}/factorItem/{factor_item_id}",
@@ -110,6 +113,7 @@ Route::prefix('/v1')->group(function () {
             //"/v1/factor/{factor_id}
             Route::get('{factor_id}', [FactorController::class, 'show']);
             // ->middleware('permission:can-view-invoice'); //can-view-all-invoices handle inside!
+        
         });
 
 

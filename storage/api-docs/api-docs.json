@@ -661,6 +661,76 @@
             }
         },
         "/v1/factor": {
+            "get": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "show all factors",
+                "description": "show all factors with related filters if user has access or only shows user factors",
+                "operationId": "efe890772e0adbf95658fb7cb6dde279",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "user id",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "factor_status_id",
+                        "in": "query",
+                        "description": "factor status id",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "description": "date from",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "description": "date to",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Factor"
@@ -1060,6 +1130,28 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/status": {
+            "get": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "get factor statuses",
+                "operationId": "1607d8ca959a4dc9532151027f1d7497",
                 "responses": {
                     "200": {
                         "description": "Success",
