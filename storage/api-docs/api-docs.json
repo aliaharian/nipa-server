@@ -4847,6 +4847,15 @@
                         }
                     },
                     {
+                        "name": "transaction_status_id",
+                        "in": "query",
+                        "description": "transaction status id",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "is_valid",
                         "in": "query",
                         "description": "is valid",
@@ -4885,7 +4894,9 @@
                             "enum": [
                                 "increaseBalance",
                                 "increaseCredit",
-                                "Withdrawal"
+                                "Withdrawal",
+                                "refund",
+                                "allDeposits"
                             ]
                         }
                     },
@@ -4909,6 +4920,163 @@
                         "required": false,
                         "schema": {
                             "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/wallet/usersList": {
+            "get": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "show all users that has wallet",
+                "description": "only for howm has access",
+                "operationId": "e12012f50dd754016683e1d85974b765",
+                "parameters": [
+                    {
+                        "name": "searchParam",
+                        "in": "query",
+                        "description": "search param",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/wallet/transactions/status": {
+            "get": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "show all transaction statuses",
+                "description": "only for howm has access",
+                "operationId": "21d240209636cd87df75c3de00acc44b",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/wallet/transactions/export": {
+            "get": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "export all transactions",
+                "operationId": "97acdf9d14d507a10bb9847fc31e930c",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "user id",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "transaction_status_id",
+                        "in": "query",
+                        "description": "transaction status id",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "is_valid",
+                        "in": "query",
+                        "description": "is valid",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "description": "date from",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "description": "date to",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "transaction_type",
+                        "in": "query",
+                        "description": "transaction type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "increaseBalance",
+                                "increaseCredit",
+                                "Withdrawal",
+                                "refund",
+                                "allDeposits"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "payment_method",
+                        "in": "query",
+                        "description": "payment method",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "online",
+                                "offline"
+                            ]
                         }
                     }
                 ],

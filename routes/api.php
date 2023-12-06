@@ -67,9 +67,13 @@ Route::prefix('/v1')->group(function () {
         //wallet
         Route::prefix('wallet')->group(function () {
             Route::post('increase', [WalletController::class, 'increaseWalletBalance']);
+            Route::get("usersList", [WalletController::class, "userWalletsList"]);
             //transactions
             Route::prefix('transactions')->group(function () {
                 Route::get('', [WalletController::class, 'transactionsList']);
+                Route::get('export', [WalletController::class, 'exportToExcel']);
+                Route::get('status', [WalletController::class, 'transactionStatuses']);
+
             });
         });
 

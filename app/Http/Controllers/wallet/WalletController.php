@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\wallet;
 
+use App\Exports\ExportTransactionsList;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Models\TransactionStatus;
 use App\Models\User;
 use App\Models\UserWallet;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class WalletController extends Controller
 {
@@ -22,6 +25,15 @@ class WalletController extends Controller
      *   @OA\Parameter(
      *     name="user_id",
      *    description="user id",
+     *    in="query",
+     *   required=false,
+     *   @OA\Schema(
+     *  type="integer"
+     *  )
+     * ),
+     *  @OA\Parameter(
+     *     name="transaction_status_id",
+     *    description="transaction status id",
      *    in="query",
      *   required=false,
      *   @OA\Schema(
@@ -64,7 +76,7 @@ class WalletController extends Controller
      * required=false,
      * @OA\Schema(
      * type="string",
-     * enum={"increaseBalance", "increaseCredit", "Withdrawal","refund"}
+     * enum={"increaseBalance", "increaseCredit", "Withdrawal","refund","allDeposits"}
      * )
      * ),
      * @OA\Parameter(
@@ -96,7 +108,7 @@ class WalletController extends Controller
      *   security={{ "apiAuth": {} }}
      *)
      **/
-    public function transactionsList()
+    public function transactionsList(Request $request, $export = false)
     {
 
         $permissions = Auth::user()->roles->flatMap(function ($role) {
@@ -116,15 +128,22 @@ class WalletController extends Controller
             }
 
             if (isset($filters['date_from'])) {
-                $query->where('created_at', '>=', Carbon::parse($filters['date_from']));
+                $query->whereDate('updated_at', '>=', Carbon::parse($filters['date_from'])->format('Y-m-d'));
             }
 
             if (isset($filters['date_to'])) {
-                $query->where('created_at', '<=', Carbon::parse($filters['date_to']));
+                $query->whereDate('updated_at', '<=', Carbon::parse($filters['date_to'])->format('Y-m-d'));
             }
 
             if (isset($filters['transaction_type'])) {
-                $query->where('transaction_type', $filters['transaction_type']);
+                if ($filters['transaction_type'] == 'allDeposits') {
+                    $query->whereIn('transaction_type', ['increaseBalance', 'increaseCredit', 'refund']);
+                } else {
+                    $query->where('transaction_type', $filters['transaction_type']);
+                }
+            }
+            if (isset($filters['transaction_status_id'])) {
+                $query->where('status_id', $filters['transaction_status_id']);
             }
 
             if (isset($filters['payment_method'])) {
@@ -132,7 +151,9 @@ class WalletController extends Controller
             }
 
             // Retrieve transactions
-            $transactions = $query->orderBy('updated_at', 'DESC')->paginate(10);
+            $transactions = $export ?
+                $query->orderBy('updated_at','DESC')->get()
+                : $query->orderBy('updated_at', 'DESC')->paginate(10);
             $remainArray = $this->adminFinancialReport(
                 [
                     'user_id' => $filters['user_id'] ?? null,
@@ -153,7 +174,7 @@ class WalletController extends Controller
         foreach ($transactions as $transaction) {
             $transaction->status;
         }
-        $pagination = [
+        $pagination = $export ? [] : [
             'total' => $transactions->total(),
             'count' => $transactions->count(),
             'per_page' => $transactions->perPage(),
@@ -169,7 +190,7 @@ class WalletController extends Controller
                 $transaction->transaction_type = 'افزایش اعتبار';
             } elseif ($transaction->transaction_type == 'Withdrawal') {
                 $transaction->transaction_type = 'برداشت';
-            }else if ($transaction->transaction_type == 'refund') {
+            } else if ($transaction->transaction_type == 'refund') {
                 $transaction->transaction_type = 'بازگشت وجه';
             }
             return $transaction;
@@ -192,7 +213,7 @@ class WalletController extends Controller
                     $transaction->remainingSum = $remain['remaining_sum'] ??  $remain['admin_financial_tolerance'];
                     $transaction->financial_impact = $remain['financial_impact'] ?? null;
                     $transaction->increase = $remain['transaction_type'] == "Withdrawal" ? false : true;
-                    $transaction->full_name = $transaction->wallet->user->name?  $transaction->wallet->user->name. ' ' . $transaction->wallet->user->last_name: $transaction->wallet->user->mobile;
+                    $transaction->full_name = $transaction->wallet->user->name ?  $transaction->wallet->user->name . ' ' . $transaction->wallet->user->last_name : $transaction->wallet->user->mobile;
                 }
             }
             return $transaction;
@@ -204,12 +225,16 @@ class WalletController extends Controller
         });
         $accessAll = in_array('can-view-all-transactions', $permissions);
         //add pagination data to transaction
+        //add filters to resp
+        $filters = request()->all(); //except page
+        unset($filters['page']);
         return response()->json([
             'transactions' => $transactions,
             'sum' => $accessAll ? null : $remainArray['sum'],
             'sum2' => $accessAll ? $remainArray['sum'] : null,
             'accessAll' =>  $accessAll,
             'pagination' => $pagination,
+            'filters' => $filters,
         ], 200);
         // return response()->json(['transactions' => $remainArray], 200);
     }
@@ -292,15 +317,22 @@ class WalletController extends Controller
         }
 
         if (isset($filters['date_from'])) {
-            $query->where('created_at', '>=', Carbon::parse($filters['date_from']));
+            $query->whereDate('updated_at', '>=', Carbon::parse($filters['date_from'])->format('Y-m-d'));
         }
 
         if (isset($filters['date_to'])) {
-            $query->where('created_at', '<=', Carbon::parse($filters['date_to']));
+            $query->whereDate('updated_at', '<=', Carbon::parse($filters['date_to'])->format('Y-m-d'));
         }
 
         if (isset($filters['transaction_type'])) {
-            $query->where('transaction_type', $filters['transaction_type']);
+            if ($filters['transaction_type'] == 'allDeposits') {
+                $query->whereIn('transaction_type', ['increaseBalance', 'increaseCredit', 'refund']);
+            } else {
+                $query->where('transaction_type', $filters['transaction_type']);
+            }
+        }
+        if (isset($filters['transaction_status_id'])) {
+            $query->where('status_id', $filters['transaction_status_id']);
         }
 
         if (isset($filters['payment_method'])) {
@@ -346,7 +378,8 @@ class WalletController extends Controller
         return ['results' => $results, 'sum' => $sum];
     }
 
-    public function increaseWalletBalance(Request $request){
+    public function increaseWalletBalance(Request $request)
+    {
         $request->validate([
             'amount' => 'required|numeric|min:1000',
         ]);
@@ -364,5 +397,178 @@ class WalletController extends Controller
             'isValid' => true,
         ]);
         return response()->json(['message' => 'موجودی کیف پول با موفقیت افزایش یافت'], 200);
+    }
+
+
+    //write annotation
+
+    /**
+     * @OA\Get(
+     *   path="/v1/wallet/usersList",
+     *   tags={"Wallet"},
+     *   summary="show all users that has wallet",
+     *   description="only for howm has access",
+     * @OA\Parameter(
+     * name="searchParam",
+     * description="search param",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="string"
+     * )
+     * ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   security={{ "apiAuth": {} }}
+     *)
+     **/
+    public function userWalletsList(Request $request)
+    {
+        $permissions = Auth::user()->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        if (in_array('can-view-all-transactions', $permissions)) {
+
+            $searchParam = $request->searchParam;
+            //at least 3 characters
+            if (strlen($searchParam) < 3) {
+                $wallets = UserWallet::with('user')->whereHas('user', function ($query) use ($searchParam) {
+                    $query->where('name', 'like', '%' . $searchParam . '%')
+                        ->orWhere('last_name', 'like', '%' . $searchParam . '%')
+                        ->orWhere('mobile', 'like', '%' . $searchParam . '%');
+                })->paginate(10);
+                return response()->json(['wallets' => $wallets], 200);
+            }
+            $wallets = UserWallet::with('user')->whereHas('user', function ($query) use ($searchParam) {
+                $query->where('name', 'like', '%' . $searchParam . '%')
+                    ->orWhere('last_name', 'like', '%' . $searchParam . '%')
+                    ->orWhere('mobile', 'like', '%' . $searchParam . '%');
+            })->get();
+            return response()->json(['wallets' => $wallets], 200);
+        } else {
+            //error
+            return response()->json(['message' => 'شما دسترسی به این بخش را ندارید'], 403);
+        }
+    }
+
+    //list of wallet transation statuses
+    /**
+     * @OA\Get(
+     *   path="/v1/wallet/transactions/status",
+     *   tags={"Wallet"},
+     *   summary="show all transaction statuses",
+     *   description="only for howm has access",
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   security={{ "apiAuth": {} }}
+     *)
+     **/
+    public function transactionStatuses()
+    {
+        $statuses = TransactionStatus::all();
+        return response()->json(['statuses' => $statuses], 200);
+    }
+
+    /**
+   
+     * @OA\Get(
+     *   path="/v1/wallet/transactions/export",
+     *   tags={"Wallet"},
+     *   summary="export all transactions",
+     *   @OA\Parameter(
+     *     name="user_id",
+     *    description="user id",
+     *    in="query",
+     *   required=false,
+     *   @OA\Schema(
+     *  type="integer"
+     *  )
+     * ),
+     *  @OA\Parameter(
+     *     name="transaction_status_id",
+     *    description="transaction status id",
+     *    in="query",
+     *   required=false,
+     *   @OA\Schema(
+     *  type="integer"
+     *  )
+     * ),
+     *  @OA\Parameter(
+     *    name="is_valid",
+     *   description="is valid",
+     *  in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="boolean"
+     * )
+     * ),
+     * @OA\Parameter(
+     *   name="date_from",
+     * description="date from",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="string",
+     * format="date"
+     * )
+     * ),
+     * @OA\Parameter(
+     *  name="date_to",
+     * description="date to",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="string",
+     * format="date"
+     * )
+     * ),
+     * @OA\Parameter(
+     * name="transaction_type",
+     * description="transaction type",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="string",
+     * enum={"increaseBalance", "increaseCredit", "Withdrawal","refund","allDeposits"}
+     * )
+     * ),
+     * @OA\Parameter(
+     * name="payment_method",
+     * description="payment method",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="string",
+     * enum={"online", "offline"}
+     * )
+     * ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   security={{ "apiAuth": {} }}
+     *)
+     **/
+    public function ExportToExcel(Request $request)
+    {
+        $transactionsList = $this->transactionsList($request, true)->getData();
+
+        // $transactions = $transactionsList->transactions;
+        // return $transactionsList;
+        return Excel::download(new ExportTransactionsList($transactionsList), 'transactions.xlsx');
     }
 }
