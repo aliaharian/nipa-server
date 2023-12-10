@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Factor;
 use App\Http\Controllers\Controller;
 use App\Models\Factor;
 use App\Models\FactorPaymentStep;
+use App\Models\PaymentStatus;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -101,6 +103,16 @@ class FactorPaymentStepController extends Controller
         //check payments
         foreach ($factor_payment_steps as $factor_payment_step) {
             $factor_payment_step->status = $factor_payment_step->status()->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
+            //
+            $factor_payment_step->pay_status="unknown";
+            
+            $factor_payment_step->last_payment = $factor_payment_step->payments()->orderBy('id', 'desc')->first();
+            if ($factor_payment_step->last_payment) {
+                $factor_payment_step->last_payment->status = PaymentStatus::find($factor_payment_step->last_payment->payment_status_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
+                $factor_payment_step->pay_status=$factor_payment_step->last_payment->status->slug;
+                $factor_payment_step->last_payment->transaction= Transaction::find($factor_payment_step->last_payment->transaction_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
+
+            }
 
         }
         //response
