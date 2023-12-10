@@ -64,6 +64,8 @@ class FactorPaymentStepController extends Controller
         $factorTotalPrice = $factor->totalPrice();
         $resp = $factorTotalPrice->getData();
         $factorTotalPrice = $resp->data;
+        $allHavePrice = $resp->allHavePrice;
+
 
 
         $factor_payment_steps = FactorPaymentStep::query();
@@ -75,6 +77,9 @@ class FactorPaymentStepController extends Controller
         $warning = "";
         //check how many steps we have
         $count = $factor_payment_steps->count();
+        if(!$allHavePrice){
+            $warning = "برای تعریف مراحل پرداخت ابتدا باید قیمت همه ی محصولات را تعریف کنید";
+        }else
         if ($count == 0) {
             $warning = "هیچ مرحله پرداختی تعریف نشده است";
         } else if ($count == 1) {
@@ -95,7 +100,7 @@ class FactorPaymentStepController extends Controller
 
         //check payments
         foreach ($factor_payment_steps as $factor_payment_step) {
-            $factor_payment_step->status = $factor_payment_step->status()->makeHidden(['id', 'created_at', 'updated_at', 'meta', 'description']);
+            $factor_payment_step->status = $factor_payment_step->status()->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
 
         }
         //response
@@ -105,7 +110,11 @@ class FactorPaymentStepController extends Controller
             'status' => $warning == "" ? 'success' : "warning",
             'warning' => $warning,
             'factor_total_price' => $factorTotalPrice,
+            'factor_sum_price'=> $resp->sumPrice,
+            'factor_sum_off_price'=> $resp->sumOffPrice,
+            'factor_sum_additional_price'=> $resp->sumAdditionalPrice,
             'success' => true,
+            'allHavePrice'=>$allHavePrice,
             'code' => 200
         ], 200);
     }

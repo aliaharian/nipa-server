@@ -64,22 +64,29 @@ class Factor extends Model
         if (!$allItemsHaveUnitPrice && $strict) {
             return response()->json([
                 'message' => //persian
-                    'همه ی محصولات باید قیمت داشته باشند',
+                'همه ی محصولات باید قیمت داشته باشند',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
             ], 404);
         }
 
+        $sumPrice = 0;
+        $sumOffPrice = 0;
+        $sumAdditionalPrice = 0;
         //calculate total price
-        $sum = $this->factorItems->map(function ($item) {
+        $sum = $this->factorItems->map(function ($item) use (&$sumPrice, &$sumOffPrice, &$sumAdditionalPrice) {
             $count = $item->count ?? 1;
             $unit_price = $item->unit_price ?? 0;
             $off_price = $item->off_price ?? 0;
             $additional_price = $item->additional_price ?? 0;
+            $sumOffPrice += $off_price;
+            $sumAdditionalPrice += $additional_price;
             if ($item->count_type == 'm2') {
+                $sumPrice += ($item->width * $item->height * $count * $unit_price);
                 return ($item->width * $item->height * $count * $unit_price) - $off_price + $additional_price;
             } else {
+                $sumPrice += ($count * $unit_price);
                 return ($count * $unit_price) - $off_price + $additional_price;
             }
         })->sum();
@@ -87,9 +94,12 @@ class Factor extends Model
             'data' => $sum,
             'printable' => number_format($sum),
             'status' => 'success',
+            'allHavePrice' => $allItemsHaveUnitPrice,
+            'sumPrice' => $sumPrice,
+            'sumOffPrice' => $sumOffPrice,
+            'sumAdditionalPrice' => $sumAdditionalPrice,
             'success' => true,
             'code' => 200
         ], 200);
-
     }
 }

@@ -96,11 +96,15 @@ class FactorController extends Controller
             $query = Factor::query();
 
             if (isset($filters['user_id'])) {
-                //query in order groups that user is its user_id or customer id of user is its customer_id
+                //query in order groups that user is its user_id of customer of order group
                 // i have only order_group_id in this table
+                //the name of neede tables is order_groups and customers
                 $query->whereHas('orderGroup', function ($query) use ($filters) {
-                    $query->where('user_id', $filters['user_id'])->orWhere('customer_id', $filters['user_id']);
+                    $query->where('user_id', $filters['user_id'])->orWhereHas('customer', function ($query) use ($filters) {
+                        $query->where('user_id', $filters['user_id']);
+                    });
                 });
+
                 // $query->where('wallet_id', $filters['user_id']);
             }
 
@@ -113,7 +117,12 @@ class FactorController extends Controller
             }
 
             if (isset($filters['factor_status_id'])) {
-                $query->where('status_id', $filters['transaction_status_id']);
+                //find in factor statuses where last factor status is this factor status id
+                //the neede table name is factor_statuses
+                $query->whereHas('lastStatus', function ($query) use ($filters) {
+                    $query->where('factor_status_enum_id', $filters['factor_status_id']);
+                });
+                // $query->where('status_id', $filters['factor_status_id']);
             }
 
             // Retrieve factors
@@ -135,6 +144,24 @@ class FactorController extends Controller
             $factorTotalPrice = $resp->data;
             $factor->total_price = $factorTotalPrice;
             $factor->lastStatus->factorStatusEnum;
+            $factor->orderGroup->customer->user;
+            $factor->orderGroup->user;
+            $factor->customer_full_name = "";
+            if ($factor->orderGroup->customer) {
+                if ($factor->orderGroup->customer->user->name) {
+                    $factor->customer_full_name = $factor->orderGroup->customer->user->name . " " . $factor->orderGroup->customer->user->last_name;
+                } else {
+                    //mobile
+                    $factor->customer_full_name = $factor->orderGroup->customer->user->mobile;
+                }
+            } else {
+                if ($factor->orderGroup->user->name) {
+                    $factor->customer_full_name = $factor->orderGroup->user->name . " " . $factor->orderGroup->user->last_name;
+                } else {
+                    //mobile
+                    $factor->customer_full_name = $factor->orderGroup->user->mobile;
+                }
+            }
         }
         $pagination = $export ? [] : [
             'total' => $factors->total(),
@@ -762,15 +789,15 @@ class FactorController extends Controller
     //write annotation
     /**
      * @OA\Get(
-     *  path="/v1/factor/{factor_id}",
+     *  path="/v1/factor/{factor_code}",
      * tags={"Factor"},
      * summary="view factor",
      * @OA\Parameter(
-     * name="factor_id",
+     * name="factor_code",
      * in="path",
      * required=true,
      * @OA\Schema(
-     * type="integer",
+     * type="string",
      * format="int64"
      * )
      * ),
@@ -785,9 +812,9 @@ class FactorController extends Controller
      * )
      * )
      */
-    public function show($factor_id)
+    public function show($factor_code)
     {
-        $factor = Factor::find($factor_id);
+        $factor = Factor::where('code', $factor_code)->first();
         if (!$factor) {
             return response()->json(['message' => 'factor not found'], 404);
         }
@@ -811,6 +838,24 @@ class FactorController extends Controller
         // $factor->factorPaymentSteps;
         $factor->lastStatus->factorStatusEnum;
         $factor->factorItems;
+        $factor->orderGroup->customer->user;
+        $factor->orderGroup->user;
+        $factor->customer_full_name = "";
+        if ($factor->orderGroup->customer) {
+            if ($factor->orderGroup->customer->user->name) {
+                $factor->customer_full_name = $factor->orderGroup->customer->user->name . " " . $factor->orderGroup->customer->user->last_name;
+            } else {
+                //mobile
+                $factor->customer_full_name = $factor->orderGroup->customer->user->mobile;
+            }
+        } else {
+            if ($factor->orderGroup->user->name) {
+                $factor->customer_full_name = $factor->orderGroup->user->name . " " . $factor->orderGroup->user->last_name;
+            } else {
+                //mobile
+                $factor->customer_full_name = $factor->orderGroup->user->mobile;
+            }
+        }
         //return factor
         return response()->json([
             'data' => $factor,

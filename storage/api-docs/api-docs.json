@@ -1112,20 +1112,20 @@
                 ]
             }
         },
-        "/v1/factor/{factor_id}": {
+        "/v1/factor/{factor_code}": {
             "get": {
                 "tags": [
                     "Factor"
                 ],
                 "summary": "view factor",
-                "operationId": "e32bb309e1930310aec12014af6c9a72",
+                "operationId": "b78b4dc02b36b9efc4e1a5d3575828e5",
                 "parameters": [
                     {
-                        "name": "factor_id",
+                        "name": "factor_code",
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "integer",
+                            "type": "string",
                             "format": "int64"
                         }
                     }

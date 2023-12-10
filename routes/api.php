@@ -111,7 +111,7 @@ Route::prefix('/v1')->group(function () {
             ///v1/factor/{factor_id}/factorStatus
             Route::post('{factor_id}/factorStatus', [FactorController::class, 'setFactorStatus'])->middleware('permission:can-change-invoice-status');
             //"/v1/factor/{factor_id}
-            Route::get('{factor_id}', [FactorController::class, 'show']);
+            Route::get('{factor_code}', [FactorController::class, 'show']);
             // ->middleware('permission:can-view-invoice'); //can-view-all-invoices handle inside!
         
         });
