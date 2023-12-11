@@ -15,31 +15,31 @@ class FactorPaymentStepController extends Controller
 
     //view all factor payment steps
     /**
- * @OA\Get(
- *  path="/v1/factor/paymentStep",
- * tags={"Factor"},
- * summary="view factor all payment steps",
-    * @OA\Parameter(
-    * name="factor_id",
-    * in="query",
-    * required=false,
-    * @OA\Schema(
-    * type="integer",
-    * format="int64"
-    * )
-    * ),
+     * @OA\Get(
+     *  path="/v1/factor/paymentStep",
+     * tags={"Factor"},
+     * summary="view factor all payment steps",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="query",
+     * required=false,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
     
- * @OA\Response(
- *   response=200,
- *  description="Success",
- * @OA\MediaType(
- * mediaType="application/json
- * "),
- * ),
- * security={{ "apiAuth": {} }}
- * )
- * )
- */
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
 
     public function index(Request $request)
     {
@@ -79,9 +79,9 @@ class FactorPaymentStepController extends Controller
         $warning = "";
         //check how many steps we have
         $count = $factor_payment_steps->count();
-        if(!$allHavePrice){
+        if (!$allHavePrice) {
             $warning = "برای تعریف مراحل پرداخت ابتدا باید قیمت همه ی محصولات را تعریف کنید";
-        }else
+        } else
         if ($count == 0) {
             $warning = "هیچ مرحله پرداختی تعریف نشده است";
         } else if ($count == 1) {
@@ -104,16 +104,14 @@ class FactorPaymentStepController extends Controller
         foreach ($factor_payment_steps as $factor_payment_step) {
             $factor_payment_step->status = $factor_payment_step->status()->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
             //
-            $factor_payment_step->pay_status="unknown";
-            
+            $factor_payment_step->pay_status = "unknown";
+
             $factor_payment_step->last_payment = $factor_payment_step->payments()->orderBy('id', 'desc')->first();
             if ($factor_payment_step->last_payment) {
                 $factor_payment_step->last_payment->status = PaymentStatus::find($factor_payment_step->last_payment->payment_status_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
-                $factor_payment_step->pay_status=$factor_payment_step->last_payment->status->slug;
-                $factor_payment_step->last_payment->transaction= Transaction::find($factor_payment_step->last_payment->transaction_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
-
+                $factor_payment_step->pay_status = $factor_payment_step->last_payment->status->slug;
+                $factor_payment_step->last_payment->demotransaction = Transaction::find($factor_payment_step->last_payment->transaction_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
             }
-
         }
         //response
         return response()->json([
@@ -122,11 +120,11 @@ class FactorPaymentStepController extends Controller
             'status' => $warning == "" ? 'success' : "warning",
             'warning' => $warning,
             'factor_total_price' => $factorTotalPrice,
-            'factor_sum_price'=> $resp->sumPrice,
-            'factor_sum_off_price'=> $resp->sumOffPrice,
-            'factor_sum_additional_price'=> $resp->sumAdditionalPrice,
+            'factor_sum_price' => $resp->sumPrice,
+            'factor_sum_off_price' => $resp->sumOffPrice,
+            'factor_sum_additional_price' => $resp->sumAdditionalPrice,
             'success' => true,
-            'allHavePrice'=>$allHavePrice,
+            'allHavePrice' => $allHavePrice,
             'code' => 200
         ], 200);
     }
@@ -199,7 +197,7 @@ class FactorPaymentStepController extends Controller
                 return response()->json(
                     [
                         'message' => //persian
-                            'قیمت قابل پرداخت بیشتر از مبلغ کل است',
+                        'قیمت قابل پرداخت بیشتر از مبلغ کل است',
                         'status' => 'error',
                         'success' => false,
                         'data' => [
@@ -219,7 +217,7 @@ class FactorPaymentStepController extends Controller
             if (!$factorPaymentStep) {
                 return response()->json([
                     'message' => //persian
-                        'مرحله یک پرداخت وجود ندارد',
+                    'مرحله یک پرداخت وجود ندارد',
                     'status' => 'error',
                     'success' => false,
                     'code' => 404
@@ -233,7 +231,7 @@ class FactorPaymentStepController extends Controller
             if ($factorPaymentStep->payable_price + $request->payable_price != $factorTotalPrice) {
                 return response()->json([
                     'message' => //persian
-                        'مجموع قیمت مرحله یک و دو با قیمت کل فاکتور برابر نیست',
+                    'مجموع قیمت مرحله یک و دو با قیمت کل فاکتور برابر نیست',
                     'status' => 'error',
                     'success' => false,
                     'data' => [
@@ -257,13 +255,16 @@ class FactorPaymentStepController extends Controller
             'pay_time' => $request->pay_time,
         ]);
 
+        $factorController = new FactorController();
+        $checkValidity = $factorController->checkAndUpdateFactorStatus($request->factor_id);
+
 
         //response
         return response()->json([
             'data' => $factorPaymentStep,
             'message' => 'factor payment step created successfully',
             'note' => //if step is 1 and not equal to factor total price, you must define step 2
-                ($factorPaymentStep->payable_price < $factorTotalPrice && $factorPaymentStep->step_number == 1) ? 'قیمت قابل پرداخت کمتر از مبلغ کل است، لطفا مرحله دوم پرداخت را تعریف کنید' : "",
+            ($factorPaymentStep->payable_price < $factorTotalPrice && $factorPaymentStep->step_number == 1) ? 'قیمت قابل پرداخت کمتر از مبلغ کل است، لطفا مرحله دوم پرداخت را تعریف کنید' : "",
 
             'status' => 'success',
             'success' => true,
@@ -309,7 +310,7 @@ class FactorPaymentStepController extends Controller
         if (!$factor_payment_step) {
             return response()->json([
                 'message' => //persian
-                    'مرحله پرداخت وجود ندارد',
+                'مرحله پرداخت وجود ندارد',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -390,7 +391,6 @@ class FactorPaymentStepController extends Controller
             'warning' => $warning,
             'code' => 200
         ], 200);
-
     }
 
     /**
@@ -441,7 +441,7 @@ class FactorPaymentStepController extends Controller
         if (!$factor_payment_step) {
             return response()->json([
                 'message' => //persian
-                    'مرحله پرداخت وجود ندارد',
+                'مرحله پرداخت وجود ندارد',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -476,6 +476,10 @@ class FactorPaymentStepController extends Controller
             'pay_time' => $request->pay_time,
         ]);
 
+        $factorController = new FactorController();
+        $checkValidity = $factorController->checkAndUpdateFactorStatus($factor->id);
+
+
         //response
         return response()->json([
             'data' => $factor_payment_step,
@@ -484,8 +488,6 @@ class FactorPaymentStepController extends Controller
             'success' => true,
             'code' => 200
         ], 200);
-
-
     }
 
     /**
@@ -526,7 +528,7 @@ class FactorPaymentStepController extends Controller
         if (!$factor_payment_step) {
             return response()->json([
                 'message' => //persian
-                    'مرحله پرداخت وجود ندارد',
+                'مرحله پرداخت وجود ندارد',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -536,15 +538,20 @@ class FactorPaymentStepController extends Controller
         if ($factor_payment_step->step_number == 1) {
             return response()->json([
                 'message' => //persian
-                    'مرحله اول پرداخت قابل حذف نیست',
+                'مرحله اول پرداخت قابل حذف نیست',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
             ], 404);
         }
+        $factor_id = $factor_payment_step->factor_id;
 
         //delete
         $factor_payment_step->delete();
+
+        $factorController = new FactorController();
+        $checkValidity = $factorController->checkAndUpdateFactorStatus($factor_id);
+
 
         //response
         return response()->json([

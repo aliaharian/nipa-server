@@ -12,8 +12,8 @@ use App\Models\Form;
 use App\Models\GlobalStep;
 use App\Models\Order;
 use App\Models\UserAnswer;
-use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserAnswerController extends Controller
 {

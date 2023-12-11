@@ -9,9 +9,11 @@ use App\Models\FactorStatus;
 use App\Models\FactorStatusEnum;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use stdClass;
 
 class FactorController extends Controller
 {
@@ -413,6 +415,7 @@ class FactorController extends Controller
 
         //set log if added item doesnt have order_id or product_id
         $customerAcceptExists = $this->checkCustomerAccept($factor_id);
+
         if ($customerAcceptExists) {
             $changesMeta = array();
             $user = Auth::user();
@@ -424,16 +427,18 @@ class FactorController extends Controller
 
             $currectStatusEnum = FactorStatusEnum::where('slug', 'customerResubmitPending')->first();
 
-            $factor_status = FactorStatus::create([
-                'factor_id' => $factor_id,
-                'factor_status_enum_id' => $currectStatusEnum->id,
-                'name' => 'فاکتور در انتظار مشتری',
-                'description' => 'فاکتور در انتظار مشتری به علت اضافه شدن ایتم',
-                'meta' => json_encode($changesMeta),
-            ]);
+            //check factor validity
+            // $factor_status = FactorStatus::create([
+            //     'factor_id' => $factor_id,
+            //     'factor_status_enum_id' => $currectStatusEnum->id,
+            //     'name' => 'فاکتور در انتظار مشتری',
+            //     'description' => 'فاکتور در انتظار مشتری به علت اضافه شدن ایتم',
+            //     'meta' => json_encode($changesMeta),
+            // ]);
             //TODO: notify user
 
         }
+        $checkValidity = $this->checkAndUpdateFactorStatus($factor_id);
         return response()->json($factor_item, 201);
     }
 
@@ -600,13 +605,13 @@ class FactorController extends Controller
             //update factor status if json meta filled
             if (count($changesMeta) > 0) {
 
-                $factor_status = FactorStatus::create([
-                    'factor_id' => $factor_id,
-                    'factor_status_enum_id' => $currectStatusEnum->id,
-                    'name' => 'فاکتور در انتظار مشتری',
-                    'description' => 'فاکتور در انتظار مشتری به علت تغییر در ایتم ها',
-                    'meta' => json_encode($changesMeta),
-                ]);
+                // $factor_status = FactorStatus::create([
+                //     'factor_id' => $factor_id,
+                //     'factor_status_enum_id' => $currectStatusEnum->id,
+                //     'name' => 'فاکتور در انتظار مشتری',
+                //     'description' => 'فاکتور در انتظار مشتری به علت تغییر در ایتم ها',
+                //     'meta' => json_encode($changesMeta),
+                // ]);
                 //TODO:notify user
             }
         } else {
@@ -623,6 +628,7 @@ class FactorController extends Controller
         }
 
 
+        $checkValidity = $this->checkAndUpdateFactorStatus($factor_id);
 
         return response()->json($factor_item, 200);
     }
@@ -703,17 +709,18 @@ class FactorController extends Controller
 
             $currectStatusEnum = FactorStatusEnum::where('slug', 'customerResubmitPending')->first();
 
-            $factor_status = FactorStatus::create([
-                'factor_id' => $factor_id,
-                'factor_status_enum_id' => $currectStatusEnum->id,
-                'name' => 'فاکتور در انتظار مشتری',
-                'description' => 'فاکتور در انتظار مشتری به علت حذف شدن ایتم',
-                'meta' => json_encode($changesMeta),
-            ]);
+            // $factor_status = FactorStatus::create([
+            //     'factor_id' => $factor_id,
+            //     'factor_status_enum_id' => $currectStatusEnum->id,
+            //     'name' => 'فاکتور در انتظار مشتری',
+            //     'description' => 'فاکتور در انتظار مشتری به علت حذف شدن ایتم',
+            //     'meta' => json_encode($changesMeta),
+            // ]);
             //TODO: notify user
 
         }
 
+        $checkValidity = $this->checkAndUpdateFactorStatus($factor_id);
         return response()->json(['message' => 'factor item deleted'], 200);
     }
 
@@ -856,6 +863,36 @@ class FactorController extends Controller
                 $factor->customer_full_name = $factor->orderGroup->user->mobile;
             }
         }
+        $allStatuses = FactorStatus::where('factor_id', $factor->id)->orderBy("id","desc")->get();
+        // $factor->statuses = [];
+        $statArray = [];
+        // [{"modifiedType":"field","fieldName":"width","fieldId":27,"oldValue":"12","newValue":"10","user":1,"form":14,"order":83}]
+        foreach ($allStatuses as $status) {
+            $tmp = new stdClass();
+            $jsonArray = json_decode($status->meta);
+            if ($jsonArray) {
+                foreach ($jsonArray as $json) {
+                    // $tmp->meta = $json;
+                    $tmp->modifiedType = $json->modifiedType ?? null;
+                    $tmp->fieldName = $json->fieldName ?? null;
+                    // $tmp->fieldId = $json->fieldId;
+                    $tmp->oldValue = $json->oldValue ?? null;
+                    $tmp->newValue = $json->newValue ?? null;
+                    // $tmp->user = $json->user;
+                    // $tmp->form = $json->form;
+                    // $tmp->order = $json->order;
+                    $user = User::find($json->user ?? null);
+                    $order = Order::find($json->order ?? null);
+                    $tmp->user_full_name = $user ? $user->name ? $user->name . " " . $user->last_name : $user->mobile : null;
+                    $tmp->product = $order ? $order->product->name : null;
+                    $tmp->created_at = $status->created_at;
+                    $statusEnum = FactorStatusEnum::find($status->factor_status_enum_id);
+                    $tmp->status = $statusEnum;
+                    array_push($statArray, $tmp);
+                }
+            }
+        }
+        $factor->statuses = $statArray;
         //return factor
         return response()->json([
             'data' => $factor,
@@ -895,5 +932,156 @@ class FactorController extends Controller
     {
         $factorStatuses = FactorStatusEnum::all();
         return response()->json(['statuses' => $factorStatuses], 200);
+    }
+
+    //update factor
+    //write annotation
+    /**
+     * @OA\Put(
+     *  path="/v1/factor/{factor_id}",
+     * tags={"Factor"},
+     * summary="update factor",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"expire_date","description"},
+     * @OA\Property(property="expire_date", type="string", format="string", example="2021-09-01"),
+     * @OA\Property(property="description", type="string", format="string", example="description"),
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+
+    public function update($factor_id, Request $request)
+    {
+        //validate
+        $request->validate([
+            'expire_date' => 'required',
+            'description' => 'string|nullable',
+        ]);
+        //find factor
+        $factor = Factor::find($factor_id);
+        if (!$factor) {
+            return response()->json(['message' => 'factor not found'], 404);
+        }
+        //update
+        $factor->update([
+            'expire_date' => $request->expire_date,
+            'description' => $request->description,
+        ]);
+        return response()->json($factor, 200);
+    }
+
+    public function checkAndUpdateFactorStatus($factor_id)
+    {
+        $factorPaymentStepController = new FactorPaymentStepController();
+        $factorPaymentSteps = $factorPaymentStepController->index(new Request(['factor_id' => $factor_id]));
+        $factorValidity = $factorPaymentSteps->getData()->status;
+        $lastStatusEnum = Factor::find($factor_id)->lastStatus->factorStatusEnum;
+        $factorStatus = null;
+        $validity = false;
+        if ($factorValidity != 'success') {
+            if (
+                $lastStatusEnum == "salesPending" ||
+                $lastStatusEnum == "completePending" ||
+                $lastStatusEnum == "salesResubmitPending"
+            ) {
+            } else {
+                $factorStatus = $this->setFactorStatus(
+                    $factor_id,
+                    new Request([
+                        'factor_status_enum' => "completePending",
+                        'name' => 'فاکتور در انتظار تکمیل',
+                        'description' => 'فاکتور در انتظار تکمیل',
+                    ])
+                );
+            }
+        } else {
+            $validity = true;
+        }
+
+        return [
+            'validity' => $validity,
+            'factorStatus' => $factorStatus,
+        ];
+    }
+
+    //acceptFactor
+    //write annotation
+    /**
+     * @OA\Post(
+     *  path="/v1/factor/{factor_id}/accept",
+     * tags={"Factor"},
+     * summary="accept factor",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Response(
+     *   response=201,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+
+    public function acceptFactor($factor_id)
+    {
+        //find factor
+        $factor = Factor::find($factor_id);
+        if (!$factor) {
+            return response()->json(['message' => 'factor not found'], 404);
+        }
+        //check if factor is valid
+        $resp = $this->checkAndUpdateFactorStatus($factor_id);
+        $factorValidity = $resp["validity"];
+        if (!$factorValidity) {
+            return response()->json(['message' => 'factor is not valid'], 400);
+        }
+        $lastStatusEnum = $factor->lastStatus->factorStatusEnum;
+        if (
+            $lastStatusEnum->slug !== 'customerPending' &&
+            $lastStatusEnum->slug != 'customerResubmitPending'
+        ) {
+            //set factor status
+            $this->setFactorStatus(
+                $factor_id,
+                new Request([
+                    'factor_status_enum' => "customerPending",
+                    'name' => 'فاکتور تایید شده توسط مالی',
+                    'description' => 'فاکتور تایید شده توسط مالی',
+                ])
+            );
+        }
+
+        //return
+        return response()->json(['message' => 'factor accepted'], 201);
     }
 }

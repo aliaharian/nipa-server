@@ -1167,6 +1167,98 @@
                 ]
             }
         },
+        "/v1/factor/{factor_id}": {
+            "put": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "update factor",
+                "operationId": "8bcecc6fa28e27df7423a40b59e3a4b2",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "expire_date",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "expire_date": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "2021-09-01"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/factor/{factor_id}/accept": {
+            "post": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "accept factor",
+                "operationId": "aef0fdb1767278b90bd805e44dd70448",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/factor/payment/pay": {
             "post": {
                 "tags": [
