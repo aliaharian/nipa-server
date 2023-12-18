@@ -73,7 +73,6 @@ Route::prefix('/v1')->group(function () {
                 Route::get('', [WalletController::class, 'transactionsList']);
                 Route::get('export', [WalletController::class, 'exportToExcel']);
                 Route::get('status', [WalletController::class, 'transactionStatuses']);
-
             });
         });
 
@@ -112,12 +111,14 @@ Route::prefix('/v1')->group(function () {
             Route::delete('{factor_id}/factorItem/{factor_item_id}', [FactorController::class, 'destroyFactorItem'])->middleware('permission:can-delete-invoice-item');
             ///v1/factor/{factor_id}/factorStatus
             Route::post('{factor_id}/factorStatus', [FactorController::class, 'setFactorStatus'])->middleware('permission:can-change-invoice-status');
-           //accept factor by admin
+            //accept factor by admin
             Route::post('{factor_id}/accept', [FactorController::class, 'acceptFactor'])->middleware('permission:can-change-invoice-status');
+            //accept by customer
+            Route::post('{factor_id}/acceptByCustomer', [FactorController::class, 'acceptFactorByCustomer']);
             //"/v1/factor/{factor_id}
             Route::get('{factor_code}', [FactorController::class, 'show']);
             // ->middleware('permission:can-view-invoice'); //can-view-all-invoices handle inside!
-        
+
         });
 
 

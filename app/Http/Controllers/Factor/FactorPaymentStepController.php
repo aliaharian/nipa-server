@@ -44,7 +44,19 @@ class FactorPaymentStepController extends Controller
     public function index(Request $request)
     {
         //
+        $user_id = auth()->user()->id;
+        $user_customer_id = auth()->user()->customer->id;
+
         $factor = Factor::find($request->factor_id);
+        $factor_user_id = $factor->orderGroup->user_id;
+        $factor_customer_id = $factor->orderGroup->customer_id;
+
+
+        $canPay = true;
+        if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
+            $canPay = false;
+        }
+
         $permissions = Auth::user()->roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
@@ -53,10 +65,8 @@ class FactorPaymentStepController extends Controller
         if (!in_array("can-view-all-payment-steps", $permissions)) {
             //check if user is owner of this factor
             //check if user_id or customer_id is equal to auth user id
-            $factor_user_id = $factor->orderGroup->user_id;
-            $factor_customer_id = $factor->orderGroup->customer_id;
-            $user_id = auth()->user()->id;
-            $user_customer_id = auth()->user()->customer->id;
+
+
             if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
                 return response()->json(['message' => 'you dont have permission to view payment steps of this factor'], 403);
             }
@@ -107,6 +117,30 @@ class FactorPaymentStepController extends Controller
             $factor_payment_step->pay_status = "unknown";
 
             $factor_payment_step->last_payment = $factor_payment_step->payments()->orderBy('id', 'desc')->first();
+            //check if user owner or customer of this factor
+            // $factor_payment_step->canPay = $canPay ?
+            //     //check if this is second payment step first one was paied
+            //     ($factor_payment_step->step_number == 2 && $factor_payment_step->last_payment && $factor_payment_step->last_payment->status->slug == "paid") ?
+            //     false : true
+            //     : false;
+            if ($canPay) {
+                if ($factor_payment_step->step_number == 2) {
+                    if ($factor_payment_step->last_payment) {
+                        if ($factor_payment_step->last_payment->status->slug != "paid") {
+                            $factor_payment_step->canPay = true;
+                        } else {
+                            $factor_payment_step->canPay = false;
+                        }
+                    } else {
+                        $factor_payment_step->canPay = false;
+                    }
+                } else {
+                    $factor_payment_step->canPay = true;
+                }
+            } else {
+                $factor_payment_step->canPay = false;
+            }
+
             if ($factor_payment_step->last_payment) {
                 $factor_payment_step->last_payment->status = PaymentStatus::find($factor_payment_step->last_payment->payment_status_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
                 $factor_payment_step->pay_status = $factor_payment_step->last_payment->status->slug;

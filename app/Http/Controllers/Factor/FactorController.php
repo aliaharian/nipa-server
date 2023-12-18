@@ -92,10 +92,12 @@ class FactorController extends Controller
         $permissions = Auth::user()->roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
+        $canEdit = false;
 
         if (in_array('can-view-all-invoices', $permissions)) {
             $filters = request()->all();
             $query = Factor::query();
+            $canEdit = true;
 
             if (isset($filters['user_id'])) {
                 //query in order groups that user is its user_id of customer of order group
@@ -190,6 +192,7 @@ class FactorController extends Controller
             'accessAll' =>  $accessAll,
             'pagination' => $pagination,
             'filters' => $filters,
+            'canEdit' => $canEdit
         ], 200);
     }
 
@@ -822,6 +825,7 @@ class FactorController extends Controller
     public function show($factor_code)
     {
         $factor = Factor::where('code', $factor_code)->first();
+        $factorOwner = false;
         if (!$factor) {
             return response()->json(['message' => 'factor not found'], 404);
         }
@@ -830,14 +834,18 @@ class FactorController extends Controller
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
 
+        $factor_user_id = $factor->orderGroup->user_id;
+        $factor_customer_id = $factor->orderGroup->customer_id;
+        $user_id = auth()->user()->id;
+        $user_customer_id = auth()->user()->customer->id;
+        if ($factor_user_id == $user_id || $factor_customer_id == $user_customer_id) {
+            $factorOwner = true;
+        }
+
         //check if user has permission "can-view-all-invoices"
         if (!in_array("can-view-all-invoices", $permissions)) {
             //check if user is owner of this factor
             //check if user_id or customer_id is equal to auth user id
-            $factor_user_id = $factor->orderGroup->user_id;
-            $factor_customer_id = $factor->orderGroup->customer_id;
-            $user_id = auth()->user()->id;
-            $user_customer_id = auth()->user()->customer->id;
             if ($factor_user_id != $user_id && $factor_customer_id != $user_customer_id) {
                 return response()->json(['message' => 'you dont have permission to view this factor'], 403);
             }
@@ -863,7 +871,7 @@ class FactorController extends Controller
                 $factor->customer_full_name = $factor->orderGroup->user->mobile;
             }
         }
-        $allStatuses = FactorStatus::where('factor_id', $factor->id)->orderBy("id","desc")->get();
+        $allStatuses = FactorStatus::where('factor_id', $factor->id)->orderBy("id", "desc")->get();
         // $factor->statuses = [];
         $statArray = [];
         // [{"modifiedType":"field","fieldName":"width","fieldId":27,"oldValue":"12","newValue":"10","user":1,"form":14,"order":83}]
@@ -893,6 +901,7 @@ class FactorController extends Controller
             }
         }
         $factor->statuses = $statArray;
+        $factor->owner = $factorOwner;
         //return factor
         return response()->json([
             'data' => $factor,
@@ -1077,6 +1086,73 @@ class FactorController extends Controller
                     'factor_status_enum' => "customerPending",
                     'name' => 'فاکتور تایید شده توسط مالی',
                     'description' => 'فاکتور تایید شده توسط مالی',
+                ])
+            );
+        }
+
+        //return
+        return response()->json(['message' => 'factor accepted'], 201);
+    }
+
+    //acceptFactorByCustomer
+    //write annotation
+    /**
+     * @OA\Post(
+     *  path="/v1/factor/{factor_id}/acceptByCustomer",
+     * tags={"Factor"},
+     * summary="accept factor by customer",
+     * @OA\Parameter(
+     * name="factor_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64"
+     * )
+     * ),
+     * @OA\Response(
+     *   response=201,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+
+    public function acceptFactorByCustomer($factor_id)
+    {
+        //find factor
+        $factor = Factor::find($factor_id);
+        if (!$factor) {
+            return response()->json(['message' => 'factor not found'], 404);
+        }
+        //check if user owner or customer of factor
+        $user_id = auth()->user()->id;
+        $factor_user_id = $factor->orderGroup->user_id;
+        $factor_customer_id = $factor->orderGroup->customer_id;
+        if ($factor_user_id != $user_id && $factor_customer_id != $user_id) {
+            return response()->json(['message' => 'you dont have permission to accept this factor'], 403);
+        }
+        //check if factor is valid
+        $resp = $this->checkAndUpdateFactorStatus($factor_id);
+        $factorValidity = $resp["validity"];
+        if (!$factorValidity) {
+            return response()->json(['message' => 'factor is not valid'], 400);
+        }
+        $lastStatusEnum = $factor->lastStatus->factorStatusEnum;
+        if (
+            $lastStatusEnum->slug !== 'paymentPending'
+        ) {
+            //set factor status
+            $this->setFactorStatus(
+                $factor_id,
+                new Request([
+                    'factor_status_enum' => "paymentPending",
+                    'name' => 'فاکتور تایید شده توسط مشتری',
+                    'description' => 'فاکتور تایید شده توسط مشتری',
                 ])
             );
         }
