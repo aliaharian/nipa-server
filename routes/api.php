@@ -40,7 +40,7 @@ use App\Http\Controllers\wallet\WalletController;
 Route::get("/phpinfo", function () {
     echo phpinfo();
 });
-Route::prefix('/v1')->group(function () {
+Route::prefix('/v1')->middleware(['language'])->group(function () {
 
     //global apis
     Route::post('/register', [UserAuthController::class, 'register']);

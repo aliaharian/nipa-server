@@ -17,4 +17,12 @@ class TransactionStatus extends Model
         'isValid',
         "type"
     ];
+    public function getNameAttribute($value)
+    {
+        $keyword = Keyword::where('keyword', $value)->first();
+        if ($keyword) {
+            return $keyword->translation();
+        }
+        return $value;
+    }
 }

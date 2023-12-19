@@ -21,4 +21,8 @@ class Keyword extends Model
         }
         return $this->keyword;
     }
+
+    function translations(){
+        return $this->hasMany(Translation::class);
+    }
 }

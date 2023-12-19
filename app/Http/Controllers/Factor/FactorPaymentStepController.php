@@ -90,19 +90,21 @@ class FactorPaymentStepController extends Controller
         //check how many steps we have
         $count = $factor_payment_steps->count();
         if (!$allHavePrice) {
-            $warning = "برای تعریف مراحل پرداخت ابتدا باید قیمت همه ی محصولات را تعریف کنید";
+            $warning =  __('validation.custom.factor_payment_steps.allHavePrice');
         } else
         if ($count == 0) {
-            $warning = "هیچ مرحله پرداختی تعریف نشده است";
+
+            $warning =  //get errors based on locale
+                __('validation.custom.factor_payment_steps.count0');
         } else if ($count == 1) {
             //check if step 1 is not equal to factor total price
             if ($factor_payment_steps[0]->payable_price != $factorTotalPrice) {
-                $warning = "قیمت قابل پرداخت مجموع مراحل با قیمت کل فاکتور برابر نیست";
+                $warning = __('validation.custom.factor_payment_steps.count1');
             }
         } else {
             //check if step 1 + step 2 is not equal to factor total price
             if ($factor_payment_steps[0]->payable_price + $factor_payment_steps[1]->payable_price != $factorTotalPrice) {
-                $warning = "قیمت قابل پرداخت مجموع مراحل با قیمت کل فاکتور برابر نیست";
+                $warning =  __('validation.custom.factor_payment_steps.count2');
             }
         }
 
@@ -145,6 +147,27 @@ class FactorPaymentStepController extends Controller
                 $factor_payment_step->last_payment->status = PaymentStatus::find($factor_payment_step->last_payment->payment_status_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
                 $factor_payment_step->pay_status = $factor_payment_step->last_payment->status->slug;
                 $factor_payment_step->last_payment->demotransaction = Transaction::find($factor_payment_step->last_payment->transaction_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
+            }
+
+            if($factor_payment_step->canPay){
+                //calculate wallet balance and credit to determine that how much user must pay in addition to wallet balance
+                $user = auth()->user();
+                $wallet = $user->wallet;
+                $totalBalance = 0;
+                $remainingPayablePrice = 0;
+                if ($wallet && $wallet->active) {
+                    $totalBalance = $wallet->balance + $wallet->credit - $wallet->blocked;
+                    $remainingPayablePrice = $factor_payment_step->payable_price - $totalBalance;
+                    if ($remainingPayablePrice < 0) {
+                        $remainingPayablePrice = 0;
+                    }
+                } else {
+                    $remainingPayablePrice = $factor_payment_step->payable_price;
+                }
+
+                //add remainingPayablePrice and totalBalance to factor_payment_step object
+                $factor_payment_step->remaining_payable_price = $remainingPayablePrice;
+                $factor_payment_step->total_balance = $totalBalance;
             }
         }
         //response

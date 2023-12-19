@@ -145,6 +145,12 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'factor_payment_steps' => [
+            'allHavePrice' => "To define payment steps, you must first specify the price for all products.",
+            'count0' => "No payment steps have been defined.",
+            'count1' => "The total payment amount of the steps is not equal to the total invoice amount.",
+            'count2' => "The total payment amount of the steps is not equal to the total invoice amount."
+        ],
     ],
 
     /*

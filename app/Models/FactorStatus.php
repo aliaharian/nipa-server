@@ -32,4 +32,13 @@ class FactorStatus extends Model
     {
         return $this->belongsTo(FactorStatusEnum::class);
     }
+
+    public function getNameAttribute($value)
+    {
+        $keyword = Keyword::where('keyword', $value)->first();
+        if ($keyword) {
+            return $keyword->translation();
+        }
+        return $value;
+    }
 }

@@ -1259,6 +1259,39 @@
                 ]
             }
         },
+        "/v1/factor/{factor_id}/acceptByCustomer": {
+            "post": {
+                "tags": [
+                    "Factor"
+                ],
+                "summary": "accept factor by customer",
+                "operationId": "de812997f87821fdd45d7bace010ddd7",
+                "parameters": [
+                    {
+                        "name": "factor_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/factor/payment/pay": {
             "post": {
                 "tags": [
@@ -1464,7 +1497,7 @@
                     "200": {
                         "description": "Success",
                         "content": {
-                            "application/json\n * ": {}
+                            "application/json\n     * ": {}
                         }
                     }
                 },

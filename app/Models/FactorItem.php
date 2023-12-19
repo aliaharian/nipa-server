@@ -29,6 +29,15 @@ class FactorItem extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function getNameAttribute($value)
+    {
+        $keyword = Keyword::where('keyword', $value)->first();
+        if ($keyword) {
+            return $keyword->translation();
+        }
+        return $value;
+    }
 }
 
 

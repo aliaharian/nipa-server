@@ -15,6 +15,16 @@ class Product extends Model
         'status',
         'count_type'
     ];
+
+    //translate name based on app locale
+    public function getNameAttribute($value)
+    {
+        $keyword = Keyword::where('keyword', $value)->first();
+        if ($keyword) {
+            return $keyword->translation();
+        }
+        return $value;
+    }
     public function steps()
     {
         return $this->hasMany(ProductStep::class);
@@ -39,7 +49,6 @@ class Product extends Model
             }
         }
         return $initial;
-
     }
     public function completeOrderForm()
     {
@@ -57,7 +66,6 @@ class Product extends Model
             }
         }
         return $initial;
-
     }
     public function details()
     {

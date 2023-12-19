@@ -15,6 +15,7 @@ use App\Models\ProductStep;
 use App\Models\ProductStepsCondition;
 use App\Models\UserAnswer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use stdClass;
 
@@ -45,6 +46,8 @@ class OrderController extends Controller
      */
     public function index()
     {
+        $lang = App::getLocale();
+
         $additional_cols = [];
         $listPermissions = new stdClass();
         // $listPermissions->canEdit = true;
@@ -82,8 +85,10 @@ class OrderController extends Controller
 
                 //find default next step
                 $nextStep = ProductStep::where('product_id', $or->product->id)->where("id", ">", $or->step->id)->orderBy("id", "asc")->first();
-                $nextStep->globalStep;
-                $nextStep->roles;
+                if ($nextStep) {
+                    $nextStep->globalStep;
+                    $nextStep->roles;
+                }
 
                 //check if next step has condition
                 $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
@@ -103,7 +108,6 @@ class OrderController extends Controller
                             $nextStep = ProductStep::find($stepCond->next_product_step_id);
                             $nextStep->globalStep;
                             $nextStep->roles;
-
                         }
                     }
                 }
@@ -144,8 +148,6 @@ class OrderController extends Controller
                         $tmp2->field_label = $field->label;
                         $additional_data[] = $tmp;
                         $additional_cols[] = $tmp2;
-
-
                     }
                 }
             }
@@ -169,8 +171,12 @@ class OrderController extends Controller
             //find form of first step
 
         }
-        return response()->json(["orders" => $ordersPure, 'cols' => $additional_cols, 'permissions' => $listPermissions], 200);
-
+        return response()->json([
+            "orders" => $ordersPure,
+            'cols' => $additional_cols,
+            'permissions' => $listPermissions,
+            'lang' => $lang,
+        ], 200);
     }
 
     /**
@@ -330,7 +336,7 @@ class OrderController extends Controller
         );
 
         //TODO: notify admin about new order
-        
+
         if (!$factorResponse->isSuccessful()) {
             // Handle the case where the request was not successful
             // You might want to return an error message or take appropriate action
@@ -425,8 +431,6 @@ class OrderController extends Controller
                         }
                     }
                 }
-
-
             }
             // $userAnswer->formField->form;
             // $userAnswer->formField->form->fields;
@@ -449,7 +453,6 @@ class OrderController extends Controller
         }
 
         return response()->json(['order' => $orderResult, 'userAnswers' => $ansArray], 200);
-
     }
 
 
@@ -525,8 +528,6 @@ class OrderController extends Controller
                         }
                     }
                 }
-
-
             }
             // $userAnswer->formField->form;
             // $userAnswer->formField->form->fields;
@@ -549,7 +550,6 @@ class OrderController extends Controller
         }
 
         return response()->json(['order' => $orderResult, 'userAnswers' => $ansArray, 'form' => $completeForm], 200);
-
     }
 
     /**
@@ -625,7 +625,6 @@ class OrderController extends Controller
         $orders = $orderGroup->orders;
         foreach ($orders as $order) {
             $order->product;
-
         }
 
         //return only product name and id of orders
@@ -658,8 +657,5 @@ class OrderController extends Controller
 
         //return orders
         return response()->json(['orders' => $ordersRes], 200);
-
     }
-
-
 }

@@ -19,4 +19,13 @@ class BasicData extends Model
     {
         return $this->hasMany(BasicDataItem::class)->orderBy('id','desc');
     }
+    
+    public function getNameAttribute($value)
+    {
+        $keyword = Keyword::where('keyword', $value)->first();
+        if ($keyword) {
+            return $keyword->translation();
+        }
+        return $value;
+    }
 }

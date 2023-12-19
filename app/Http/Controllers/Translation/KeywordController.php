@@ -32,7 +32,10 @@ class KeywordController extends Controller
     public function index()
     {
         //get all keywords
-        $keywords = Keyword::all();
+        $keywords = Keyword::orderBy('id','DESC')->get();
+        foreach($keywords as $keyword){
+            $keyword->translations;
+        }
         return response()->json($keywords);
 
     }

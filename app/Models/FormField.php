@@ -33,6 +33,14 @@ class FormField extends Model
     //     'placeholder'
     // ];
 
+    public function getLabelAttribute($value)
+    {
+        $keyword = Keyword::where('keyword', $value)->first();
+        if ($keyword) {
+            return $keyword->translation();
+        }
+        return $value;
+    }
     function type()
     {
         return $this->belongsTo(FormFieldType::class, 'form_field_type_id');
@@ -40,12 +48,10 @@ class FormField extends Model
     public function originForm()
     {
         return $this->belongsToMany(Form::class, 'form_field_forms', 'form_field_id', 'origin_form_id');
-
     }
     public function forms()
     {
         return $this->belongsToMany(Form::class, 'form_field_forms', 'form_field_id', 'form_id');
-
     }
     function options()
     {
@@ -58,9 +64,8 @@ class FormField extends Model
     function basicData()
     {
         return $this->belongsTo(BasicData::class, 'basic_data_id');
-
     }
-   
+
 
     public function defaultValue($form_id)
     {

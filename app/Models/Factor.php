@@ -92,6 +92,7 @@ class Factor extends Model
         })->sum();
         return response()->json([
             'data' => $sum,
+            'strictData' => $allItemsHaveUnitPrice ? $sum : 0,
             'printable' => number_format($sum),
             'status' => 'success',
             'allHavePrice' => $allItemsHaveUnitPrice,

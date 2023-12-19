@@ -145,8 +145,9 @@ class FactorController extends Controller
         foreach ($factors as $factor) {
             $factorTotalPrice = $factor->totalPrice();
             $resp = $factorTotalPrice->getData();
-            $factorTotalPrice = $resp->data;
+            $factorTotalPrice = $resp->strictData;
             $factor->total_price = $factorTotalPrice;
+            $factor->validity = $this->checkAndUpdateFactorStatus($factor->id);
             $factor->lastStatus->factorStatusEnum;
             $factor->orderGroup->customer->user;
             $factor->orderGroup->user;
@@ -520,9 +521,9 @@ class FactorController extends Controller
         if ($factor_item->order_id || $factor_item->product_id) {
             //in this situation we can just update (unit_price , off_price, additional_price , description)
             $request->validate([
-                'unit_price' => 'integer|required',
-                'off_price' => 'integer|nullable',
-                'additional_price' => 'integer|nullable',
+                'unit_price' => 'float|required',
+                'off_price' => 'float|nullable',
+                'additional_price' => 'float|nullable',
                 'description' => 'string|nullable',
             ]);
         } else {
@@ -534,9 +535,9 @@ class FactorController extends Controller
                 'width' => 'string|nullable',
                 'height' => 'string|nullable',
                 'count' => 'integer|nullable',
-                'unit_price' => 'integer|required',
-                'off_price' => 'integer|nullable',
-                'additional_price' => 'integer|nullable',
+                'unit_price' => 'string|required',
+                'off_price' => 'string|nullable',
+                'additional_price' => 'string|nullable',
                 'description' => 'string|nullable',
             ]);
         }
@@ -544,7 +545,7 @@ class FactorController extends Controller
         //check if count type is m2, check if width and height are sent
         if ($request->count_type && $request->count_type == "m2") {
             if (!$request->width || !$request->height) {
-                return response()->json(['message' => 'width and height must be sent'], 400);
+                return response()->json(['message' => __("validation.custom.factor.required_width_and_height")], 400);
             }
         } else {
             $request->width = null;

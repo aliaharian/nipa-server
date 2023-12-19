@@ -20,6 +20,16 @@ class ProductStep extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function getStepNameAttribute($value)
+    {
+        $keyword = Keyword::where('keyword', $value)->first();
+        if ($keyword) {
+            return $keyword->translation();
+        }
+        return $value;
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
