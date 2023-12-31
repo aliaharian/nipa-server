@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Factor;
 use App\Http\Controllers\Controller;
 use App\Models\Factor;
 use App\Models\FactorItem;
+use App\Models\FactorPayment;
+use App\Models\FactorPaymentStep;
 use App\Models\FactorStatus;
 use App\Models\FactorStatusEnum;
 use App\Models\Order;
+use App\Models\PaymentStatus;
 use App\Models\Product;
 use App\Models\User;
 use Carbon\Carbon;
@@ -17,10 +20,6 @@ use stdClass;
 
 class FactorController extends Controller
 {
-
-
-
-
     /**
      * @OA\Get(
      *   path="/v1/factor",
@@ -45,7 +44,6 @@ class FactorController extends Controller
      *  type="integer"
      *  )
      * ),
-
      * @OA\Parameter(
      *   name="date_from",
      * description="date from",
@@ -66,7 +64,6 @@ class FactorController extends Controller
      * format="date"
      * )
      * ),
-
      * @OA\Parameter(
      * name="page",
      * description="page",
@@ -190,14 +187,14 @@ class FactorController extends Controller
         }
         return response()->json([
             'factors' => $finalResult,
-            'accessAll' =>  $accessAll,
+            'accessAll' => $accessAll,
             'pagination' => $pagination,
             'filters' => $filters,
             'canEdit' => $canEdit
         ], 200);
     }
 
-    //create factor with fields: code	order_group_id	expire_date	description	
+    //create factor with fields: code	order_group_id	expire_date	description
 
     /**
      * @OA\Post(
@@ -235,7 +232,7 @@ class FactorController extends Controller
         //create factor but create code randomly
         $factor = Factor::create([
             'code' => //NIPA + order group id+ "_" + user id +"_"+timestamp unix
-            "NIPA_" . $request->order_group_id . "_" . auth()->user()->id . "_" . time(),
+                "NIPA_" . $request->order_group_id . "_" . auth()->user()->id . "_" . time(),
             'order_group_id' => $request->order_group_id,
             'expire_date' => $request->expire_date,
             'description' => $request->description,
@@ -327,7 +324,6 @@ class FactorController extends Controller
         $unit_price = $request->unit_price ? $request->unit_price : 0;
 
 
-
         //if (code, name, count type ) was sent, check that all of them are filled
         if ($request->code || $request->name || $request->count_type) {
             if (!$request->code || !$request->name || !$request->count_type) {
@@ -365,7 +361,7 @@ class FactorController extends Controller
 
         if ($count_type == "m2") {
             if ($order) {
-                //find initial step 
+                //find initial step
                 $initialForm = $product->initialOrderForm();
                 //fields
                 $fields = $initialForm->fields;
@@ -384,7 +380,7 @@ class FactorController extends Controller
                 $height = $request->height;
             }
         }
-        // fill count if we have order id 
+        // fill count if we have order id
         if ($order) {
             $count = $order->count;
         }
@@ -521,9 +517,9 @@ class FactorController extends Controller
         if ($factor_item->order_id || $factor_item->product_id) {
             //in this situation we can just update (unit_price , off_price, additional_price , description)
             $request->validate([
-                'unit_price' => 'float|required',
-                'off_price' => 'float|nullable',
-                'additional_price' => 'float|nullable',
+                'unit_price' => 'numeric|required',
+                'off_price' => 'numeric|nullable',
+                'additional_price' => 'numeric|nullable',
                 'description' => 'string|nullable',
             ]);
         } else {
@@ -851,6 +847,7 @@ class FactorController extends Controller
                 return response()->json(['message' => 'you dont have permission to view this factor'], 403);
             }
         }
+        $this->checkAndUpdateFactorStatus($factor->id);
         // $factor->factorPaymentSteps;
         $factor->lastStatus->factorStatusEnum;
         $factor->factorItems;
@@ -1010,9 +1007,9 @@ class FactorController extends Controller
         $validity = false;
         if ($factorValidity != 'success') {
             if (
-                $lastStatusEnum == "salesPending" ||
-                $lastStatusEnum == "completePending" ||
-                $lastStatusEnum == "salesResubmitPending"
+                $lastStatusEnum->slug == "salesPending" ||
+                $lastStatusEnum->slug == "completePending" ||
+                $lastStatusEnum->slug == "salesResubmitPending"
             ) {
             } else {
                 $factorStatus = $this->setFactorStatus(
@@ -1025,12 +1022,73 @@ class FactorController extends Controller
                 );
             }
         } else {
-            $validity = true;
+            //now we can check if the factor expire time exceeded if factor not paid
+            $factor = Factor::find($factor_id);
+            $price = $factor->totalPrice(true, true);
+            $resp = $price->getData();
+            if ($resp->data > $resp->paid) {
+                $now = Carbon::now();
+                if ($now->gt($factor->expire_date)) {
+                    if (
+                        $lastStatusEnum->slug != "salesResubmitPending"
+                    ) {
+                        $factorStatus = $this->setFactorStatus(
+                            $factor_id,
+                            new Request([
+                                'factor_status_enum' => "salesResubmitPending",
+                                'name' => 'فاکتور در انتظار تایید مجدد واحد فروش',
+                                'description' => 'فاکتور در انتظار تایید مجدد واحد فروش به علت منقضی شدن',
+                            ])
+                        );
+                    }
+                } else {
+                    $hasUnpaidExpiredPayment = false;
+                    $paidStatus = PaymentStatus::where("slug", "paid")->first();
+                    //check each unpaid payment step expire date
+                    $paymentSteps = FactorPaymentStep::where("factor_id", $factor_id)->where("pay_time", "<", Carbon::now())->get();
+                    if (count($paymentSteps) > 0) {
+                        $hasUnpaidExpiredPayment = true;
+                        foreach ($paymentSteps as $step) {
+                            $hasUnpaidExpiredPayment = true;
+                            $payments = FactorPayment::where("payment_step_id", $step)->where("payment_status_id", $paidStatus->id)->count();
+                            if ($payments > 0) {
+                                $hasUnpaidExpiredPayment = false;
+                            }
+                        }
+                    }
+                    if ($hasUnpaidExpiredPayment) {
+                        if (
+                            $lastStatusEnum->slug != "salesResubmitPending"
+                        ) {
+                            $factorStatus = $this->setFactorStatus(
+                                $factor_id,
+                                new Request([
+                                    'factor_status_enum' => "salesResubmitPending",
+                                    'name' => 'فاکتور در انتظار تایید مجدد واحد فروش',
+                                    'description' => 'فاکتور در انتظار تایید مجدد واحد فروش به علت عدم پرداخت در تاریخ مقرر',
+                                ])
+                            );
+                        }
+                    } else {
+                        $validity = true;
+                    }
+                }
+            } else {
+                $validity = true;
+            }
         }
+
 
         return [
             'validity' => $validity,
             'factorStatus' => $factorStatus,
+            'gt' => Carbon::now()->gt(Factor::find($factor_id)->expire_date),
+            'last' => $lastStatusEnum,
+            'now' => Carbon::now(),
+//            'exp'=>$factor->expire_date,
+//            'gt'=>$now->gt($factor->expire_date),
+//            'ps'=>$factorPaymentSteps->getData()
+
         ];
     }
 
@@ -1073,7 +1131,7 @@ class FactorController extends Controller
         $resp = $this->checkAndUpdateFactorStatus($factor_id);
         $factorValidity = $resp["validity"];
         if (!$factorValidity) {
-            return response()->json(['message' => 'factor is not valid'], 400);
+            return response()->json(['message' => "تاریخ سررسید فاکتور یا مراحل پرداخت را چک کنید", "re" => $resp], 400);
         }
         $lastStatusEnum = $factor->lastStatus->factorStatusEnum;
         if (

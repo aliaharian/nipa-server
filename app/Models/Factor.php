@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Factor extends Model
 {
     use HasFactory;
-    // code	order_group_id	expire_date	description	created_at	updated_at	
+
+    // code	order_group_id	expire_date	description	created_at	updated_at
     protected $fillable = [
         'code',
         'order_group_id',
@@ -20,16 +21,19 @@ class Factor extends Model
     {
         return $this->belongsTo(OrderGroup::class);
     }
+
     //items
     public function factorItems()
     {
         return $this->hasMany(FactorItem::class);
     }
+
     //factor statuses
     public function factorStatuses()
     {
         return $this->hasMany(FactorStatus::class);
     }
+
     //factor payment steps
     public function factorPaymentSteps()
     {
@@ -43,7 +47,7 @@ class Factor extends Model
     }
 
     //calculate total price
-    public function totalPrice($strict = false)
+    public function totalPrice($strict = false, $short = false)
     {
         //map all factor items
         //if factor item count_typ is m2 => price = width*height*count*unit_price
@@ -64,7 +68,7 @@ class Factor extends Model
         if (!$allItemsHaveUnitPrice && $strict) {
             return response()->json([
                 'message' => //persian
-                'همه ی محصولات باید قیمت داشته باشند',
+                    'همه ی محصولات باید قیمت داشته باشند',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -90,6 +94,27 @@ class Factor extends Model
                 return ($count * $unit_price) - $off_price + $additional_price;
             }
         })->sum();
+        if ($short) {
+            $paidSum = 0;
+            //calc paid price
+            if ($allItemsHaveUnitPrice) {
+                $factorPaymentSteps = FactorPaymentStep::where("factor_id", $this->id)->get();
+                $paidStatus = PaymentStatus::where("slug", "paid")->first();
+                foreach ($factorPaymentSteps as $step) {
+                    $payments = FactorPayment::where("payment_step_id", $step->id)->where("payment_status_id", $paidStatus->id)->get();
+                    foreach ($payments as $pay) {
+                        $transaction = $pay->transaction;
+                        if ($transaction->isValid == 1) {
+                            $paidSum += $transaction->price;
+                        }
+                    }
+                }
+            }
+            return response()->json([
+                'data' => $sum,
+                'paid' => $paidSum
+            ], 200);
+        }
         return response()->json([
             'data' => $sum,
             'strictData' => $allItemsHaveUnitPrice ? $sum : 0,

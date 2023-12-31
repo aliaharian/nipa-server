@@ -28,7 +28,6 @@ class FactorPaymentStepController extends Controller
      * format="int64"
      * )
      * ),
-    
      * @OA\Response(
      *   response=200,
      *  description="Success",
@@ -79,7 +78,6 @@ class FactorPaymentStepController extends Controller
         $allHavePrice = $resp->allHavePrice;
 
 
-
         $factor_payment_steps = FactorPaymentStep::query();
         if ($request->factor_id) {
             $factor_payment_steps = $factor_payment_steps->where('factor_id', $request->factor_id)->orderBy('step_number', 'asc');
@@ -90,23 +88,23 @@ class FactorPaymentStepController extends Controller
         //check how many steps we have
         $count = $factor_payment_steps->count();
         if (!$allHavePrice) {
-            $warning =  __('validation.custom.factor_payment_steps.allHavePrice');
+            $warning = __('validation.custom.factor_payment_steps.allHavePrice');
         } else
-        if ($count == 0) {
+            if ($count == 0) {
 
-            $warning =  //get errors based on locale
-                __('validation.custom.factor_payment_steps.count0');
-        } else if ($count == 1) {
-            //check if step 1 is not equal to factor total price
-            if ($factor_payment_steps[0]->payable_price != $factorTotalPrice) {
-                $warning = __('validation.custom.factor_payment_steps.count1');
+                $warning =  //get errors based on locale
+                    __('validation.custom.factor_payment_steps.count0');
+            } else if ($count == 1) {
+                //check if step 1 is not equal to factor total price
+                if ($factor_payment_steps[0]->payable_price != $factorTotalPrice) {
+                    $warning = __('validation.custom.factor_payment_steps.count1');
+                }
+            } else {
+                //check if step 1 + step 2 is not equal to factor total price
+                if ($factor_payment_steps[0]->payable_price + $factor_payment_steps[1]->payable_price != $factorTotalPrice) {
+                    $warning = __('validation.custom.factor_payment_steps.count2');
+                }
             }
-        } else {
-            //check if step 1 + step 2 is not equal to factor total price
-            if ($factor_payment_steps[0]->payable_price + $factor_payment_steps[1]->payable_price != $factorTotalPrice) {
-                $warning =  __('validation.custom.factor_payment_steps.count2');
-            }
-        }
 
 
         //update pending payment statuses
@@ -134,7 +132,18 @@ class FactorPaymentStepController extends Controller
                             $factor_payment_step->canPay = false;
                         }
                     } else {
-                        $factor_payment_step->canPay = false;
+                        //check if step 1 paid or not
+                        $firstStep = $factor_payment_steps->where('factor_id', $request->factor_id)->where('step_number', 1)->first();
+                        $firstStepPayment = $firstStep->payments()->orderBy('id', 'desc')->first();
+                        if ($firstStepPayment) {
+                            if ($firstStepPayment->status->slug == "paid") {
+                                $factor_payment_step->canPay = true;
+                            } else {
+                                $factor_payment_step->canPay = false;
+                            }
+                        } else {
+                            $factor_payment_step->canPay = false;
+                        }
                     }
                 } else {
                     $factor_payment_step->canPay = true;
@@ -149,7 +158,7 @@ class FactorPaymentStepController extends Controller
                 $factor_payment_step->last_payment->demotransaction = Transaction::find($factor_payment_step->last_payment->transaction_id)->makeHidden(['id', 'created_at', 'updated_at', 'meta']);
             }
 
-            if($factor_payment_step->canPay){
+            if ($factor_payment_step->canPay) {
                 //calculate wallet balance and credit to determine that how much user must pay in addition to wallet balance
                 $user = auth()->user();
                 $wallet = $user->wallet;
@@ -190,7 +199,7 @@ class FactorPaymentStepController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     //store factor payment step by factor id
@@ -246,7 +255,6 @@ class FactorPaymentStepController extends Controller
         }
 
 
-
         //if step number is 1 , check that payable price is equal to or less than factor total price
         if ($request->step_number == 1) {
 
@@ -254,7 +262,7 @@ class FactorPaymentStepController extends Controller
                 return response()->json(
                     [
                         'message' => //persian
-                        'قیمت قابل پرداخت بیشتر از مبلغ کل است',
+                            'قیمت قابل پرداخت بیشتر از مبلغ کل است',
                         'status' => 'error',
                         'success' => false,
                         'data' => [
@@ -274,7 +282,7 @@ class FactorPaymentStepController extends Controller
             if (!$factorPaymentStep) {
                 return response()->json([
                     'message' => //persian
-                    'مرحله یک پرداخت وجود ندارد',
+                        'مرحله یک پرداخت وجود ندارد',
                     'status' => 'error',
                     'success' => false,
                     'code' => 404
@@ -288,7 +296,7 @@ class FactorPaymentStepController extends Controller
             if ($factorPaymentStep->payable_price + $request->payable_price != $factorTotalPrice) {
                 return response()->json([
                     'message' => //persian
-                    'مجموع قیمت مرحله یک و دو با قیمت کل فاکتور برابر نیست',
+                        'مجموع قیمت مرحله یک و دو با قیمت کل فاکتور برابر نیست',
                     'status' => 'error',
                     'success' => false,
                     'data' => [
@@ -321,7 +329,7 @@ class FactorPaymentStepController extends Controller
             'data' => $factorPaymentStep,
             'message' => 'factor payment step created successfully',
             'note' => //if step is 1 and not equal to factor total price, you must define step 2
-            ($factorPaymentStep->payable_price < $factorTotalPrice && $factorPaymentStep->step_number == 1) ? 'قیمت قابل پرداخت کمتر از مبلغ کل است، لطفا مرحله دوم پرداخت را تعریف کنید' : "",
+                ($factorPaymentStep->payable_price < $factorTotalPrice && $factorPaymentStep->step_number == 1) ? 'قیمت قابل پرداخت کمتر از مبلغ کل است، لطفا مرحله دوم پرداخت را تعریف کنید' : "",
 
             'status' => 'success',
             'success' => true,
@@ -332,7 +340,7 @@ class FactorPaymentStepController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     /**
@@ -367,7 +375,7 @@ class FactorPaymentStepController extends Controller
         if (!$factor_payment_step) {
             return response()->json([
                 'message' => //persian
-                'مرحله پرداخت وجود ندارد',
+                    'مرحله پرداخت وجود ندارد',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -391,7 +399,6 @@ class FactorPaymentStepController extends Controller
                 return response()->json(['message' => 'you dont have permission to view this payment step'], 403);
             }
         }
-
 
 
         $warning = "";
@@ -440,8 +447,8 @@ class FactorPaymentStepController extends Controller
 
         //response
         return response()->json([
-            'data' => $factor_payment_step-> //remove factor object 
-                makeHidden(['factor']),
+            'data' => $factor_payment_step-> //remove factor object
+            makeHidden(['factor']),
             'message' => 'factor payment step retrieved successfully',
             'status' => $warning == "" ? 'success' : "warning",
             'success' => true,
@@ -453,8 +460,8 @@ class FactorPaymentStepController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     /**
@@ -498,7 +505,7 @@ class FactorPaymentStepController extends Controller
         if (!$factor_payment_step) {
             return response()->json([
                 'message' => //persian
-                'مرحله پرداخت وجود ندارد',
+                    'مرحله پرداخت وجود ندارد',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -550,7 +557,7 @@ class FactorPaymentStepController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     /**
@@ -585,7 +592,7 @@ class FactorPaymentStepController extends Controller
         if (!$factor_payment_step) {
             return response()->json([
                 'message' => //persian
-                'مرحله پرداخت وجود ندارد',
+                    'مرحله پرداخت وجود ندارد',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -595,7 +602,7 @@ class FactorPaymentStepController extends Controller
         if ($factor_payment_step->step_number == 1) {
             return response()->json([
                 'message' => //persian
-                'مرحله اول پرداخت قابل حذف نیست',
+                    'مرحله اول پرداخت قابل حذف نیست',
                 'status' => 'error',
                 'success' => false,
                 'code' => 404
@@ -625,7 +632,7 @@ class FactorPaymentStepController extends Controller
         $factor_payment_steps = FactorPaymentStep::all();
         foreach ($factor_payment_steps as $factor_payment_step) {
             $payments = $factor_payment_step->payments;
-            //check if any payment has "pendingForPayment" status and 10 minutes passed from its updated_at 
+            //check if any payment has "pendingForPayment" status and 10 minutes passed from its updated_at
             //if there is , change its status to "timedOut" unblock blocked amount from wallet from field "wallet_payment_amount"
             //update its transaction status to "timedOut"
             foreach ($payments as $payment) {
@@ -633,7 +640,7 @@ class FactorPaymentStepController extends Controller
                     $now = now();
                     $updated_at = $payment->updated_at;
                     $diff = $now->diffInMinutes($updated_at);
-                    if ($diff >= 10) {
+                    if ($diff >= 2) {
                         //change status to timedOut
                         $payment->update([
                             'payment_status_id' => $payment->status->where('slug', 'timedOut')->first()->id

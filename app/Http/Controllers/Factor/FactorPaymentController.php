@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\FactorPayment;
 use App\Models\FactorPaymentStep;
 use App\Models\PaymentStatus;
+use App\Models\Transaction;
 use App\Models\TransactionStatus;
+use App\Models\UserWallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -140,12 +142,12 @@ class FactorPaymentController extends Controller
         if ($request->method == "offline") {
             $request->validate([
                 "fileId" => "required|exists:files,id",
-                "payerDescription" => "required|string"
+//                "payerDescription" => "required|string"
             ]);
         }
 
 
-        //get user wallet 
+        //get user wallet
         $userWallet = auth()->user()->wallet;
         //check if user wallet is enough
         $walletTotal = $userWallet->active ? $userWallet->balance + $userWallet->credit - $userWallet->blocked : 0;
@@ -287,7 +289,6 @@ class FactorPaymentController extends Controller
         }
 
 
-
         if ($payment->transaction->payment_method != "online") {
             return response()->json([
                 "message" => //persian
@@ -376,6 +377,7 @@ class FactorPaymentController extends Controller
 
 
     //view payment
+
     /**
      * @OA\Get(
      *  path="/v1/factor/payment/{id}",
@@ -486,7 +488,7 @@ class FactorPaymentController extends Controller
         //validate
         $request->validate([
             "factor_payment_id" => "required|exists:factor_payments,id",
-            "gateway_verify_code" => "required|string"
+//            "gateway_verify_code" => "required|string"
             // "method" => "required|in:online,offline"
         ]);
         //check if payment is offline
@@ -501,7 +503,7 @@ class FactorPaymentController extends Controller
             ], 400);
         }
         //verify only if in "pendingForPayment" status
-        if ($payment->status->slug != "pendingForPayment") {
+        if ($payment->status->slug != "pendingVerify") {
             return response()->json([
                 "message" => //persian
                     "این پرداخت قابل تایید نیست",
@@ -510,7 +512,43 @@ class FactorPaymentController extends Controller
                 'code' => 400
             ], 400);
         } else {
-            //verify payment
+            //TODO:verify payment
+            $payment->description = $request->adminDescription;
+            if ($request->verified) {
+                $payment->payment_status_id = PaymentStatus::where("slug", "paid")->first()->id;
+            } else {
+                $payment->payment_status_id = PaymentStatus::where("slug", "failed")->first()->id;
+            }
+            $payment->save();
+
+            $transaction = Transaction::find($payment->transaction_id);
+            if ($request->verified) {
+                //TODO:minus wallet blocked and also minus price from wallet balance and credit
+                $transaction->status_id = TransactionStatus::where("slug", "done")->first()->id;
+                $wallet = UserWallet::find($transaction->wallet_id);
+                $wallet->blocked = $wallet->blocked - $payment->wallet_payment_amount;
+                if ($payment->wallet_payment_amount <= $wallet->credit) {
+                    $wallet->credit = $wallet->credit - $payment->wallet_payment_amount;
+                } else {
+                    $wallet->credit = 0;
+                    $wallet->balance = $wallet->balance - ($payment->wallet_payment_amount - $wallet->credit);
+                }
+                $wallet->save();
+            } else {
+                //TODO:release wallet amount
+                $transaction->status_id = TransactionStatus::where("slug", "failed")->first()->id;
+                $wallet = UserWallet::find($transaction->wallet_id);
+                $wallet->blocked = $wallet->blocked - $payment->wallet_payment_amount;
+                $wallet->save();
+            }
+            $transaction->save();
+            return response()->json([
+                "message" => //persian
+                    "وضعیت تاییدیه شما ثبت شد",
+                'status' => 'error',
+                'success' => false,
+                'code' => 400
+            ], 400);
         }
     }
 
@@ -527,6 +565,7 @@ class FactorPaymentController extends Controller
         ]);
         return $payment;
     }
+
     public function payFactorFromWallet($user, $factorPaymentStep, $relatedPayment = null)
     {
 

@@ -181,7 +181,7 @@ class WalletController extends Controller
             'current_page' => $transactions->currentPage(),
             'total_pages' => $transactions->lastPage(),
         ];
-        //transaction_type is : incrreaseBalance - increaseCredit - Withdrawal 
+        //transaction_type is : incrreaseBalance - increaseCredit - Withdrawal
         //translate to persian and pass to frontend
         $transactions = $transactions->map(function ($transaction) {
             if ($transaction->transaction_type == 'increaseBalance') {
@@ -481,7 +481,7 @@ class WalletController extends Controller
     }
 
     /**
-   
+
      * @OA\Get(
      *   path="/v1/wallet/transactions/export",
      *   tags={"Wallet"},
