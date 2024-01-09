@@ -27,13 +27,19 @@ class FactorPaymentStep extends Model
     {
         return $this->hasMany(FactorPayment::class, 'payment_step_id', 'id');
     }
+
     //status
     public function status()
     {
-        if($this->payments()->count() == 0)
-        {
+        //check payment step pay_time date time
+        if ($this->pay_time < now()) {
+            return PaymentStatus::where('slug', 'expired')->first();
+        }
+
+        if ($this->payments()->count() == 0) {
             return PaymentStatus::where('slug', 'unpaid')->first();
         }
+
         //last payment status
         return $this->payments()->orderBy('id', 'desc')->first()->status;
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Factor;
 use App\Http\Controllers\Controller;
 use App\Models\Factor;
 use App\Models\FactorPaymentStep;
+use App\Models\File;
 use App\Models\PaymentStatus;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
@@ -444,11 +445,35 @@ class FactorPaymentStepController extends Controller
         $factor_payment_step->remaining_payable_price = $remainingPayablePrice;
         $factor_payment_step->total_balance = $totalBalance;
 
+        //show payments
+        $payments = [];
+        foreach ($factor_payment_step->payments as $payment) {
+            $pay = new \stdClass();
+            $pay->paid_price = $payment->transaction->price;
+            $pay->payable_price = $factor_payment_step->payable_price;
+            $pay->wallet_payment_amount = $payment->wallet_payment_amount;
+            $pay->payment_status = $payment->status;
+            $pay->pay_method = $payment->transaction->payment_method;
+            $pay->created_at = $payment->transaction->created_at;
+            $transaction_meta = $payment->transaction->meta ? json_decode($payment->transaction->meta) : null;
+            if ($transaction_meta && $payment->transaction->payment_method == "offline" && $transaction_meta->fileId) {
+                $file = File::find($transaction_meta->fileId);
+                $pay->file_hash_code = $file->hash_code;
+            }
+            $pay->tracking_code = "";
+            $pay->admin_description = $payment->description;
+            $payments[] = $pay;
+        }
+        $response = new \stdClass();
+        $response->id = $factor_payment_step->id;
+        $response->payable_price = $factor_payment_step->payable_price;
+        $response->step_number = $factor_payment_step->step_number;
+        $response->factor_id = $factor_payment_step->factor_id;
 
+        $response->payments = $payments;
         //response
         return response()->json([
-            'data' => $factor_payment_step-> //remove factor object
-            makeHidden(['factor']),
+            'data' => $response,
             'message' => 'factor payment step retrieved successfully',
             'status' => $warning == "" ? 'success' : "warning",
             'success' => true,
@@ -510,6 +535,16 @@ class FactorPaymentStepController extends Controller
                 'success' => false,
                 'code' => 404
             ], 404);
+        }
+
+        if ($factor_payment_step->status()->slug == "paid" || $factor_payment_step->status()->slug == "pendingVerify") {
+            return response()->json([
+                'message' => //persian
+                    "مرحله قابل ویرایش نیست",
+                'status' => 'error',
+                'success' => false,
+                'code' => 422
+            ], 422);
         }
 
         //validate
@@ -607,27 +642,48 @@ class FactorPaymentStepController extends Controller
                 'success' => false,
                 'code' => 404
             ], 404);
+        } else {
+            $factor_id = $factor_payment_step->factor_id;
+            $factor = Factor::find($factor_id);
+            $factorTotalPrice = $factor->totalPrice();
+            $resp = $factorTotalPrice->getData();
+            $factorTotalPrice = $resp->data;
+            $firstStep = FactorPaymentStep::where('factor_id', $factor_id)->where("step_number", 1)->first();
+            if ($factorTotalPrice > $firstStep->payable_price) {
+                //only can delete if none of steps are not paid or not at pendingVerify
+                $all_steps = FactorPaymentStep::where('factor_id', $factor_id)->get();
+                foreach ($all_steps as $step) {
+                    if ($step->status()->slug == "paid" || $step->status()->slug == "pendingVerify") {
+                        return response()->json([
+                            'message' => //persian
+                                "عملیات قابل انجام نیست",
+                            'status' => 'error',
+                            'success' => false,
+                            'code' => 404
+                        ], 404);
+                    }
+                }
+            }
+            //delete
+            $factor_payment_step->delete();
+
+            $factorController = new FactorController();
+            $checkValidity = $factorController->checkAndUpdateFactorStatus($factor_id);
+
+
+            //response
+            return response()->json([
+                'data' => $factor_payment_step,
+                'message' => 'factor payment step deleted successfully',
+                'status' => 'success',
+                'success' => true,
+                'code' => 200
+            ], 200);
         }
-        $factor_id = $factor_payment_step->factor_id;
-
-        //delete
-        $factor_payment_step->delete();
-
-        $factorController = new FactorController();
-        $checkValidity = $factorController->checkAndUpdateFactorStatus($factor_id);
-
-
-        //response
-        return response()->json([
-            'data' => $factor_payment_step,
-            'message' => 'factor payment step deleted successfully',
-            'status' => 'success',
-            'success' => true,
-            'code' => 200
-        ], 200);
     }
 
-    public function updatePendingPaymentStatuses()
+    public
+    function updatePendingPaymentStatuses()
     {
         $factor_payment_steps = FactorPaymentStep::all();
         foreach ($factor_payment_steps as $factor_payment_step) {
@@ -654,6 +710,19 @@ class FactorPaymentStepController extends Controller
                         $payment->transaction->update([
                             'status_id' => $payment->transaction->status->where('slug', 'timedOut')->first()->id
                         ]);
+
+
+                        $factorController = new FactorController();
+                        $factor = $factor_payment_step->factor;
+                        $factorController->setFactorStatus(
+                            $factor->id,
+                            new Request([
+                                'factor_status_enum' => "customerAccept",
+                                'name' => 'فاکتور تایید مشتری',
+                                'description' => 'فاکتور تایید مشتری و آماده پرداخت',
+                            ])
+                        );
+
                     }
                 }
             }

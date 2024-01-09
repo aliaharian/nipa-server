@@ -1188,6 +1188,13 @@ class FactorController extends Controller
         if (!$factor) {
             return response()->json(['message' => 'factor not found'], 404);
         }
+        $factorTotalPrice = $factor->totalPrice(true, true);
+        $resp = $factorTotalPrice->getData();
+        $paidPrice = $resp->paid;
+        $totalPrice = $resp->data;
+        if (!$resp->success) {
+            return response()->json(['message' => 'factor is not complete'], 422);
+        }
         //check if user owner or customer of factor
         $user_id = auth()->user()->id;
         $factor_user_id = $factor->orderGroup->user_id;
@@ -1205,15 +1212,28 @@ class FactorController extends Controller
         if (
             $lastStatusEnum->slug !== 'paymentPending'
         ) {
-            //set factor status
-            $this->setFactorStatus(
-                $factor_id,
-                new Request([
-                    'factor_status_enum' => "paymentPending",
-                    'name' => 'فاکتور تایید شده توسط مشتری',
-                    'description' => 'فاکتور تایید شده توسط مشتری',
-                ])
-            );
+            //check if customer paid all factor or not
+            if ($paidPrice >= $totalPrice) {
+                //set factor status
+                $this->setFactorStatus(
+                    $factor_id,
+                    new Request([
+                        'factor_status_enum' => "paymentSuccess",
+                        'name' => 'فاکتور تایید شده توسط مشتری و پرداخت شده',
+                        'description' => 'فاکتور تایید شده توسط مشتری و پرداخت شده',
+                    ])
+                );
+            } else {
+                //set factor status
+                $this->setFactorStatus(
+                    $factor_id,
+                    new Request([
+                        'factor_status_enum' => "paymentPending",
+                        'name' => 'فاکتور تایید شده توسط مشتری',
+                        'description' => 'فاکتور تایید شده توسط مشتری',
+                    ])
+                );
+            }
         }
 
         //return

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Factor extends Model
 {
     use HasFactory;
+    protected $appends = ['meta'];
 
     // code	order_group_id	expire_date	description	created_at	updated_at
     protected $fillable = [
@@ -112,7 +113,9 @@ class Factor extends Model
             }
             return response()->json([
                 'data' => $sum,
-                'paid' => $paidSum
+                'paid' => $paidSum,
+                'success' => true,
+                'code' => 200
             ], 200);
         }
         return response()->json([
@@ -127,5 +130,15 @@ class Factor extends Model
             'success' => true,
             'code' => 200
         ], 200);
+    }
+
+    public function getMetaAttribute()
+    {
+        $lastEnum = $this->lastStatus->factorStatusEnum;
+        if ($lastEnum->meta) {
+            return json_decode($lastEnum->meta);
+        } else {
+            return null;
+        }
     }
 }
