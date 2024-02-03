@@ -89,6 +89,7 @@ Route::prefix('/v1')->middleware(['language'])->group(function () {
 
         //factor payment
         Route::prefix("factor/payment")->group(function () {
+            Route::get("status", [FactorPaymentController::class, "paymentStatusesList"]);
             Route::post("pay", [FactorPaymentController::class, "pay"]); //you only can pay your own factor payment if you dont have permission "can-pay-all-factor-payments"
             Route::post("verify", [FactorPaymentController::class, "verifyPayment"]); //you only can verify your own factor payment if you dont have permission "can-verify-all-factor-payments"
             Route::get("{id}", [FactorPaymentController::class, "viewPayment"]); //you only can view your own factor payment if you dont have permission "can-view-all-factor-payments"

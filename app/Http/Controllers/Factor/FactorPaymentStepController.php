@@ -462,6 +462,7 @@ class FactorPaymentStepController extends Controller
             }
             $pay->tracking_code = "";
             $pay->admin_description = $payment->description;
+            $pay->id = $payment->id;
             $payments[] = $pay;
         }
         $response = new \stdClass();

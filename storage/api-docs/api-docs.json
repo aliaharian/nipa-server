@@ -1475,6 +1475,28 @@
                 ]
             }
         },
+        "/v1/factor/payment/status": {
+            "get": {
+                "tags": [
+                    "FactorPayment"
+                ],
+                "summary": "payment statuses list",
+                "operationId": "d6ef0f9527f1d8757490f8239157681d",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json\n     * ": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/factor/paymentStep": {
             "get": {
                 "tags": [

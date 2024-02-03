@@ -547,8 +547,8 @@ class FactorPaymentController extends Controller
                     "وضعیت تاییدیه شما ثبت شد",
                 'status' => 'error',
                 'success' => false,
-                'code' => 400
-            ], 400);
+                'code' => 200
+            ], 200);
         }
     }
 
@@ -601,5 +601,28 @@ class FactorPaymentController extends Controller
             'isValid' => true,
         ]);
         return $transaction;
+    }
+
+    /**
+     * @OA\Get(
+     *  path="/v1/factor/payment/status",
+     * tags={"FactorPayment"},
+     * summary="payment statuses list",
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json
+     * "),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function paymentStatusesList()
+    {
+        $statuses = PaymentStatus::all()->makeHidden(["created_at", "updated_at"]);
+        return response()->json($statuses);
+
     }
 }

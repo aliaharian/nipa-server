@@ -451,6 +451,8 @@ class OrderController extends Controller
         foreach ($userAnswers as $key => $value) {
             array_push($ansArray, $value);
         }
+        //find related factor
+
 
         return response()->json(['order' => $orderResult, 'userAnswers' => $ansArray], 200);
     }
@@ -616,12 +618,12 @@ class OrderController extends Controller
      */
     public function search($id)
     {
-        //validate id 
+        //validate id
         $orderGroup = OrderGroup::find($id);
         if (!$orderGroup) {
             return response()->json(['message' => 'order group not found'], 404);
         }
-        //find all orders 
+        //find all orders
         $orders = $orderGroup->orders;
         foreach ($orders as $order) {
             $order->product;
