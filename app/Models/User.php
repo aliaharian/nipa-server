@@ -26,6 +26,7 @@ class User extends Authenticatable
         'otp',
         'mobile_verified_at',
         'password',
+        'avatar_id'
     ];
 
     /**
@@ -66,6 +67,12 @@ class User extends Authenticatable
         return $this->hasOne(UserWallet::class);
     }
 
-    
+    //wallet
+    public function avatar()
+    {
+        return $this->hasOne(File::class,"id","avatar_id")->select("hash_code");
+    }
+
+
 
 }

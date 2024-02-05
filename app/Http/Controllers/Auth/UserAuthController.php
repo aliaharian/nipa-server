@@ -95,7 +95,7 @@ class UserAuthController extends Controller
 
         if (!auth()->attempt($data)) {
             return response([
-                'error_message' => 'Incorrect Details. 
+                'error_message' => 'Incorrect Details.
             Please try again'
             ]);
         }
@@ -130,7 +130,7 @@ class UserAuthController extends Controller
      * )
      * ),
      * )
-     * 
+     *
      */
 
     public function sendOtp(Request $request)
@@ -209,7 +209,7 @@ class UserAuthController extends Controller
      * )
      * ),
      * )
-     * 
+     *
      */
     public function confirmOtp(Request $request)
     {
@@ -267,10 +267,10 @@ class UserAuthController extends Controller
      *     mediaType="application/json",
      * )
      * ),
-     * 
+     *
      *   security={{ "apiAuth": {} }}
      * )
-     * 
+     *
      */
     public function completeProfile(Request $request)
     {
@@ -307,7 +307,7 @@ class UserAuthController extends Controller
      * ),
      *   security={{ "apiAuth": {} }}
      * )
-     * 
+     *
      */
     public function profile()
     {
@@ -319,7 +319,7 @@ class UserAuthController extends Controller
             $permissions = array_merge($permissions, $role->permissions->toArray());
         }
         $user->permissions = $permissions;
-
+        $user->avatar;
         //customer
         $user->customer;
         $user->wallet;
@@ -341,7 +341,7 @@ class UserAuthController extends Controller
      * ),
      *   security={{ "apiAuth": {} }}
      * )
-     * 
+     *
      */
     public function customers()
     {
