@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Files\FileController;
 use App\Http\Controllers\RolePermission\RoleController;
 use App\Models\Customer;
+use App\Models\File;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -109,6 +111,7 @@ class UserAuthController extends Controller
 
 
     //send otp annotation
+
     /**
      * @OA\Post(
      *  path="/v1/sendOtp",
@@ -187,6 +190,7 @@ class UserAuthController extends Controller
     }
 
     //confirm otp
+
     /**
      * @OA\Post(
      *  path="/v1/confirmOtp",
@@ -247,6 +251,7 @@ class UserAuthController extends Controller
     }
 
     //compelete profile
+
     /**
      * @OA\Post(
      *  path="/v1/completeProfile",
@@ -255,9 +260,12 @@ class UserAuthController extends Controller
      * @OA\RequestBody(
      *   required=true,
      * @OA\JsonContent(
-     *   required={"name" , "last_name"},
+     *   required={"name" , "last_name","email","mobile","avatar_id"},
      *  @OA\Property(property="name", type="string", format="string", example="ali"),
      *  @OA\Property(property="last_name", type="string", format="string", example="aharian"),
+     *  @OA\Property(property="email", type="string", format="string", example="aharian@yahoo.com"),
+     *  @OA\Property(property="mobile", type="number", format="number", example="09307473703"),
+     *  @OA\Property(property="avatar_id", type="string", format="string", example="9"),
      * ),
      * ),
      * @OA\Response(
@@ -275,8 +283,12 @@ class UserAuthController extends Controller
     public function completeProfile(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|max:255',
-            'last_name' => 'required|max:255',
+            'name' => 'nullable|max:255',
+            'last_name' => 'nullable|max:255',
+            'email' => 'nullable|email',
+            'mobile' => 'required|max:11|min:11|string',
+            'avatar_hash_code' => 'nullable|exists:files,hash_code'
+
         ]);
 
         $user = User::find(Auth::user()->id);
@@ -285,14 +297,49 @@ class UserAuthController extends Controller
                 'message' => 'user not found',
             ]);
         }
-        $user->name = $data['name'];
-        $user->last_name = $data['last_name'];
-        $user->save();
+        //if now has avatar and previusly had avatar, remove old one
+        if ($request->avatar_hash_code) {
+
+            if ($user->avatar_id) {
+                //find prev hash code
+                $file = File::find($user->avatar_id);
+                $user->avatar_id = null;
+                $user->save();
+                if ($file) {
+                    $fileController = new FileController();
+                    $fileController->destroy($file->hash_code);
+                }
+            }
+
+            //find avatar id and inject it to data
+            $file = File::where("hash_code", $data["avatar_hash_code"])->first();
+            if ($file) {
+                $data["avatar_id"] = $file->id;
+            }
+        }
+
+        $user->updateOrCreate(['id' => $user->id], $data);
+//        $user->name = $data['name'];
+//        $user->last_name = $data['last_name'];
+//        $user->save();
+        $user = User::find(Auth::user()->id);
+        $user->roles;
+        //user permissions
+        $permissions = array();
+        foreach ($user->roles as $role) {
+            $permissions = array_merge($permissions, $role->permissions->toArray());
+        }
+        $user->permissions = $permissions;
+        $user->avatar;
+        //customer
+        $user->customer;
+        $user->wallet;
 
         return response(['user' => $user]);
     }
 
     //get user profile
+
     /**
      * @OA\Get(
      *  path="/v1/profile",
@@ -327,6 +374,7 @@ class UserAuthController extends Controller
     }
 
     //customers list
+
     /**
      * @OA\Get(
      *  path="/v1/customers",

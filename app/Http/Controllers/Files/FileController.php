@@ -105,7 +105,7 @@ class FileController extends Controller
      *     )
      *      ),
      * @OA\Parameter(
-     *         name="thumbnail",    
+     *         name="thumbnail",
      *        in="query",
      *        description="Get a thumbnail of the file",
      *       required=false,
