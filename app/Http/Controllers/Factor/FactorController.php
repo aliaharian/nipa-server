@@ -900,11 +900,21 @@ class FactorController extends Controller
         }
         $factor->statuses = $statArray;
         $factor->owner = $factorOwner;
+
+        //find first payment step of factor
+        $first_payment_step = $factor->factorPaymentSteps->where("step_number", 1)->first();
+        if ($first_payment_step) {
+            $factor->expire_date = $first_payment_step->pay_time;
+        } else {
+            $factor->expire_date = null;
+
+        }
         //return factor
         return response()->json([
             'data' => $factor,
             'message' => 'factor retrieved successfully',
             'success' => true,
+            'st' => $first_payment_step,
             'code' => 200
         ], 200);
     }
