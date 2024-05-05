@@ -275,7 +275,7 @@ class FormFieldController extends Controller
             'order' => 'integer|required',
         ]);
         if ($request->hasOptions) {
-            if (!$request->basicDataId) {
+            if (!$request->basicDataId && !$request->basic_data_id) {
                 $this->validate($request, [
                     'options' => 'required|array',
                     'options.*.option' => 'required|string',

@@ -55,11 +55,12 @@ class FormField extends Model
     }
     function options()
     {
-        // if ($this->basic_data_id) {
-        //     return $this->belongsTo(BasicData::class, 'basic_data_id');
-        // } else {
+         if ($this->basic_data_id) {
+             $basicData = BasicData::find($this->basic_data_id);
+             return $basicData->hasMany(BasicDataItem::class);
+         } else {
         return $this->hasMany(FormFieldOptions::class);
-        // }
+         }
     }
     function basicData()
     {

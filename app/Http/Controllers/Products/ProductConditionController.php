@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Products;
 
 use App\Http\Controllers\Controller;
+use App\Models\FormField;
 use App\Models\ProductStepsCondition;
 use Illuminate\Http\Request;
 
@@ -30,6 +31,7 @@ class ProductConditionController extends Controller
 
 
     //add a new condition to a product step
+
     /**
      * @OA\Post(
      *  path="/v1/product/steps/conditions",
@@ -68,12 +70,16 @@ class ProductConditionController extends Controller
             'next_step_id' => 'required|exists:product_steps,id'
         ]);
         $productCondArray = array();
+        //check if field is from basic data or not
+        $field = FormField::find($data['field_id']);
+
         foreach ($data['option_id'] as $optArray) {
-           
+
             $condition = ProductStepsCondition::updateOrCreate([
                 'product_step_id' => $data['step_id'],
                 'form_field_id' => $data['field_id'],
-                'form_field_option_id' => $optArray,
+                'form_field_option_id' => $field->basic_data_id ? null : $optArray,
+                'basic_data_item_id' => $field->basic_data_id ? $optArray : null,
                 'next_product_step_id' => $data['next_step_id']
             ]);
 
@@ -92,7 +98,7 @@ class ProductConditionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -103,7 +109,7 @@ class ProductConditionController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -114,8 +120,8 @@ class ProductConditionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -126,7 +132,7 @@ class ProductConditionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
