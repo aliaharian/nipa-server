@@ -66,24 +66,32 @@ class ProductConditionController extends Controller
         $data = $request->validate([
             'step_id' => 'required|exists:product_steps,id',
             'field_id' => 'required|exists:form_fields,id',
-            'option_id' => 'required',
+            'option_id' => 'nullable',
             'next_step_id' => 'required|exists:product_steps,id'
         ]);
-        $productCondArray = array();
-        //check if field is from basic data or not
-        $field = FormField::find($data['field_id']);
+        if (!$data['option_id']) {
+//delete cond.
+            ProductStepsCondition::where("product_step_id", $data['step_id'])->where("form_field_id", $data['field_id'])->delete();
+            return response()->json([
+                'message' => 'Condition deleted successfully',
+            ], 200);
+        } else {
+            $productCondArray = array();
+            //check if field is from basic data or not
+            $field = FormField::find($data['field_id']);
 
-        foreach ($data['option_id'] as $optArray) {
+            foreach ($data['option_id'] as $optArray) {
 
-            $condition = ProductStepsCondition::updateOrCreate([
-                'product_step_id' => $data['step_id'],
-                'form_field_id' => $data['field_id'],
-                'form_field_option_id' => $field->basic_data_id ? null : $optArray,
-                'basic_data_item_id' => $field->basic_data_id ? $optArray : null,
-                'next_product_step_id' => $data['next_step_id']
-            ]);
+                $condition = ProductStepsCondition::updateOrCreate([
+                    'product_step_id' => $data['step_id'],
+                    'form_field_id' => $data['field_id'],
+                    'form_field_option_id' => $field->basic_data_id ? null : $optArray,
+                    'basic_data_item_id' => $field->basic_data_id ? $optArray : null,
+                    'next_product_step_id' => $data['next_step_id']
+                ]);
 
-            $productCondArray[] = $condition->id;
+                $productCondArray[] = $condition->id;
+            }
         }
 
         ProductStepsCondition::where('product_step_id', $data['step_id'])->whereNotIn('id', $productCondArray)->delete();

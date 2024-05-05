@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FormField;
 use App\Models\FormFieldForm;
 use App\Models\Product;
+use App\Models\ProductStepsCondition;
 use Illuminate\Http\Request;
 
 class FormFieldController extends Controller
@@ -43,6 +44,7 @@ class FormFieldController extends Controller
     }
 
     //get form fields from product id
+
     /**
      * @OA\Get(
      *   path="/v1/formFields/product/{product_id}",
@@ -89,7 +91,7 @@ class FormFieldController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
 
@@ -163,7 +165,7 @@ class FormFieldController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //get form field by id
@@ -207,8 +209,8 @@ class FormFieldController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //update form field
@@ -310,7 +312,7 @@ class FormFieldController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //delete form field
@@ -351,26 +353,44 @@ class FormFieldController extends Controller
         }
 
 
-
-
         $formField->forms;
         //delete form field
+
+        //check if deleting is allowed
+        $delete = true;
         if (count($formField->forms) == 1) {
             //check if formField validation object doesnt have readOnly true
             if ($formField->validation) {
                 $validation = json_decode($formField->validation);
                 if (isset($validation->readOnly) && $validation->readOnly) {
-                    return response()->json(['error' => 'readOnly field cannot be deleted'], 403);
+                    $delete = false;
+                    return response()->json(['error' => 'readOnly field cannot be deleted'], 422);
                 }
             }
+        }
+        //check product step conditions
+        $productStepConditionsCount = ProductStepsCondition::where("form_field_id", $formField->id)->count();
+        if ($productStepConditionsCount > 0) {
+            $delete = false;
+            return response()->json(['error' => 'field used in step conditions'], 422);
+        }
 
-            $formField->delete();
-
-
-        } else {
-            //delete only relation not field
+        //first delete relations
+        //delete only relation without deleting field
+        if ($delete) {
             $relation = FormFieldForm::where('form_field_id', $id)->where('form_id', $request->form_id);
             $relation->delete();
+        }
+
+        if (count($formField->forms) == 1) {
+            //check if formField validation object doesnt have readOnly true
+            if ($formField->validation) {
+                $validation = json_decode($formField->validation);
+                if (isset($validation->readOnly) && $validation->readOnly) {
+                    return response()->json(['error' => 'readOnly field cannot be deleted'], 422);
+                }
+            }
+            $formField->delete();
         }
 
         //return json
