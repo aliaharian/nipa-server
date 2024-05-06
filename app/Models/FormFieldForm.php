@@ -13,6 +13,7 @@ class FormFieldForm extends Model
         'form_field_id',
         'form_id',
         'origin_form_id',
+        'width'
     ];
 
     function form()

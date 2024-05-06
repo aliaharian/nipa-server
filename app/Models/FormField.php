@@ -66,6 +66,11 @@ class FormField extends Model
     {
         return $this->belongsTo(BasicData::class, 'basic_data_id');
     }
+    function width($form_id)
+    {
+        $form_field_form = FormFieldForm::where("form_id",$form_id)->where("form_field_id",$this->id)->first();
+        return $form_field_form->width ?? null;
+    }
 
 
     public function defaultValue($form_id)

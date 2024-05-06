@@ -64,7 +64,7 @@ class FormController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
 
@@ -159,7 +159,7 @@ class FormController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
 
@@ -178,7 +178,7 @@ class FormController extends Controller
      *         type="string",
      *         format="int64",
      *     )
-     * ),    
+     * ),
      * @OA\Parameter(
      *     name="id",
      *     in="path",
@@ -213,6 +213,7 @@ class FormController extends Controller
         $form->conditions;
         foreach ($form->fields as $field) {
             $field->type;
+            $field->width = $field->width($form->id);
             $field->options;
             $field->originForm;
             if (count($field->originForm) > 0) {
@@ -306,8 +307,8 @@ class FormController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     // Update a form by id
@@ -377,7 +378,7 @@ class FormController extends Controller
             if (isset($data['fields'])) {
                 foreach ($data['fields'] as $fieldArray) {
                     $field = new \stdClass();
-                    $field = (object) $fieldArray;
+                    $field = (object)$fieldArray;
                     if (@$field->server_id) {
                         //convert fieldArray to Request instance
                         $fieldArray = new Request($fieldArray);
@@ -393,7 +394,13 @@ class FormController extends Controller
                     // return $field;
                     //sync form fields
                     // $form->fields()->sync([$field->server_id => ['form_id' => $id]]);
-                    $form->fields()->syncWithoutDetaching([$field->server_id => ['form_id' => $id, 'origin_form_id' => $field->origin_form_id]]);
+                    $form->fields()->syncWithoutDetaching(
+                        [$field->server_id =>
+                            [
+                                'form_id' => $id,
+                                'origin_form_id' => $field->origin_form_id,
+                                'width' => $field->width ?? 100
+                            ]]);
                 }
             }
 
@@ -401,7 +408,7 @@ class FormController extends Controller
                 $formCondArray = [];
                 foreach ($data['conditions'] as $condArray) {
                     $cond = new \stdClass();
-                    $cond = (object) $condArray;
+                    $cond = (object)$condArray;
                     //delete all form conditions
                     // FormCondition::where('form_id', $id)->delete();
                     //convert condArray to Request instance
@@ -434,6 +441,7 @@ class FormController extends Controller
                 $field->type;
                 $field->options;
                 $field->originForm;
+                $field->width = $field->width($form->id);
                 if (count($field->originForm) > 0) {
                     $relatedFieldTmpForm = new \stdClass();
                     $relatedFieldTmpForm->id = $field->originForm[0]->id;
@@ -470,7 +478,7 @@ class FormController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     // Delete a form by id
@@ -526,6 +534,7 @@ class FormController extends Controller
     }
 
     // assign field to form
+
     /**
      * @OA\Post(
      *  path="/v1/forms/{id}/fields",
@@ -589,6 +598,7 @@ class FormController extends Controller
     }
 
     // show form fields
+
     /**
      * @OA\Get(
      *  path="/v1/forms/{id}/fields",
@@ -603,7 +613,7 @@ class FormController extends Controller
      *         type="string",
      *         format="int64",
      *     )
-     * ),  
+     * ),
      * @OA\Parameter(
      *     name="id",
      *     in="path",
