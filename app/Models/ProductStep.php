@@ -12,7 +12,7 @@ class ProductStep extends Model
         'global_step_id',
         'step_name',
         'product_id',
-        'parent_step_id',
+        'next_step_id',
         'meta'
     ];
     //make timestamps hidden

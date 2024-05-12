@@ -213,7 +213,10 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "last_name"
+                                    "last_name",
+                                    "email",
+                                    "mobile",
+                                    "avatar_id"
                                 ],
                                 "properties": {
                                     "name": {
@@ -225,6 +228,21 @@
                                         "type": "string",
                                         "format": "string",
                                         "example": "aharian"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "aharian@yahoo.com"
+                                    },
+                                    "mobile": {
+                                        "type": "number",
+                                        "format": "number",
+                                        "example": "09307473703"
+                                    },
+                                    "avatar_id": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "9"
                                     }
                                 },
                                 "type": "object"
@@ -3846,6 +3864,11 @@
                                         "type": "string",
                                         "format": "string",
                                         "example": "step name"
+                                    },
+                                    "next_step_id": {
+                                        "type": "string",
+                                        "format": "integer",
+                                        "example": "1"
                                     }
                                 },
                                 "type": "object"
@@ -5052,6 +5075,40 @@
                         }
                     }
                 },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "show all users",
+                "description": "only for howm has access",
+                "operationId": "0bee31bcb666f23c2236970359569ff3",
+                "parameters": [
+                    {
+                        "name": "searchParam",
+                        "in": "query",
+                        "description": "search param",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",

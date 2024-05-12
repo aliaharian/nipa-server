@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Products;
 
 use App\Http\Controllers\Controller;
 use App\Models\FormField;
+use App\Models\Product;
+use App\Models\ProductStep;
 use App\Models\ProductStepsCondition;
 use Illuminate\Http\Request;
 
@@ -96,10 +98,12 @@ class ProductConditionController extends Controller
 
         ProductStepsCondition::where('product_step_id', $data['step_id'])->whereNotIn('id', $productCondArray)->delete();
 
-
+        $productStep = ProductStep::find($data['step_id']);
+        $product = Product::find($productStep->product_id);
         return response()->json([
             'message' => 'Condition created successfully',
-            'condition' => $condition
+            'condition' => $condition,
+            'product' => $product
         ], 200);
     }
 

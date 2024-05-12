@@ -50,22 +50,22 @@ class ProductStepController extends Controller
             return response()->json(['message' => 'product not found'], 404);
         }
         // $steps = $product->steps;
-        $globalSteps = GlobalStep::all();
+//        $globalSteps = GlobalStep::all();
         //check if all global steps exist in product steps and add if not exist
-        foreach ($globalSteps as $globalStep) {
-            $exist = false;
-            foreach ($product->steps as $step) {
-                if ($step->step_name == $globalStep->name) {
-                    $exist = true;
-                }
-            }
-            if (!$exist) {
-                $product->steps()->create([
-                    'step_name' => $globalStep->name,
-                    'global_step_id' => $globalStep->id,
-                ]);
-            }
-        }
+//        foreach ($globalSteps as $globalStep) {
+//            $exist = false;
+//            foreach ($product->steps as $step) {
+//                if ($step->step_name == $globalStep->name) {
+//                    $exist = true;
+//                }
+//            }
+//            if (!$exist) {
+//                $product->steps()->create([
+//                    'step_name' => $globalStep->name,
+//                    'global_step_id' => $globalStep->id,
+//                ]);
+//            }
+//        }
         $steps = ProductStep::where('product_id', $product->id)->get();
         $res = array();
         foreach ($steps as $step) {
@@ -276,6 +276,7 @@ class ProductStepController extends Controller
      * @OA\JsonContent(
      * required={"step_name"},
      * @OA\Property(property="step_name", type="string", format="string", example="step name"),
+     * @OA\Property(property="next_step_id", type="string", format="integer", example="1"),
      * ),
      * ),
      * @OA\Response(
@@ -298,7 +299,15 @@ class ProductStepController extends Controller
         }
         $data = $request->validate([
             'step_name' => 'required',
+            'next_step_id' => 'nullable|exists:product_steps,id',
         ]);
+        if($data["next_step_id"]){
+            //check if product_id of next_step_id is same with product_id of $id
+            $next_step = ProductStep::find($data["next_step_id"]);
+            if($next_step->product_id != $product_step->product_id){
+                return response()->json(['message' => 'next product step is wrong'], 406);
+            }
+        }
         $product_step->update($data);
         $product_step->product;
         return response()->json($product_step, 200);

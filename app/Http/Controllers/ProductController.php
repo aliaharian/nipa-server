@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Files\FileController;
+use App\Models\GlobalStep;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\ProductStep;
@@ -40,7 +41,7 @@ class ProductController extends Controller
         $products = Product::all();
         foreach ($products as $product) {
             $product->details;
-            $product->initialFormId = $product->initialOrderForm()?$product->initialOrderForm()->id:null;
+            $product->initialFormId = $product->initialOrderForm() ? $product->initialOrderForm()->id : null;
 
         }
         return response()->json($products, 200);
@@ -50,7 +51,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
 
@@ -95,7 +96,7 @@ class ProductController extends Controller
             'name' => 'required|unique:products,name',
             'custom' => 'required|in:0,1',
             'code' => "required|unique:products,code",
-            'count_type'=>"required|in:quantity,m2",
+            'count_type' => "required|in:quantity,m2",
             'description' => 'required|string',
         ]);
         if ($data['custom'] == 0) {
@@ -126,6 +127,24 @@ class ProductController extends Controller
                 'price' => $data['price'],
             ]);
         }
+        $globalSteps = GlobalStep::all();
+
+        //add global steps to product steps
+        foreach ($globalSteps as $globalStep) {
+            $exist = false;
+            foreach ($product->steps as $step) {
+                if ($step->step_name == $globalStep->name) {
+                    $exist = true;
+                }
+            }
+            if (!$exist) {
+                $product->steps()->create([
+                    'step_name' => $globalStep->name,
+                    'global_step_id' => $globalStep->id,
+                ]);
+            }
+        }
+
         //show product details() with products
         $product->details;
         $product->images;
@@ -135,7 +154,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //get product by id
@@ -172,7 +191,7 @@ class ProductController extends Controller
         $product->details;
         $product->steps;
         $product->images;
-        foreach($product->images as $image){
+        foreach ($product->images as $image) {
             $image->hashCode = $image->hashcode;
         }
         return response()->json($product, 200);
@@ -182,8 +201,8 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
 
@@ -237,7 +256,7 @@ class ProductController extends Controller
             'name' => 'required|unique:products,name,' . $product->id,
             'custom' => 'required|in:0,1',
             'code' => 'required|unique:products,code,' . $product->id,
-            'count_type'=>"required|in:quantity,m2",
+            'count_type' => "required|in:quantity,m2",
         ]);
         if ($data['custom'] == 0) {
             $data = $request->validate([
@@ -245,20 +264,20 @@ class ProductController extends Controller
                 'custom' => 'required|in:0,1',
                 'price' => 'required|numeric',
                 'description' => 'required|string',
-                'count_type'=>"required|in:quantity,m2"
+                'count_type' => "required|in:quantity,m2"
             ]);
         }
         $product->update($data);
         if ($request->has('images')) {
             $images = $request->images;
             foreach ($images as $image) {
-               $fileId = File::where('hash_code', $image)->first()->id;
-               $exists = ProductImage::where("file_id",$fileId)->where("product_id",$id)->count();
-               if(!$exists){
-                $product->images()->create([
-                    'file_id' => File::where('hash_code', $image)->first()->id,
-                ]);
-            }
+                $fileId = File::where('hash_code', $image)->first()->id;
+                $exists = ProductImage::where("file_id", $fileId)->where("product_id", $id)->count();
+                if (!$exists) {
+                    $product->images()->create([
+                        'file_id' => File::where('hash_code', $image)->first()->id,
+                    ]);
+                }
             }
 
         }
@@ -277,7 +296,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //delete product by id
@@ -332,6 +351,7 @@ class ProductController extends Controller
     }
 
     //get steps of specific product
+
     /**
      * @OA\Get(
      *  path="/v1/products/{id}/steps",
@@ -368,6 +388,7 @@ class ProductController extends Controller
     }
 
     //all products list but with search at least 3 characters
+
     /**
      * @OA\Get(
      *  path="/v1/products/search/{name}",
@@ -396,11 +417,11 @@ class ProductController extends Controller
     public function search($name)
     {
         //check if at least 3 characters
-        if (mb_strlen($name,'utf-8') < 3) {
+        if (mb_strlen($name, 'utf-8') < 3) {
             return response()->json(['message' => 'at least 3 characters'], 400);
         }
         $products = Product::where('name', 'like', '%' . $name . '%')->get();
-      
+
         // create an object and only return name and id
         $products = $products->map(function ($product) {
             $product->details;

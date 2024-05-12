@@ -152,7 +152,7 @@ class WalletController extends Controller
 
             // Retrieve transactions
             $transactions = $export ?
-                $query->orderBy('updated_at','DESC')->get()
+                $query->orderBy('updated_at', 'DESC')->get()
                 : $query->orderBy('updated_at', 'DESC')->paginate(10);
             $remainArray = $this->adminFinancialReport(
                 [
@@ -210,10 +210,10 @@ class WalletController extends Controller
                 if ($remain['transaction_id'] == $transaction->id) {
                     // $transaction->remainingBalance = $remain['remaining_balance'];
                     // $transaction->remainingCredit = $remain['remaining_credit'];
-                    $transaction->remainingSum = $remain['remaining_sum'] ??  $remain['admin_financial_tolerance'];
+                    $transaction->remainingSum = $remain['remaining_sum'] ?? $remain['admin_financial_tolerance'];
                     $transaction->financial_impact = $remain['financial_impact'] ?? null;
                     $transaction->increase = $remain['transaction_type'] == "Withdrawal" ? false : true;
-                    $transaction->full_name = $transaction->wallet->user->name ?  $transaction->wallet->user->name . ' ' . $transaction->wallet->user->last_name : $transaction->wallet->user->mobile;
+                    $transaction->full_name = $transaction->wallet->user->name ? $transaction->wallet->user->name . ' ' . $transaction->wallet->user->last_name : $transaction->wallet->user->mobile;
                 }
             }
             return $transaction;
@@ -232,13 +232,12 @@ class WalletController extends Controller
             'transactions' => $transactions,
             'sum' => $accessAll ? null : $remainArray['sum'],
             'sum2' => $accessAll ? $remainArray['sum'] : null,
-            'accessAll' =>  $accessAll,
+            'accessAll' => $accessAll,
             'pagination' => $pagination,
             'filters' => $filters,
         ], 200);
         // return response()->json(['transactions' => $remainArray], 200);
     }
-
 
 
     public function calculateRemainingAmountForUser($userId)
@@ -442,14 +441,14 @@ class WalletController extends Controller
                     $query->where('name', 'like', '%' . $searchParam . '%')
                         ->orWhere('last_name', 'like', '%' . $searchParam . '%')
                         ->orWhere('mobile', 'like', '%' . $searchParam . '%');
-                })->paginate(10);
+                })->paginate(20);
                 return response()->json(['wallets' => $wallets], 200);
             }
             $wallets = UserWallet::with('user')->whereHas('user', function ($query) use ($searchParam) {
                 $query->where('name', 'like', '%' . $searchParam . '%')
                     ->orWhere('last_name', 'like', '%' . $searchParam . '%')
                     ->orWhere('mobile', 'like', '%' . $searchParam . '%');
-            })->get();
+            })->paginate(20);
             return response()->json(['wallets' => $wallets], 200);
         } else {
             //error
@@ -458,6 +457,7 @@ class WalletController extends Controller
     }
 
     //list of wallet transation statuses
+
     /**
      * @OA\Get(
      *   path="/v1/wallet/transactions/status",
@@ -481,7 +481,6 @@ class WalletController extends Controller
     }
 
     /**
-
      * @OA\Get(
      *   path="/v1/wallet/transactions/export",
      *   tags={"Wallet"},

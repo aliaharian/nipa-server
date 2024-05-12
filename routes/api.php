@@ -26,6 +26,7 @@ use App\Http\Controllers\Translation\TranslationController;
 use App\Http\Controllers\User\UserAnswerController;
 use App\Http\Controllers\Files\FileController;
 use App\Http\Controllers\wallet\WalletController;
+use \App\Http\Controllers\User\UserController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -218,6 +219,11 @@ Route::prefix('/v1')->middleware(['language'])->group(function () {
             Route::get('/{order_group_id}', [InvoiceController::class, 'show']);
             Route::post('/{invoice_id}', [InvoiceController::class, 'create']);
         });
+
+        //manage users
+        Route::apiResource('users', UserController::class)->middleware('permission:manage-users');
+
+
         Route::
             // middleware(['permission:manage-files'])->
             prefix('files')->group(function () {
