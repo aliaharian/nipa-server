@@ -462,7 +462,6 @@ class ProductStepController extends Controller
         $user = Auth::user();
         $myRoles = $user->roles;
         $stepRoles = $step->roles;
-
         $atLeastOneMatch = false;
 
         foreach ($stepRoles as $role) {

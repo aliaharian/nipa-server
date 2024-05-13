@@ -209,6 +209,7 @@ Route::prefix('/v1')->middleware(['language'])->group(function () {
         Route::apiResource('orderGroup', OrderGroupController::class);
         ///v1/orderGroup/{id}/search/{name}
         Route::get('orderGroup/{id}/search', [OrderController::class, 'search']);
+        Route::post('order/{id}/gotoNextStep', [OrderController::class, 'gotoNextStep']);
 
         Route::apiResource('languages', LanguageController::class)->middleware('permission:manage-translation');
         Route::apiResource('keywords', KeywordController::class)->middleware('permission:manage-translation');

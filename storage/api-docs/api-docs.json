@@ -3172,6 +3172,40 @@
                 ]
             }
         },
+        "/v1/order/{id}/gotoNextStep": {
+            "post": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "search in orders of specific order group by name",
+                "operationId": "a8d318a6549f92173dca774a2375f54b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/orderGroup": {
             "get": {
                 "tags": [

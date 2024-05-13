@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Factor\FactorController;
 use App\Http\Controllers\User\UserAnswerController;
+use App\Models\BasicDataItem;
 use App\Models\Factor;
 use App\Models\FormFieldOptions;
 use App\Models\Order;
@@ -82,35 +83,11 @@ class OrderController extends Controller
             $or->step;
             if ($or->step) {
                 $or->step->globalStep;
+                $or->step->roles;
 
                 //find default next step
-                $nextStep = ProductStep::where('product_id', $or->product->id)->where("id", ">", $or->step->id)->orderBy("id", "asc")->first();
-                if ($nextStep) {
-                    $nextStep->globalStep;
-                    $nextStep->roles;
-                }
+                $nextStep = $this->findNextStep($or);
 
-                //check if next step has condition
-                $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
-                if ($stepCond) {
-
-                    //check user answer to form_field_id
-                    $userAnswer = UserAnswer::where("user_id", $or->user->id)->where("order_id", $or->id)->where("form_field_id", $stepCond->form_field_id)->first();
-                    if ($userAnswer) {
-                        $condOption = FormFieldOptions::find($stepCond->form_field_option_id);
-                        // echo $condOption;
-                        // echo $or->user->id . '//';
-                        // echo $stepCond->form_field_id . '//';
-                        // echo $userAnswer;
-                        if ($userAnswer->answer == $condOption->option) {
-                            // echo "now user passed condition!";
-                            // next step is :
-                            $nextStep = ProductStep::find($stepCond->next_product_step_id);
-                            $nextStep->globalStep;
-                            $nextStep->roles;
-                        }
-                    }
-                }
                 $or->nextStep = $nextStep;
                 $or->canEdit = $or->step->globalStep->description == "initialOrder" ? true : false;
                 $or->canDelete = $or->step->globalStep->description == "initialOrder" ? true : false;
@@ -182,7 +159,7 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     //create order annotation
@@ -361,7 +338,7 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     /**
@@ -408,7 +385,7 @@ class OrderController extends Controller
         //return
         $order->initialForm = $initialForm;
         //get user answers of initial form
-        $userAnswers = (array) $this->groupObjectsByItem($order->userAnswers, "form_field_id");
+        $userAnswers = (array)$this->groupObjectsByItem($order->userAnswers, "form_field_id");
 
         foreach ($order->userAnswers as $userAnswer) {
             if ($userAnswer->formField->type->has_options) {
@@ -446,12 +423,38 @@ class OrderController extends Controller
         $orderResult->product_details = $order->product->details;
         $orderResult->product_images = $order->product->images;
         $orderResult->user = $order->user;
+        $next_step = $this->findNextStep($order);
+        $orderResult->step = $order->step;
+        $orderResult->next_step = $next_step;
 
         $ansArray = array();
         foreach ($userAnswers as $key => $value) {
             array_push($ansArray, $value);
         }
-        //find related factor
+
+        $user = Auth::user();
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+
+        $orderResult->can_accept = false;
+        $orderResult->can_reject = false;
+
+        //if manage orders exist in permissions
+        if (
+            in_array('reject-order', $permissions)
+        ) {
+            $orderResult->can_reject = true;
+        }
+
+        if (
+            in_array('accept-order', $permissions)
+        ) {
+            if($order->step->globalStep->description=="initialOrder") {
+                $orderResult->can_accept = true;
+            }
+        }
 
 
         return response()->json(['order' => $orderResult, 'userAnswers' => $ansArray], 200);
@@ -461,7 +464,7 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     /**
@@ -507,7 +510,7 @@ class OrderController extends Controller
 
 
         //get user answers of initial form
-        $userAnswers = (array) $this->groupObjectsByItem($order->userAnswers, "form_field_id");
+        $userAnswers = (array)$this->groupObjectsByItem($order->userAnswers, "form_field_id");
 
         foreach ($order->userAnswers as $userAnswer) {
             if ($userAnswer->formField->type->has_options) {
@@ -557,8 +560,8 @@ class OrderController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -569,13 +572,14 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
         //
     }
+
     function groupObjectsByItem($objects, $itemKey)
     {
         $groupedObjects = [];
@@ -590,6 +594,7 @@ class OrderController extends Controller
     }
 
     //search in orders of specific order group by name
+
     /**
      * @OA\Get(
      *  path="/v1/orderGroup/{id}/search",
@@ -659,5 +664,94 @@ class OrderController extends Controller
 
         //return orders
         return response()->json(['orders' => $ordersRes], 200);
+    }
+
+    /**
+     * @OA\Post(
+     *  path="/v1/order/{id}/gotoNextStep",
+     * tags={"Order"},
+     * summary="search in orders of specific order group by name",
+     * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * description="id of order group",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64",
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * ),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function gotoNextStep($id)
+    {
+        $order = Order::find($id);
+        $nextStep = $this->findNextStep($order);
+
+        $user = Auth::user();
+        //permissions
+        $permissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('slug')->toArray();
+        })->toArray();
+
+        //if current step badged as initialOrder, only who has access can do that
+        $currentStep = $order->step;
+        if ($currentStep->globalStep->description == "initialOrder") {
+            if (
+                !in_array('accept-order', $permissions)
+            ) {
+                return response()->json(['message' => 'you dont have enaugh access to accept this order'], 403);
+            }
+        }
+        $order->update([
+            "product_step_id" => $nextStep->id
+        ]);
+        return response()->json(['order' => $order], 200);
+
+    }
+
+    public function findNextStep($or)//means order
+    {
+        $nextStep = ProductStep::find($or->step->next_step_id);
+        if ($nextStep) {
+            $nextStep->globalStep;
+            $nextStep->roles;
+        }
+        //check if next step has condition
+        $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
+        if ($stepCond) {
+            //check user answer to form_field_id
+            $userAnswer = UserAnswer::where("user_id", $or->user->id)->where("order_id", $or->id)->where("form_field_id", $stepCond->form_field_id)->first();
+            if ($userAnswer) {
+                if ($stepCond->form_field_option_id) {
+                    $condOption = FormFieldOptions::find($stepCond->form_field_option_id);
+                    if ($userAnswer->answer == $condOption->option) {
+                        // echo "now user passed condition!";
+                        // next step is :
+                        $nextStep = ProductStep::find($stepCond->next_product_step_id);
+                    }
+                } else {
+                    $condOption = BasicDataItem::find($stepCond->basic_data_item_id);
+                    if ($userAnswer->answer == $condOption->code) {
+                        // echo "now user passed condition!";
+                        // next step is :
+                        $nextStep = ProductStep::find($stepCond->next_product_step_id);
+                    }
+                }
+                $nextStep->globalStep;
+                $nextStep->roles;
+
+            }
+        }
+        return $nextStep;
     }
 }
