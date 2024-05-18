@@ -22,7 +22,8 @@ class FormField extends Model
         'min',
         'max',
         'order',
-        "basic_data_id"
+        "basic_data_id",
+        "alert_type"
     ];
     protected $hidden = [
         'created_at',
