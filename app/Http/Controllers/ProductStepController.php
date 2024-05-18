@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Products\ProductConditionController;
 use App\Models\GlobalStep;
 use App\Models\Product;
 use App\Models\Order;
@@ -13,7 +15,6 @@ use stdClass;
 
 class ProductStepController extends Controller
 {
-
 
 
     //view product steps
@@ -95,6 +96,7 @@ class ProductStepController extends Controller
         return response()->json($res, 200);
     }
     //view product step info
+
     /**
      * @OA\Get(
      *  path="/v1/productSteps/{id}",
@@ -135,7 +137,7 @@ class ProductStepController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     // Create a new product step annotation
@@ -195,6 +197,7 @@ class ProductStepController extends Controller
 
 
     //add a new step to a product
+
     /**
      * @OA\Post(
      *  path="/v1/product/steps",
@@ -252,8 +255,8 @@ class ProductStepController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     // Update a product step annotation
@@ -301,10 +304,10 @@ class ProductStepController extends Controller
             'step_name' => 'required',
             'next_step_id' => 'nullable|exists:product_steps,id',
         ]);
-        if($data["next_step_id"]){
+        if ($data["next_step_id"]) {
             //check if product_id of next_step_id is same with product_id of $id
             $next_step = ProductStep::find($data["next_step_id"]);
-            if($next_step->product_id != $product_step->product_id){
+            if ($next_step->product_id != $product_step->product_id) {
                 return response()->json(['message' => 'next product step is wrong'], 406);
             }
         }
@@ -316,7 +319,7 @@ class ProductStepController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     // Delete a product step annotation
@@ -408,6 +411,7 @@ class ProductStepController extends Controller
     }
 
     //set roles to step with post method and get step id from query param as {id} and get roles as array of role ids in body
+
     /**
      * @OA\Post(
      *  path="/v1/product/steps/{id}/setRoles",
@@ -480,14 +484,18 @@ class ProductStepController extends Controller
         $step->forms;
 
         $order = Order::find($orderId);
+
+        $orderController = new OrderController();
+
+        $step->nextStep = $orderController->findNextStep($order);
+
         if (!$order) {
             return response()->json(['message' => 'order not found'], 404);
         }
 
 
-
         //get user answers of initial form
-        $userAnswers = (array) $this->groupObjectsByItem($order->userAnswers, "form_field_id");
+        $userAnswers = (array)$this->groupObjectsByItem($order->userAnswers, "form_field_id");
 
         foreach ($order->userAnswers as $userAnswer) {
             if ($userAnswer->formField->type->has_options) {
@@ -539,6 +547,7 @@ class ProductStepController extends Controller
         // return response()->json($step, 200);
 
     }
+
     function groupObjectsByItem($objects, $itemKey)
     {
         $groupedObjects = [];
