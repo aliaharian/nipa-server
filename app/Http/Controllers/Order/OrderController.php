@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Factor\FactorController;
+use App\Http\Controllers\Form\FormController;
 use App\Http\Controllers\User\UserAnswerController;
 use App\Models\BasicDataItem;
 use App\Models\Factor;
@@ -374,11 +375,7 @@ class OrderController extends Controller
         if (!$order) {
             return response()->json(['message' => 'order not found'], 404);
         }
-        // $order->orderGroup;
-        // $order->product;
-        // $order->user;
-        // $order->product->details;
-        // $order->product->images;
+
         //find initial form
         $initialForm = $order->product->initialOrderForm();
 
@@ -426,6 +423,8 @@ class OrderController extends Controller
         $next_step = $this->findNextStep($order);
         $orderResult->step = $order->step;
         $orderResult->next_step = $next_step;
+//        $prev_step = $this->findPrevSteps($order);
+//        $orderResult->prev_step = $prev_step;
 
         $ansArray = array();
         foreach ($userAnswers as $key => $value) {
@@ -451,7 +450,7 @@ class OrderController extends Controller
         if (
             in_array('accept-order', $permissions)
         ) {
-            if($order->step->globalStep->description=="initialOrder") {
+            if ($order->step->globalStep->description == "initialOrder") {
                 $orderResult->can_accept = true;
             }
         }
@@ -719,39 +718,126 @@ class OrderController extends Controller
 
     }
 
-    public function findNextStep($or)//means order
-    {
-        $nextStep = ProductStep::find($or->step->next_step_id);
-        if ($nextStep) {
-            $nextStep->globalStep;
-            $nextStep->roles;
-        }
-        //check if next step has condition
-        $stepCond = ProductStepsCondition::where("product_step_id", $or->step->id)->first();
-        if ($stepCond) {
-            //check user answer to form_field_id
-            $userAnswer = UserAnswer::where("user_id", $or->user->id)->where("order_id", $or->id)->where("form_field_id", $stepCond->form_field_id)->first();
-            if ($userAnswer) {
-                if ($stepCond->form_field_option_id) {
-                    $condOption = FormFieldOptions::find($stepCond->form_field_option_id);
-                    if ($userAnswer->answer == $condOption->option) {
-                        // echo "now user passed condition!";
-                        // next step is :
-                        $nextStep = ProductStep::find($stepCond->next_product_step_id);
-                    }
-                } else {
-                    $condOption = BasicDataItem::find($stepCond->basic_data_item_id);
-                    if ($userAnswer->answer == $condOption->code) {
-                        // echo "now user passed condition!";
-                        // next step is :
-                        $nextStep = ProductStep::find($stepCond->next_product_step_id);
-                    }
-                }
-                $nextStep->globalStep;
-                $nextStep->roles;
 
+    public function findNextStep($or, $step = null)
+    {
+        $stepId = $step ? $step->next_step_id : $or->step->next_step_id;
+        $nextStep = ProductStep::with(['globalStep', 'roles'])->find($stepId);
+
+        if (!$nextStep) {
+            return null;
+        }
+
+        $stepCond = ProductStepsCondition::where('product_step_id', $step ? $step->id : $or->step->id)->first();
+
+        if ($stepCond) {
+            $userAnswer = UserAnswer::where([
+                ['user_id', $or->user->id],
+                ['order_id', $or->id],
+                ['form_field_id', $stepCond->form_field_id]
+            ])->first();
+
+            if ($userAnswer) {
+                $condOption = $stepCond->form_field_option_id
+                    ? FormFieldOptions::find($stepCond->form_field_option_id)
+                    : BasicDataItem::find($stepCond->basic_data_item_id);
+
+                if ($userAnswer->answer == ($condOption->option ?? $condOption->code)) {
+                    $nextStep = ProductStep::with(['globalStep', 'roles'])->find($stepCond->next_product_step_id);
+                }
             }
         }
+
         return $nextStep;
     }
+
+
+    public function findOrderStepAnswers($order, $step)
+    {
+        $form = $step->forms[0];
+        $formController = new FormController();
+        $request = new Request(["orderId" => $order->id]);
+        $response = $formController->show($form->id, $request);
+        $formFields = $response->original->fields;
+
+        $fields = array();
+
+        foreach ($formFields as $field) {
+            $tmp = new stdClass();
+            $tmp->id = $field->id;
+            $tmp->name = $field->name;
+            $tmp->label = $field->label;
+            $tmp->form_field_type = $field->type->type;
+
+            if ($field->userAnswer) {
+                if ($field->type->has_options) {
+                    $items = $field->basic_data_id ? $field->basicDataItems : $field->options;
+
+                    foreach ($items as $item) {
+                        if ($item->option == $field->userAnswer) {
+                            $tmp->answerObject = $item;
+                            break;
+                        }
+                    }
+                } else {
+                    $tmp->answer = $field->userAnswer;
+                }
+            } else {
+                $tmp->answer = null;
+            }
+
+            $fields[] = $tmp;
+        }
+
+        return $fields;
+    }
+
+    public function findPrevSteps($order, $data = null)
+    {
+        if ($data) {
+            $next_step = $this->findNextStep($order, $data->current_step);
+            if (!$next_step || $next_step->id === $data->order_step->id) {
+                return $data->steps;
+            }
+
+            $tmp = new stdClass();
+            $tmp->id = $next_step->id;
+            $tmp->global_step_id = $next_step->global_step_id;
+            $tmp->product_id = $next_step->product_id;
+            $tmp->step_name = $next_step->step_name;
+            $tmp->answers = $this->findOrderStepAnswers($order, $next_step);
+
+            $data->steps[] = $tmp;
+            $data->current_step = $next_step;
+
+            return $this->findPrevSteps($order, $data);
+        } else {
+            $order_step = ProductStep::find($order->product_step_id);
+            $product = $order->product;
+            $first_step = $product->steps->firstWhere('globalStep.description', 'initialOrder');
+
+            if ($first_step->id === $order_step->id) {
+                return null;
+            }
+
+            $steps = [];
+
+            $tmp = new stdClass();
+            $tmp->id = $first_step->id;
+            $tmp->global_step_id = $first_step->global_step_id;
+            $tmp->product_id = $first_step->product_id;
+            $tmp->step_name = $first_step->step_name;
+            $tmp->answers = $this->findOrderStepAnswers($order, $first_step);
+            $steps[] = $tmp;
+
+            $data = new stdClass();
+            $data->order_step = $order_step;
+            $data->current_step = $first_step;
+            $data->steps = $steps;
+
+            return $this->findPrevSteps($order, $data);
+        }
+    }
+
+
 }

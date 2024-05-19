@@ -488,6 +488,8 @@ class ProductStepController extends Controller
         $orderController = new OrderController();
 
         $step->nextStep = $orderController->findNextStep($order);
+        $step->prevSteps = $orderController->findPrevSteps($order);
+
 
         if (!$order) {
             return response()->json(['message' => 'order not found'], 404);
