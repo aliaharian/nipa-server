@@ -358,7 +358,7 @@ class FormController extends Controller
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
 
-        //if manage orders exist in permissions
+        //if edit form exist in permissions
         if (
             in_array('edit-form', $permissions)
         ) {
@@ -399,7 +399,9 @@ class FormController extends Controller
                             [
                                 'form_id' => $id,
                                 'origin_form_id' => $field->origin_form_id,
-                                'width' => $field->width ?? 100
+                                'width' => $field->width ?? 100,
+                                'order' => $field->order ?? 0,
+
                             ]]);
                 }
             }

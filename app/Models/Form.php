@@ -25,7 +25,7 @@ class Form extends Model
     }
     public function fields()
     {
-        return $this->belongsToMany(FormField::class, 'form_field_forms', 'form_id', 'form_field_id')->orderBy('order');
+        return $this->belongsToMany(FormField::class, 'form_field_forms', 'form_id', 'form_field_id')->orderBy('form_field_forms.order');
     }
 
     public function conditions()

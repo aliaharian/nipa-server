@@ -274,7 +274,7 @@ class FormFieldController extends Controller
             'min' => 'integer',
             'max' => 'integer',
             'helper_text' => 'integer',
-            'order' => 'integer|required',
+//            'order' => 'integer|required',
         ]);
         if ($request->hasOptions) {
             if (!$request->basicDataId && !$request->basic_data_id) {
@@ -286,7 +286,7 @@ class FormFieldController extends Controller
             }
         }
         //update form field
-        $formField->update($request->all());
+        $formField->update($request->except('order'));
         if ($request->hasOptions) {
             //check if option has server_id then update else create and delete old options
             foreach ($request->options as $option) {
