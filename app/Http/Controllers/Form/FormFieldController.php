@@ -152,7 +152,7 @@ class FormFieldController extends Controller
         }
 
         //store new form field
-        $formField = FormField::create($request->all());
+        $formField = FormField::create($request->except('order'));
         if ($request->hasOptions) {
             $formField->options()->createMany($request->options);
         }
