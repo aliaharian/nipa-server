@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderGroup;
+use App\Models\ProductStepsRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -38,18 +39,48 @@ class OrderGroupController extends Controller
         //liost all order groups
         $user = Auth::user();
         //permissions
-        $permissions = $user->roles->flatMap(function ($role) {
+        $roles = $user->roles;
+        $user_role_ids = $roles->pluck('id')->toArray(); // Use pluck and toArray to get the IDs
+
+        $permissions = $roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
+        $all_order_groups = OrderGroup::orderBy('id', 'DESC')->get();
 
         //if manage orders exist in permissions
         if (
             in_array('view-orders', $permissions)
         ) {
-            $order_groups = OrderGroup::orderBy('id', 'DESC')->get();
+            $order_groups = $all_order_groups;
 
         } else {
-            $order_groups = OrderGroup::where("user_id", $user->id)->orderBy('id', 'DESC')->get();
+            //my orders
+            $my_order_groups = OrderGroup::where("user_id", $user->id)->orderBy('id', 'DESC')->get();
+            //orders that i have access to their step based on their current step
+            $accessible_order_groups = collect();  // Initialize a collection to store accessible order groups
+            foreach ($all_order_groups as $gp) {
+                $has_access = false;
+                foreach ($gp->orders as $order) {
+                    $current_step = $order->product_step_id;
+                    $step_verified_roles = ProductStepsRole::where("product_step_id", $current_step)->get();
+                    // Check if user has access to this step
+                    foreach ($step_verified_roles as $step_verified_role) {
+                        if (in_array($step_verified_role->role_id, $user_role_ids)) {
+                            $has_access = true;
+                            break;  // Break the loop as we found a matching role
+                        }
+                    }
+                    if ($has_access) {
+                        break;  // No need to check further if access is already granted
+                    }
+                }
+                // If the user has access to this order group, add it to the array
+                if ($has_access) {
+                    $accessible_order_groups->push($gp);
+                }
+            }
+            $order_groups = $my_order_groups->merge($accessible_order_groups);
+
         }
         //get customer info of each order group only customer_code and user id and get user info only name and last_name and id and mobile
         $order_groups = $order_groups->map(function ($order_group) {
@@ -64,7 +95,7 @@ class OrderGroupController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     //create order group annotation
@@ -106,7 +137,7 @@ class OrderGroupController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //show order group annotation
@@ -151,8 +182,8 @@ class OrderGroupController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //update order group annotation
@@ -209,7 +240,7 @@ class OrderGroupController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //delete order group annotation

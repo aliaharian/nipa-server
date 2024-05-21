@@ -205,7 +205,10 @@ Route::prefix('/v1')->middleware(['language'])->group(function () {
 
         Route::get('order/{id}/complete', [OrderController::class, 'showComplete']);
         Route::get('step/{id}/{orderId}/complete', [ProductStepController::class, 'showComplete']);
+
+        Route::get('order/rejected', [OrderController::class,'rejectedOrdersList'])->middleware('permission:view-rejected-orders');;
         Route::apiResource('order', OrderController::class);
+
         Route::apiResource('orderGroup', OrderGroupController::class);
         ///v1/orderGroup/{id}/search/{name}
         Route::get('orderGroup/{id}/search', [OrderController::class, 'search']);

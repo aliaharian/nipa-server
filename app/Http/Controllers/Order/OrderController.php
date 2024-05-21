@@ -12,9 +12,11 @@ use App\Models\FormFieldOptions;
 use App\Models\Order;
 use App\Models\File;
 use App\Models\OrderGroup;
+use App\Models\OrderState;
 use App\Models\Product;
 use App\Models\ProductStep;
 use App\Models\ProductStepsCondition;
+use App\Models\ProductStepsRole;
 use App\Models\UserAnswer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -52,36 +54,58 @@ class OrderController extends Controller
 
         $additional_cols = [];
         $listPermissions = new stdClass();
-        // $listPermissions->canEdit = true;
-        // $listPermissions->canDelete = true;
 
         //check if user role is admin
         $user = Auth::user();
+        $roles = $user->roles;
+        $user_role_ids = $roles->pluck('id')->toArray(); // Use pluck and toArray to get the IDs
+
         //permissions
         $permissions = $user->roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
 
+        $orders = Order::orderBy('id', 'desc')->get();
 
         //if manage orders exist in permissions
         if (
             in_array('view-orders', $permissions)
         ) {
-            $orders = Order::orderBy('id', 'desc')->get();
             $ordersPure = Order::orderBy('id', 'desc')->get();
 
             $listPermissions->canEdit = in_array('edit-orders', $permissions);
             $listPermissions->canDelete = in_array('delete-orders', $permissions);
             $listPermissions->canCompelete = in_array('compelete-orders', $permissions);
         } else {
-            $orders = Order::orderBy('id', 'desc')->get();
-            $ordersPure = Order::where('user_id', $user->id)->orderBy('id', 'desc')->get();
+            //my orders
+            $my_orders = Order::where('user_id', $user->id)->orderBy('id', 'desc')->get();
+            $accessible_orders = collect();
+
+            //orders that I have access
+            foreach ($orders as $order) {
+                $has_access = false;
+                $current_step = $order->product_step_id;
+                $step_verified_roles = ProductStepsRole::where("product_step_id", $current_step)->get();
+                // Check if user has access to this step
+                foreach ($step_verified_roles as $step_verified_role) {
+                    if (in_array($step_verified_role->role_id, $user_role_ids)) {
+                        $has_access = true;
+                        break;  // Break the loop as we found a matching role
+                    }
+                }
+                if ($has_access) {
+                    $accessible_orders->push($order);
+                }
+            }
+            $ordersPure = $my_orders->merge($accessible_orders);
         }
 
         foreach ($ordersPure as $or) {
             $or->orderGroup;
             $or->product;
             $or->step;
+            $or->state;
+
             if ($or->step) {
                 $or->step->globalStep;
                 $or->step->roles;
@@ -105,6 +129,8 @@ class OrderController extends Controller
                 }
             }
 
+
+            //make additional cols
             $additional_data = [];
             $additional_cols = [];
             foreach ($forms as $form) {
@@ -154,6 +180,53 @@ class OrderController extends Controller
             'cols' => $additional_cols,
             'permissions' => $listPermissions,
             'lang' => $lang,
+        ], 200);
+    }
+
+
+    /**
+     * @OA\Get(
+     * path="/v1/order/rejected",
+     * tags={"Order"},
+     * summary="list of orders",
+     * @OA\Response(
+     *  response=200,
+     * description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * ),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function rejectedOrdersList()
+    {
+        //get all orders with rejected state
+        $rejected_state = OrderState::where("slug", "rejected")->first();
+        $orders = Order::where("order_state_id", $rejected_state->id)->get();
+
+        foreach ($orders as $order) {
+            $order->orderGroup;
+            $order->product;
+            $order->step;
+            $order->state;
+
+            $jalaliDate = \Morilog\Jalali\Jalalian::fromCarbon($order->created_at)->format('Y/m/d'); // output is a jalali date string like 1399/08/06
+
+            $order->jalali_date = $jalaliDate;
+            $order->user;
+
+            foreach ($order->orderGroup as $group) {
+                $group->customer->user->makeHidden(['email', 'email_verified_at', 'created_at', 'updated_at', 'mobile_verified_at', 'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes']);
+                $group->customer->makeHidden(['created_at', 'updated_at', 'phone', 'postal_code', 'national_code', 'address', 'phone', 'city_id']);
+            }
+
+            $order->customer = $order->orderGroup[0]->customer->user->name ? $order->orderGroup[0]->customer->user->name . " " . $order->orderGroup[0]->customer->user->last_name : $order->orderGroup[0]->customer->user->mobile;
+
+        }
+        return response()->json([
+            "orders" => $orders,
         ], 200);
     }
 
@@ -415,27 +488,23 @@ class OrderController extends Controller
         $orderResult->customer_name = $order->customer_name;
 
         $orderResult->created_at = $order->created_at;
+        $orderResult->state = $order->state;
         $orderResult->product_name = $order->product->name;
         $orderResult->product_code = $order->product->code;
-        $orderResult->product_details = $order->product->details;
         $orderResult->product_images = $order->product->images;
         $orderResult->user = $order->user;
+        $orderResult->count = $order->count;
         $next_step = $this->findNextStep($order);
         $orderResult->step = $order->step;
         $orderResult->next_step = $next_step;
-//        $prev_step = $this->findPrevSteps($order);
-//        $orderResult->prev_step = $prev_step;
-
-        $ansArray = array();
-        foreach ($userAnswers as $key => $value) {
-            array_push($ansArray, $value);
-        }
+        $prev_steps = $this->findPrevSteps($order);
+        $orderResult->prev_steps = $prev_steps;
+        $orderResult->step->answers = $this->findOrderStepAnswers($order,$orderResult->step);
 
         $user = Auth::user();
         $permissions = $user->roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
-
 
         $orderResult->can_accept = false;
         $orderResult->can_reject = false;
@@ -456,7 +525,7 @@ class OrderController extends Controller
         }
 
 
-        return response()->json(['order' => $orderResult, 'userAnswers' => $ansArray], 200);
+        return response()->json(['order' => $orderResult], 200);
     }
 
 

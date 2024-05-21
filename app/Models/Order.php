@@ -35,4 +35,8 @@ class Order extends Model
     {
         return $this->hasMany(UserAnswer::class);
     }
+    public function state()
+    {
+        return $this->belongsTo(OrderState::class,'order_state_id','id');
+    }
 }
