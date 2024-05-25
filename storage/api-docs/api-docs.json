@@ -3070,6 +3070,28 @@
                 ]
             }
         },
+        "/v1/order/rejected": {
+            "get": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "list of orders",
+                "operationId": "d830200ccfdf438189b93131e111604a",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/order/{id}": {
             "get": {
                 "tags": [
@@ -3191,6 +3213,66 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/order/{id}/reject": {
+            "post": {
+                "tags": [
+                    "Order"
+                ],
+                "summary": "reject order",
+                "operationId": "5da92075911d834754ca53dfefdfeaf0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of order group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "sales_description",
+                                    "has_refund"
+                                ],
+                                "properties": {
+                                    "sales_description": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "test"
+                                    },
+                                    "has_refund": {
+                                        "type": "boolean",
+                                        "format": "boolean",
+                                        "example": "true"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Success",

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    protected $fillable = ['product_id', 'user_id', 'customer_name', "count", "product_step_id"];
+    protected $fillable = ['product_id', 'user_id', 'customer_name', "count", "product_step_id","order_state_id"];
 
     public function orderGroup()
     {
@@ -28,6 +28,10 @@ class Order extends Model
     public function step()
     {
         return $this->belongsTo(ProductStep::class, 'product_step_id', 'id');
+    }
+    public function rejectedInfo()
+    {
+        return $this->hasOne( RejectedOrderDetail::class, 'order_id', 'id');
     }
 
     //user answers

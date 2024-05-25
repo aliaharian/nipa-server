@@ -17,6 +17,7 @@ use App\Models\Product;
 use App\Models\ProductStep;
 use App\Models\ProductStepsCondition;
 use App\Models\ProductStepsRole;
+use App\Models\RejectedOrderDetail;
 use App\Models\UserAnswer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -493,13 +494,15 @@ class OrderController extends Controller
         $orderResult->product_code = $order->product->code;
         $orderResult->product_images = $order->product->images;
         $orderResult->user = $order->user;
+        $orderResult->rejectedInfo = $order->rejectedInfo;
+
         $orderResult->count = $order->count;
         $next_step = $this->findNextStep($order);
         $orderResult->step = $order->step;
         $orderResult->next_step = $next_step;
         $prev_steps = $this->findPrevSteps($order);
         $orderResult->prev_steps = $prev_steps;
-        $orderResult->step->answers = $this->findOrderStepAnswers($order,$orderResult->step);
+        $orderResult->step->answers = $this->findOrderStepAnswers($order, $orderResult->step);
 
         $user = Auth::user();
         $permissions = $user->roles->flatMap(function ($role) {
@@ -908,5 +911,68 @@ class OrderController extends Controller
         }
     }
 
+
+    /**
+     * @OA\Post(
+     *  path="/v1/order/{id}/reject",
+     * tags={"Order"},
+     * summary="reject order",
+     * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * description="id of order group",
+     * required=true,
+     * @OA\Schema(
+     * type="integer",
+     * format="int64",
+     * ),
+     * ),
+     * @OA\RequestBody(
+     *  required=true,
+     * @OA\JsonContent(
+     *  required={"sales_description","has_refund"},
+     * @OA\Property(property="sales_description", type="string", format="string", example="test"),
+     * @OA\Property(property="has_refund", type="boolean", format="boolean", example="true"),
+     * ),
+     * ),
+     * @OA\Response(
+     *   response=200,
+     *  description="Success",
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * ),
+     * ),
+     * security={{ "apiAuth": {} }}
+     * )
+     * )
+     */
+    public function rejectOrder($id, Request $request)
+    {
+        $data = $request->validate([
+            'has_refund' => 'required|boolean',
+            'sales_description' => 'required|string'
+        ]);
+
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        $rejected_state = OrderState::where("slug", "rejected")->first();
+        if ($order->order_state_id == $rejected_state->id) {
+            return response()->json(['error' => 'Order already rejected'], 406);
+        }
+        $order->update([
+            'order_state_id' => $rejected_state->id,
+        ]);
+        $data = RejectedOrderDetail::create([
+            "order_id" => $order->id,
+            "has_refund" => $data["has_refund"],
+            "sales_description" => $data["sales_description"],
+
+        ]);
+        return response()->json(['message' => 'Order rejected successfully', "data" => $data]);
+
+    }
 
 }

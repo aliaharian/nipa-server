@@ -207,6 +207,7 @@ Route::prefix('/v1')->middleware(['language'])->group(function () {
         Route::get('step/{id}/{orderId}/complete', [ProductStepController::class, 'showComplete']);
 
         Route::get('order/rejected', [OrderController::class,'rejectedOrdersList'])->middleware('permission:view-rejected-orders');;
+        Route::post('order/{id}/reject', [OrderController::class,'rejectOrder'])->middleware('permission:reject-order');;
         Route::apiResource('order', OrderController::class);
 
         Route::apiResource('orderGroup', OrderGroupController::class);
