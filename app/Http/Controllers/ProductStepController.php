@@ -303,6 +303,7 @@ class ProductStepController extends Controller
         $data = $request->validate([
             'step_name' => 'required',
             'next_step_id' => 'nullable|exists:product_steps,id',
+            'has_payment' => 'boolean',
         ]);
         if ($data["next_step_id"]) {
             //check if product_id of next_step_id is same with product_id of $id

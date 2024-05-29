@@ -19,6 +19,7 @@ use App\Models\ProductStepsCondition;
 use App\Models\ProductStepsRole;
 use App\Models\RejectedOrderDetail;
 use App\Models\UserAnswer;
+use App\Models\UsersRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -406,6 +407,9 @@ class OrderController extends Controller
             ]));
         }
 
+        if ($firstStep) {
+            $this->createOrderStepFactor($firstStep, $orderGroup);
+        }
 
         return response()->json(['order' => 'done!'], 200);
     }
@@ -766,6 +770,7 @@ class OrderController extends Controller
     public function gotoNextStep($id)
     {
         $order = Order::find($id);
+
         $nextStep = $this->findNextStep($order);
 
         $user = Auth::user();
@@ -780,12 +785,50 @@ class OrderController extends Controller
             if (
                 !in_array('accept-order', $permissions)
             ) {
-                return response()->json(['message' => 'you dont have enaugh access to accept this order'], 403);
+                return response()->json(['message' => 'you dont have enough access to accept this order'], 403);
             }
         }
+
+//        if ($currentStep->globalStep->description != "initialOrder") {
+//            //otherwise, check that current user has access to current step
+//            $step_roles = ProductStepsRole::where("product_step_id", $currentStep->id)->get();
+//            $my_roles = UsersRole::where("user_id", $user->id)->get();
+//            $has_access = $step_roles->intersect($my_roles)->isNotEmpty();
+//
+//            if (!$has_access) {
+//                // User has access to the current step
+//                return response()->json(['message' => 'you dont have enough access to pass this step'], 403);
+//            }
+//        }
+
+        //check if this step has payment or not
+
+        if ($currentStep->has_payment) {
+            //find related factor
+            $factor = Factor::where("order_group_id", $order->orderGroup[0]->id)->where("product_step_id", $currentStep->id)->first();
+            if ($factor) {
+                //check if factor has been fully paid or not
+                $factorTotalPrice = $factor->totalPrice(false, true);
+                $resp = $factorTotalPrice->getData();
+                $factorTotalPrice = $resp->data;
+                $factorPaidPrice = $resp->paid;
+                if ($factorPaidPrice < $factorTotalPrice) {
+                    return response()->json(['message' => 'به علت عدم پرداخت فاکتور امکان ادامه وجود ندارد','detail'=>[
+                        "factorTotalPrice" => $resp->data,
+                    "factorPaidPrice" => $resp->paid,
+                    ]], 406);
+                }
+            }
+        }
+
         $order->update([
             "product_step_id" => $nextStep->id
         ]);
+
+        //create factor for next step if next step has_payment
+        $this->createOrderStepFactor($nextStep, $order->orderGroup[0]);
+
+
         return response()->json(['order' => $order], 200);
 
     }
@@ -973,6 +1016,47 @@ class OrderController extends Controller
         ]);
         return response()->json(['message' => 'Order rejected successfully', "data" => $data]);
 
+    }
+
+    public function createOrderStepFactor($step, $orderGroup)
+    {
+        if ($step->has_payment) {
+            $factorController = new FactorController();
+            $user = Auth::user();
+            //if first step has payment, then create its factor
+            $step_factor = Factor::create([
+                'code' => //NIPA + order group id+ "_" +product step id+ "_" + user id +"_"+timestamp unix
+                    "NIPA_" . $orderGroup->id . "_" . $step->id . "_" . auth()->user()->id . "_" . time(),
+                'order_group_id' => $orderGroup->id,
+                'product_step_id' => $step->id,
+                'expire_date' => date('Y-m-d', strtotime('+7 days')),
+                'description' => "",
+            ]);
+
+            $changesMeta = array();
+            $changesMeta[] = [
+                "modifiedType" => "createFactor",
+                "user" => $user->id,
+            ];
+
+            $factorController->setFactorStatus(
+                $step_factor->id,
+                new Request([
+                    'factor_status_enum' => "salesPending",
+                    'name' => "status",
+                    'meta' => json_encode($changesMeta),
+                ])
+            );
+
+            //store one item in factor
+            $factorController->storeFactorItem($step_factor->id, new Request([
+                'code' => "1",
+                'name' => "خدمات " . $step->step_name,
+                'count_type' => "quantity",
+                'count' => 1,
+                'unit_price' => 1
+            ]));
+        }
     }
 
 }

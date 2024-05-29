@@ -13,7 +13,8 @@ class ProductStep extends Model
         'step_name',
         'product_id',
         'next_step_id',
-        'meta'
+        'meta',
+        'has_payment'
     ];
     //make timestamps hidden
     protected $hidden = [

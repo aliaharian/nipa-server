@@ -15,6 +15,7 @@ class Factor extends Model
     protected $fillable = [
         'code',
         'order_group_id',
+        'product_step_id',
         'expire_date',
         'description',
     ];
