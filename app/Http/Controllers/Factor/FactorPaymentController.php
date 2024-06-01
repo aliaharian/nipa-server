@@ -138,8 +138,13 @@ class FactorPaymentController extends Controller
             ], 400);
         }
 
+        //get user wallet
+        $userWallet = auth()->user()->wallet;
+        //check if user wallet is enough
+        $walletTotal = $userWallet->active ? $userWallet->balance + $userWallet->credit - $userWallet->blocked : 0;
+
         //if offline , fileId and payer description is required
-        if ($request->method == "offline") {
+        if ($request->method == "offline" && $walletTotal < $factorPaymentStep->payable_price) {
             $request->validate([
                 "fileId" => "required|exists:files,id",
 //                "payerDescription" => "required|string"
@@ -147,10 +152,7 @@ class FactorPaymentController extends Controller
         }
 
 
-        //get user wallet
-        $userWallet = auth()->user()->wallet;
-        //check if user wallet is enough
-        $walletTotal = $userWallet->active ? $userWallet->balance + $userWallet->credit - $userWallet->blocked : 0;
+
         if ($walletTotal < $factorPaymentStep->payable_price) {
             //pay from gateway or offline
             //calculate remaining amount

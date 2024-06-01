@@ -7,6 +7,7 @@ use App\Http\Controllers\Factor\FactorController;
 use App\Http\Controllers\Form\FormController;
 use App\Http\Controllers\User\UserAnswerController;
 use App\Models\BasicDataItem;
+use App\Models\Customer;
 use App\Models\Factor;
 use App\Models\FormFieldOptions;
 use App\Models\Order;
@@ -81,6 +82,12 @@ class OrderController extends Controller
         } else {
             //my orders
             $my_orders = Order::where('user_id', $user->id)->orderBy('id', 'desc')->get();
+            $customerId = Customer::where("user_id", $user->id)->first()->id;
+            //my orders that i am their customer in order_group
+            $my_orders_customer = Order::whereHas('orderGroup', function ($query) use ($customerId) {
+                $query->where('customer_id', $customerId);
+            })->get();
+
             $accessible_orders = collect();
 
             //orders that I have access
@@ -99,7 +106,7 @@ class OrderController extends Controller
                     $accessible_orders->push($order);
                 }
             }
-            $ordersPure = $my_orders->merge($accessible_orders);
+            $ordersPure = $my_orders->merge($accessible_orders)->merge($my_orders_customer);
         }
 
         foreach ($ordersPure as $or) {
@@ -812,10 +819,12 @@ class OrderController extends Controller
                 $resp = $factorTotalPrice->getData();
                 $factorTotalPrice = $resp->data;
                 $factorPaidPrice = $resp->paid;
-                if ($factorPaidPrice < $factorTotalPrice) {
-                    return response()->json(['message' => 'به علت عدم پرداخت فاکتور امکان ادامه وجود ندارد','detail'=>[
+                $factor_status_slug = $factor->lastStatus->factorStatusEnum->slug;
+
+                if ($factor_status_slug != "paymentDone") {
+                    return response()->json(['message' => 'به علت عدم پرداخت فاکتور امکان ادامه وجود ندارد', 'detail' => [
                         "factorTotalPrice" => $resp->data,
-                    "factorPaidPrice" => $resp->paid,
+                        "factorPaidPrice" => $resp->paid,
                     ]], 406);
                 }
             }

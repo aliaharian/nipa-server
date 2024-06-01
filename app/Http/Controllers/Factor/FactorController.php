@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Factor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Factor;
 use App\Models\FactorItem;
 use App\Models\FactorPayment;
@@ -1207,9 +1208,10 @@ class FactorController extends Controller
         }
         //check if user owner or customer of factor
         $user_id = auth()->user()->id;
+        $customer_id = Customer::where("user_id",$user_id)->first()->id;
         $factor_user_id = $factor->orderGroup->user_id;
         $factor_customer_id = $factor->orderGroup->customer_id;
-        if ($factor_user_id != $user_id && $factor_customer_id != $user_id) {
+        if ($factor_user_id != $user_id && $factor_customer_id != $customer_id) {
             return response()->json(['message' => 'you dont have permission to accept this factor'], 403);
         }
         //check if factor is valid

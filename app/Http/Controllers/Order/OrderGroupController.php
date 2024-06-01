@@ -55,7 +55,8 @@ class OrderGroupController extends Controller
 
         } else {
             //my orders
-            $my_order_groups = OrderGroup::where("user_id", $user->id)->orderBy('id', 'DESC')->get();
+            $customer = Customer::where("user_id",$user->id)->first();
+            $my_order_groups = OrderGroup::where("user_id", $user->id)->orWhere("customer_id",$customer->id)->orderBy('id', 'DESC')->get();
             //orders that i have access to their step based on their current step
             $accessible_order_groups = collect();  // Initialize a collection to store accessible order groups
             foreach ($all_order_groups as $gp) {

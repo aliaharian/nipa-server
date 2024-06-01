@@ -15,6 +15,7 @@ class FormCondition extends Model
         'form_field_option_id',
         'operation',
         'relational_form_field_id',
+        'switch',
         'basic_data_item_id'
     ];
 

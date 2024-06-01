@@ -417,14 +417,15 @@ class FormController extends Controller
                     $condArray = new Request($condArray);
 
                     $formField = FormField::find($cond->form_field_id);
-
+                    $field_type = $formField->type->type;
                     foreach ($cond->form_field_options_id as $option) {
 
                         $formCond = FormCondition::updateOrCreate([
                             'form_id' => $id,
                             'form_field_id' => $cond->form_field_id,
-                            'form_field_option_id' => $formField->basic_data_id ? null : $option,
-                            'basic_data_item_id' => $formField->basic_data_id ? $option : null,
+                            'form_field_option_id' => ($field_type === "switch" || $formField->basic_data_id) ? null : $option,
+                            'basic_data_item_id' => ($field_type === "switch" || !$formField->basic_data_id) ? null : $option,
+                            'switch' => $field_type === "switch" ? $option : null,
                             'operation' => $cond->operation,
                             'relational_form_field_id' => $cond->relational_form_field_id,
                         ]);
