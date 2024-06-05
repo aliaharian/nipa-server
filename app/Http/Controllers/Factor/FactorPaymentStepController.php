@@ -91,7 +91,7 @@ class FactorPaymentStepController extends Controller
         if (!$allHavePrice) {
             $warning = __('validation.custom.factor_payment_steps.allHavePrice');
         } else
-            if ($count == 0) {
+            if ($count == 0 && $factorTotalPrice > 0) {
 
                 $warning =  //get errors based on locale
                     __('validation.custom.factor_payment_steps.count0');
@@ -101,9 +101,11 @@ class FactorPaymentStepController extends Controller
                     $warning = __('validation.custom.factor_payment_steps.count1');
                 }
             } else {
-                //check if step 1 + step 2 is not equal to factor total price
-                if ($factor_payment_steps[0]->payable_price + $factor_payment_steps[1]->payable_price != $factorTotalPrice) {
-                    $warning = __('validation.custom.factor_payment_steps.count2');
+                if ($count > 0) {
+                    //check if step 1 + step 2 is not equal to factor total price
+                    if ($factor_payment_steps[0]->payable_price + $factor_payment_steps[1]->payable_price != $factorTotalPrice) {
+                        $warning = __('validation.custom.factor_payment_steps.count2');
+                    }
                 }
             }
 
