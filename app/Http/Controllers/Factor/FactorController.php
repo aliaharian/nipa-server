@@ -238,6 +238,22 @@ class FactorController extends Controller
             'expire_date' => $request->expire_date,
             'description' => $request->description,
         ]);
+
+        if ($request->standAlone == true) {
+            $user = Auth::user();
+            $changesMeta[] = [
+                "modifiedType" => "createFactor",
+                "user" => $user->id,
+            ];
+            $this->setFactorStatus(
+                $factor->id,
+                new Request([
+                    'factor_status_enum' => "salesPending",
+                    'name' => "status",
+                    'meta' => json_encode($changesMeta),
+                ])
+            );
+        }
         return response()->json($factor, 201);
     }
 
@@ -1208,7 +1224,7 @@ class FactorController extends Controller
         }
         //check if user owner or customer of factor
         $user_id = auth()->user()->id;
-        $customer_id = Customer::where("user_id",$user_id)->first()->id;
+        $customer_id = Customer::where("user_id", $user_id)->first()->id;
         $factor_user_id = $factor->orderGroup->user_id;
         $factor_customer_id = $factor->orderGroup->customer_id;
         if ($factor_user_id != $user_id && $factor_customer_id != $customer_id) {

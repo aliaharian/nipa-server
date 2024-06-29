@@ -34,9 +34,10 @@ class OrderGroupController extends Controller
      * )
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
-        //liost all order groups
+        $searchParam = $request->searchParam ?? "";
+        //list all order groups
         $user = Auth::user();
         //permissions
         $roles = $user->roles;
@@ -45,7 +46,10 @@ class OrderGroupController extends Controller
         $permissions = $roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
-        $all_order_groups = OrderGroup::orderBy('id', 'DESC')->get();
+        $all_order_groups = OrderGroup::where("id", "like", "%" . $searchParam . "%")->orWhereHas('user', function ($query) use ($searchParam) {
+            $query->where("name", "like", "%" . $searchParam . "%")
+                ->orWhere("last_name", "like", "%" . $searchParam . "%");
+        })->orderBy('id', 'DESC')->get();
 
         //if manage orders exist in permissions
         if (
@@ -55,8 +59,13 @@ class OrderGroupController extends Controller
 
         } else {
             //my orders
-            $customer = Customer::where("user_id",$user->id)->first();
-            $my_order_groups = OrderGroup::where("user_id", $user->id)->orWhere("customer_id",$customer->id)->orderBy('id', 'DESC')->get();
+            $customer = Customer::where("user_id", $user->id)->first();
+            $my_order_groups = OrderGroup::where("user_id", $user->id)->orWhere("customer_id", $customer->id);
+
+            $my_order_groups->where("id", "like", "%" . $searchParam . "%")->orWhereHas('user', function ($query) use ($searchParam) {
+                $query->where("name", "like", "%" . $searchParam . "%")
+                    ->orWhere("last_name", "like", "%" . $searchParam . "%");
+            })->orderBy('id', 'DESC')->get();
             //orders that i have access to their step based on their current step
             $accessible_order_groups = collect();  // Initialize a collection to store accessible order groups
             foreach ($all_order_groups as $gp) {
