@@ -5238,6 +5238,160 @@
                         "apiAuth": []
                     }
                 ]
+            },
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "add user",
+                "operationId": "b17aa14793d5d94e0ee14393a2e681c8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "last_name",
+                                    "email",
+                                    "mobile",
+                                    "code",
+                                    "avatar_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "ali"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "aharian"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "ali@gmail.com"
+                                    },
+                                    "mobile": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "09307473703"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "NIPA12345"
+                                    },
+                                    "avatar_hash_code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "f7569755f197b9e21881808ddfd0d425"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/users/{id}": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "update user",
+                "operationId": "f2c1d06099b442f90a03017be39e885b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of user",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "last_name",
+                                    "email",
+                                    "mobile",
+                                    "code",
+                                    "avatar_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "ali"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "aharian"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "ali@gmail.com"
+                                    },
+                                    "mobile": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "09307473703"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "NIPA12345"
+                                    },
+                                    "avatar_hash_code": {
+                                        "type": "string",
+                                        "format": "string",
+                                        "example": "f7569755f197b9e21881808ddfd0d425"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
             }
         },
         "/v1/wallet/transactions": {

@@ -73,6 +73,4 @@ class User extends Authenticatable
         return $this->hasOne(File::class,"id","avatar_id")->select("hash_code");
     }
 
-
-
 }

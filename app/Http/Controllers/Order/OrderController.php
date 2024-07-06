@@ -178,7 +178,8 @@ class OrderController extends Controller
                         $group->customer->makeHidden(['created_at', 'updated_at', 'phone', 'postal_code', 'national_code', 'address', 'phone', 'city_id']);
                     }
 
-                    $orderPure->customer = $orderPure->orderGroup[0]->customer->user->name ? $orderPure->orderGroup[0]->customer->user->name . " " . $orderPure->orderGroup[0]->customer->user->last_name : $orderPure->orderGroup[0]->customer->user->mobile;
+//                    $orderPure->customer = $orderPure->orderGroup[0]->customer->user->name ? $orderPure->orderGroup[0]->customer->user->name . " " . $orderPure->orderGroup[0]->customer->user->last_name : $orderPure->orderGroup[0]->customer->user->mobile;
+                    $orderPure->customer = "";
                 }
             }
             //find form of first step
@@ -231,7 +232,9 @@ class OrderController extends Controller
                 $group->customer->makeHidden(['created_at', 'updated_at', 'phone', 'postal_code', 'national_code', 'address', 'phone', 'city_id']);
             }
 
-            $order->customer = $order->orderGroup[0]->customer->user->name ? $order->orderGroup[0]->customer->user->name . " " . $order->orderGroup[0]->customer->user->last_name : $order->orderGroup[0]->customer->user->mobile;
+//            $order->customer = $order->orderGroup[0]->customer->user->name ? $order->orderGroup[0]->customer->user->name . " " . $order->orderGroup[0]->customer->user->last_name : $order->orderGroup[0]->customer->user->mobile;
+//            return $order->orderGroup;
+            $order->customer = "";
 
         }
         return response()->json([

@@ -86,17 +86,16 @@ class FactorController extends Controller
      **/
     public function invoicesList(Request $request, $export = false)
     {
-
         $permissions = Auth::user()->roles->flatMap(function ($role) {
             return $role->permissions->pluck('slug')->toArray();
         })->toArray();
         $canEdit = false;
-
+        $canAddFactor = false;
         if (in_array('can-view-all-invoices', $permissions)) {
             $filters = request()->all();
             $query = Factor::query();
             $canEdit = true;
-
+            $canAddFactor = true;
             if (isset($filters['user_id'])) {
                 //query in order groups that user is its user_id of customer of order group
                 // i have only order_group_id in this table
@@ -191,7 +190,8 @@ class FactorController extends Controller
             'accessAll' => $accessAll,
             'pagination' => $pagination,
             'filters' => $filters,
-            'canEdit' => $canEdit
+            'canEdit' => $canEdit,
+            'canAddFactor' => $canAddFactor
         ], 200);
     }
 

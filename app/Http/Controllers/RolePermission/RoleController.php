@@ -47,7 +47,7 @@ class RoleController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
 
@@ -83,10 +83,9 @@ class RoleController extends Controller
         ]);
 
 
-
         $role = Role::create($data);
         $request->request->add(['role_id' => $role->id]);
-        foreach ((array) $request->permissions as $perm) {
+        foreach ((array)$request->permissions as $perm) {
             $permissionController = new PermissionController();
             $resp = $permissionController->assignPermissionToRole($request, $perm);
             // return response()->json($resp, 200);
@@ -100,7 +99,7 @@ class RoleController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
 
@@ -143,8 +142,8 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //update role swagger annotation
@@ -200,7 +199,7 @@ class RoleController extends Controller
 
 
         $request->request->add(['role_id' => $role->id]);
-        foreach ((array) $request->permissions as $perm) {
+        foreach ((array)$request->permissions as $perm) {
             $permissionController = new PermissionController();
             $resp = $permissionController->assignPermissionToRole($request, $perm);
             // return response()->json($resp, 200);
@@ -213,7 +212,7 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     //delete role swagger annotation
@@ -254,6 +253,7 @@ class RoleController extends Controller
     }
 
     //assign role to user
+
     /**
      * @OA\Post(
      *   path="/v1/roles/{role_id}/assign",
@@ -300,11 +300,14 @@ class RoleController extends Controller
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-        $user->roles()->attach($role);
+//        $user->roles()->attach($role);
+        $user->roles()->sync([$role_id]);
+
         return response()->json(['message' => 'Role assigned successfully'], 200);
     }
 
     //show user roles
+
     /**
      * @OA\Get(
      *   path="/v1/roles/user/{user_id}",
@@ -342,6 +345,7 @@ class RoleController extends Controller
     }
 
     //my roles
+
     /**
      * @OA\Get(
      *   path="/v1/roles/my",

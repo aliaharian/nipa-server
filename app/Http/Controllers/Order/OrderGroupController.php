@@ -62,10 +62,7 @@ class OrderGroupController extends Controller
             $customer = Customer::where("user_id", $user->id)->first();
             $my_order_groups = OrderGroup::where("user_id", $user->id)->orWhere("customer_id", $customer->id);
 
-            $my_order_groups->where("id", "like", "%" . $searchParam . "%")->orWhereHas('user', function ($query) use ($searchParam) {
-                $query->where("name", "like", "%" . $searchParam . "%")
-                    ->orWhere("last_name", "like", "%" . $searchParam . "%");
-            })->orderBy('id', 'DESC')->get();
+            $my_order_groups->where("id", "like", "%" . $searchParam . "%")->orderBy('id', 'DESC');
             //orders that i have access to their step based on their current step
             $accessible_order_groups = collect();  // Initialize a collection to store accessible order groups
             foreach ($all_order_groups as $gp) {
@@ -89,7 +86,13 @@ class OrderGroupController extends Controller
                     $accessible_order_groups->push($gp);
                 }
             }
-            $order_groups = $my_order_groups->merge($accessible_order_groups);
+//            return response()->json($user, 200);
+
+            if ($my_order_groups->count() > 0) {
+                $order_groups = $my_order_groups->get()->merge($accessible_order_groups);
+            } else {
+                $order_groups = $accessible_order_groups;
+            }
 
         }
         //get customer info of each order group only customer_code and user id and get user info only name and last_name and id and mobile
