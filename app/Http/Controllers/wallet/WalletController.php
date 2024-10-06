@@ -398,6 +398,39 @@ class WalletController extends Controller
         return response()->json(['message' => 'موجودی کیف پول با موفقیت افزایش یافت'], 200);
     }
 
+    public function grantCredit(Request $request)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:1000',
+            'user_id'=> 'required|exists:users,id',
+            'is_credit' => 'required',
+            'description' => 'required'
+        ]);
+        $user = User::find($request->user_id);
+        $wallet = $user->wallet;
+        if(!$wallet){
+            return response()->json(['message' => 'wallet not exists'], 404);
+        }
+        if($request->is_credit=="true"){
+            $wallet->credit += $request->amount;
+        }else{
+            $wallet->balance += $request->amount;
+        }
+        $wallet->save();
+        $transaction = Transaction::create([
+            'wallet_id' => $wallet->id,
+            'payment_method' => 'offline',
+            'price' => $request->amount,
+            'status_id' => 1,
+            'description' => ($request->is_credit=="true"?'افزایش اعتبار ':'افزایش موجودی ').' کیف پول'.' / '.$request->description,
+            'transaction_type' => $request->is_credit=="true"?'increaseBalance':'increaseCredit',
+            'isValid' => true,
+        ]);
+        return response()->json(['message' => 'موجودی کیف پول با موفقیت افزایش یافت'], 200);
+    }
+
+    
+
 
     //write annotation
 

@@ -68,6 +68,7 @@ Route::prefix('/v1')->middleware(['language'])->group(function () {
         //wallet
         Route::prefix('wallet')->group(function () {
             Route::post('increase', [WalletController::class, 'increaseWalletBalance']);
+            Route::post('grantCredit', [WalletController::class, 'grantCredit'])->middleware('permission:can-grant-credit');
             Route::get("usersList", [WalletController::class, "userWalletsList"]);
             //transactions
             Route::prefix('transactions')->group(function () {
